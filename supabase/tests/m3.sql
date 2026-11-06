@@ -42,6 +42,20 @@ begin
   begin insert into public.player_games (profile_id, game) values (ub, 'APEX'); r := array_append(r, 'G add game for B: LEAK');
   exception when others then r := array_append(r, 'G add game for B: blocked (good)'); end;
 
+  -- Regression: PostgREST upsert also updates key columns, which users cannot. The app inserts, then updates role/rank on 23505.
+  begin
+    insert into public.player_games (profile_id, game, role, rank) values (ua, 'VALORANT', 'Duelist', 'Gold')
+    on conflict (profile_id, game) do update set profile_id = excluded.profile_id, game = excluded.game, role = excluded.role, rank = excluded.rank;
+    r := array_append(r, 'G upsert touching key columns: LEAK');
+  exception when insufficient_privilege then r := array_append(r, 'G upsert touching key columns: denied (the app must not use upsert here)'); end;
+  begin
+    insert into public.player_games (profile_id, game, role, rank) values (ua, 'VALORANT', 'Duelist', 'Gold');
+    r := array_append(r, 'G duplicate insert: no error?');
+  exception when unique_violation then
+    update public.player_games set role = 'Controller', rank = 'Gold' where profile_id = ua and game = 'VALORANT';
+    r := array_append(r, 'G duplicate insert -> 23505 then role/rank update: ok (what savePlayerGame does)');
+  end;
+
   insert into public.stat_entries (profile_id, game, season, metrics) values (ua, 'VALORANT', 'S1', '{"acs":250,"matches":40}');
   r := array_append(r, 'S valid metrics: ok');
   begin insert into public.stat_entries (profile_id, game, season, metrics) values (ua, 'VALORANT', 'S1', '{"acs":"abc"}'); r := array_append(r, 'S text value: LEAK');

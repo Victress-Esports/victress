@@ -4,6 +4,7 @@ import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { checkHandle } from "@/lib/handles";
 import { GAME_IDS, getGame } from "@/content/games";
+import { savePlayerGame } from "@/lib/player-games";
 
 export type Result = { ok: boolean; message?: string };
 const fail = (message = "Something went wrong. Try again."): Result => ({ ok: false, message });
@@ -70,10 +71,7 @@ export async function saveGameAction(input: z.input<typeof gameSchema>): Promise
   const cfg = getGame(p.data.game)!;
   const role = p.data.role && cfg.roles.includes(p.data.role) ? p.data.role : null;
   const rank = p.data.rank && cfg.ranks.includes(p.data.rank) ? p.data.rank : null;
-  const { error } = await sb
-    .from("player_games")
-    .upsert({ profile_id: user.id, game: cfg.id, role, rank }, { onConflict: "profile_id,game" });
-  return error ? fail() : { ok: true };
+  return (await savePlayerGame(sb, user.id, cfg, role, rank)) ? { ok: true } : fail();
 }
 
 export async function removeGameAction(game: string): Promise<Result> {

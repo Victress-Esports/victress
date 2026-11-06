@@ -7,6 +7,7 @@ import { requireUser, safeNext } from "@/lib/auth";
 import { sendWelcome } from "@/lib/email";
 import { checkHandle } from "@/lib/handles";
 import { GAME_IDS, getGame } from "@/content/games";
+import { savePlayerGame } from "@/lib/player-games";
 
 export type ClaimStatus = "ok" | "invalid" | "reserved" | "taken" | "cooldown" | "error";
 
@@ -44,10 +45,7 @@ export async function finishOnboardingAction(input: z.input<typeof finishSchema>
   if (cfg) {
     const role = parsed.data.role && cfg.roles.includes(parsed.data.role) ? parsed.data.role : null;
     const rank = parsed.data.rank && cfg.ranks.includes(parsed.data.rank) ? parsed.data.rank : null;
-    const { error } = await sb
-      .from("player_games")
-      .upsert({ profile_id: user.id, game: cfg.id, role, rank }, { onConflict: "profile_id,game" });
-    if (error) return { ok: false as const };
+    if (!(await savePlayerGame(sb, user.id, cfg, role, rank))) return { ok: false as const };
   }
 
   await sb.auth.updateUser({ data: { onboarded: true } });
