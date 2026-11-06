@@ -1,20 +1,25 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { requireUser } from "@/lib/auth";
+import { requireUser, safeNext } from "@/lib/auth";
 import { sendWelcome } from "@/lib/email";
 import { checkHandle } from "@/lib/handles";
-import { GAMES } from "@/content/games";
+import { GAME_IDS, getGame } from "@/content/games";
 
-export async function claimNameAction(raw: string): Promise<{ status: "ok" | "invalid" | "reserved" | "taken" | "error" }> {
+export type ClaimStatus = "ok" | "invalid" | "reserved" | "taken" | "cooldown" | "error";
+
+export async function claimNameAction(raw: string): Promise<{ status: ClaimStatus }> {
   const { sb, user } = await requireUser();
   const { verdict, handle } = checkHandle(String(raw ?? ""));
   if (verdict !== "ok") return { status: verdict };
 
   const { data, error } = await sb.rpc("claim_handle", { p_handle: handle });
   if (error || !data) return { status: "error" };
-  if (data !== "ok") return { status: data === "taken" ? "taken" : data === "reserved" ? "reserved" : "invalid" };
+  if (data !== "ok") {
+    return { status: data === "taken" || data === "reserved" || data === "cooldown" ? data : "invalid" };
+  }
 
   if (user.email && !user.user_metadata?.welcomed) {
     await sendWelcome(user.email, handle).catch((e) => console.error("welcome email failed", e));
@@ -24,28 +29,32 @@ export async function claimNameAction(raw: string): Promise<{ status: "ok" | "in
 }
 
 const finishSchema = z.object({
-  game: z.enum(["VALORANT", "CS2"]).nullable().optional(),
+  game: z.enum(GAME_IDS).nullable().optional(),
   role: z.string().max(40).nullable().optional(),
   rank: z.string().max(40).nullable().optional(),
 });
 
-/** Saves the three onboarding answers (all optional: skipping is always allowed) and goes to the dashboard. */
+/** Saves the onboarding answers (all optional: skipping is always allowed). The first game becomes the primary game. */
 export async function finishOnboardingAction(input: z.input<typeof finishSchema>) {
   const { sb, user } = await requireUser();
   const parsed = finishSchema.safeParse(input);
   if (!parsed.success) return { ok: false as const };
 
-  const { game } = parsed.data;
-  const cfg = game ? GAMES[game] : null;
-  const role = cfg && parsed.data.role && cfg.roles.includes(parsed.data.role) ? parsed.data.role : null;
-  const rank = cfg && parsed.data.rank && cfg.ranks.includes(parsed.data.rank) ? parsed.data.rank : null;
-
-  const { error } = await sb
-    .from("profiles")
-    .update({ game: game ?? null, role, rank })
-    .eq("id", user.id);
-  if (error) return { ok: false as const };
+  const cfg = getGame(parsed.data.game);
+  if (cfg) {
+    const role = parsed.data.role && cfg.roles.includes(parsed.data.role) ? parsed.data.role : null;
+    const rank = parsed.data.rank && cfg.ranks.includes(parsed.data.rank) ? parsed.data.rank : null;
+    const { error } = await sb
+      .from("player_games")
+      .upsert({ profile_id: user.id, game: cfg.id, role, rank }, { onConflict: "profile_id,game" });
+    if (error) return { ok: false as const };
+  }
 
   await sb.auth.updateUser({ data: { onboarded: true } });
-  redirect("/dashboard");
+
+  // An invite link opened before signup: continue to it.
+  const store = await cookies();
+  const next = safeNext(decodeURIComponent(store.get("v_next")?.value ?? ""), "/dashboard");
+  store.delete("v_next");
+  redirect(next);
 }

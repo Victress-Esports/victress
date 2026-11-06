@@ -35,6 +35,18 @@ export const copy = {
       { n: "2", title: "Add your game." },
       { n: "3", title: "Climb." },
     ],
+    games: {
+      eyebrow: "Starting with",
+      title: "VALORANT and Counter-Strike 2.",
+      line: "Four more games are open for profiles too.",
+      alsoLabel: "Also open:",
+      also: ["Rocket League", "League of Legends", "Apex Legends", "Overwatch 2"],
+      cards: [
+        { id: "VALORANT", line: "Show your agent role and your rank." },
+        { id: "CS2", line: "Show your role, rank and Premier rating." },
+      ],
+      note: "You enter your own stats. They are labeled Self-reported.",
+    },
     features: [
       {
         id: "profile",
@@ -85,12 +97,12 @@ export const copy = {
         a: "Yes. Rookie is free forever, with a shareable profile and manual stats.",
       },
       {
-        q: "Which games do you support?",
-        a: "We're starting with one game for our first players. More will follow.",
+        q: "Which games can I add?",
+        a: "VALORANT and Counter-Strike 2 first. Rocket League, League of Legends, Apex Legends and Overwatch 2 are open too.",
       },
       {
         q: "Where do my stats come from?",
-        a: "You enter them yourself, and we label them that way. Automatic imports are coming later.",
+        a: "You enter them yourself, and we label them Self-reported. We don't connect to your game account.",
       },
       {
         q: "When do paid plans start?",
@@ -144,6 +156,7 @@ export const copy = {
       { href: "/terms", label: "Terms" },
     ],
     rights: "Victress LLC. All rights reserved.",
+    trademarks: "Game names are trademarks of their owners. Victress is not affiliated with or endorsed by them.",
   },
 
   legal: {

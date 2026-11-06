@@ -25,7 +25,6 @@ export async function GET(req: Request) {
   const cookieClaim = store.get("v_claim")?.value;
   const next = safeNext(decodeURIComponent(store.get("v_next")?.value ?? ""), "");
   store.delete("v_claim");
-  store.delete("v_next");
 
   // Apply the handle claimed on the marketing site (cookie, or user metadata for magic links opened elsewhere).
   const wanted = decodeURIComponent(cookieClaim ?? "") || String(user.user_metadata?.claim ?? "");
@@ -43,10 +42,8 @@ export async function GET(req: Request) {
     await sb.auth.updateUser({ data: { welcomed: true } });
   }
 
-  const dest = needsName
-    ? "/onboarding?step=name"
-    : user.user_metadata?.onboarded
-      ? next || "/dashboard"
-      : "/onboarding";
+  const onboarded = !!user.user_metadata?.onboarded;
+  if (onboarded) store.delete("v_next"); // otherwise onboarding finishes the trip to it
+  const dest = needsName ? "/onboarding?step=name" : onboarded ? next || "/dashboard" : "/onboarding";
   return NextResponse.redirect(new URL(dest, url.origin));
 }

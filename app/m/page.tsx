@@ -5,6 +5,7 @@ import { LeaderboardMock, ProfileCardMock, ProgressMock } from "@/components/mar
 import { WaitlistButton } from "@/components/marketing/WaitlistButton";
 import { ButtonLink } from "@/components/ui/Button";
 import { copy } from "@/content/copy";
+import { GAMES, type GameId } from "@/content/games";
 import { appUrl } from "@/lib/urls";
 
 export const metadata: Metadata = {
@@ -45,6 +46,30 @@ export default function Home() {
             </li>
           ))}
         </ol>
+      </section>
+
+      {/* Games: VALORANT and CS2 are featured; the other four are open in onboarding and profiles. */}
+      <section aria-labelledby="games-title" className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
+        <div className="reveal">
+          <p className="text-sm font-semibold uppercase tracking-widest text-coral">{h.games.eyebrow}</p>
+          <h2 id="games-title" className="mt-3 font-display text-4xl font-bold leading-tight sm:text-5xl">
+            {h.games.title}
+          </h2>
+          <p className="mt-4 max-w-md text-lg text-mute">{h.games.line}</p>
+          <ul className="mt-10 grid gap-5 sm:grid-cols-2">
+            {h.games.cards.map((c) => (
+              <li key={c.id} className="lift rounded-3xl border border-line bg-surface p-8">
+                {/* Art slot: add official game key art here only with permission. */}
+                <h3 className="font-display text-3xl font-bold">{GAMES[c.id as GameId].name}</h3>
+                <p className="mt-2 text-mute">{c.line}</p>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-6 text-mute">
+            <span className="font-semibold text-white">{h.games.alsoLabel}</span> {h.games.also.join(", ")}.
+          </p>
+          <p className="mt-2 text-sm text-mute">{h.games.note}</p>
+        </div>
       </section>
 
       {/* Features */}

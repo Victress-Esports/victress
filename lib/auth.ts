@@ -2,7 +2,7 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
 
-export const PLACEHOLDER_HANDLE = /^p[0-9a-f]{12}$/;
+export { PLACEHOLDER_HANDLE } from "@/lib/handles";
 
 /** Use at the top of any signed-in page. Redirects to /login when there is no session. */
 export async function requireUser() {

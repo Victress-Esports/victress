@@ -8,7 +8,7 @@ import { buttonClass } from "@/components/ui/Button";
 import { checkHandle } from "@/lib/handles";
 import { appHost, statRows } from "@/lib/profiles";
 import { supabasePublic } from "@/lib/supabase/public";
-import { APP_URL, MARKETING_URL } from "@/lib/urls";
+import { APP_URL, marketingUrl } from "@/lib/urls";
 
 export const revalidate = 60;
 
@@ -18,14 +18,20 @@ async function load(raw: string) {
   const db = supabasePublic();
   const { data: profile } = await db.from("public_profiles").select("*").eq("handle", handle).maybeSingle();
   if (!profile?.id || !profile.handle) return null;
-  const { data: latest } = await db
-    .from("stat_entries")
-    .select("metrics")
-    .eq("profile_id", profile.id)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  return { profile, stats: statRows(profile.game, latest?.metrics) };
+  const [{ data: latest }, { data: games }] = await Promise.all([
+    profile.game
+      ? db
+          .from("stat_entries")
+          .select("metrics")
+          .eq("profile_id", profile.id)
+          .eq("game", profile.game)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    db.from("player_games").select("game, role, rank, is_primary").eq("profile_id", profile.id).order("created_at"),
+  ]);
+  return { profile, stats: statRows(profile.game, latest?.metrics), alsoPlays: (games ?? []).filter((g) => !g.is_primary) };
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ handle: string }> }): Promise<Metadata> {
@@ -50,12 +56,12 @@ export async function generateMetadata({ params }: { params: Promise<{ handle: s
 export default async function PublicProfile({ params }: { params: Promise<{ handle: string }> }) {
   const found = await load((await params).handle);
   if (!found) notFound();
-  const { profile, stats } = found;
+  const { profile, stats, alsoPlays } = found;
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-5xl flex-col px-4 py-8 sm:px-6">
       <header className="flex items-center justify-between">
-        <Logo href={MARKETING_URL} />
+        <Logo href={marketingUrl("/")} />
       </header>
       <main id="main" className="flex flex-1 flex-col items-center justify-center gap-8 py-12">
         <ProfileCard
@@ -67,6 +73,8 @@ export default async function PublicProfile({ params }: { params: Promise<{ hand
           rank={profile.rank}
           teamName={profile.team_name}
           stats={stats}
+          alsoPlays={alsoPlays}
+          isDemo={!!profile.is_demo}
           appHost={appHost()}
         />
         {profile.bio ? <p className="max-w-md text-center text-mute">{profile.bio}</p> : null}

@@ -7,63 +7,52 @@ import type { GameConfig } from "@/content/games";
 
 type Step = "name" | "game" | "role" | "rank";
 
-const COPY = {
-  name: { title: "Pick your name.", line: "That one was taken. Choose another." },
-  game: { title: "Pick your game.", line: "Where do you compete?" },
-  role: { title: "Pick your role.", line: "How do you play?" },
-  rank: { title: "Pick your rank.", line: "Where are you today?" },
+const card =
+  "min-h-16 rounded-2xl border border-line bg-surface px-5 py-4 text-left text-lg font-semibold transition-colors hover:border-white focus-visible:border-white aria-pressed:border-crimson aria-pressed:bg-crimson";
+
+const NAME_MESSAGES: Record<string, string> = {
+  taken: "That name is taken. Try another.",
+  reserved: "That name isn't available.",
+  invalid: "Use 3 to 20 letters, numbers or underscores.",
+  cooldown: "You can change your name once every 30 days.",
+  error: "Something went wrong. Try again.",
 };
 
-const card =
-  "min-h-16 rounded-2xl border border-line bg-surface px-5 py-4 text-left text-lg font-semibold transition-colors hover:border-white focus-visible:border-white aria-pressed:border-crimson aria-pressed:bg-crimson aria-disabled:cursor-not-allowed aria-disabled:opacity-50 aria-disabled:hover:border-line";
-
-export function OnboardingWizard({
-  games,
-  launchGameId,
-  needsName,
-}: {
-  games: GameConfig[];
-  launchGameId: string;
-  needsName: boolean;
-}) {
+export function OnboardingWizard({ games, needsName }: { games: GameConfig[]; needsName: boolean }) {
   const [pending, start] = useTransition();
-  // Frozen on mount so the step list does not change after the name is claimed.
-  const [steps] = useState<Step[]>(() => [...(needsName ? (["name"] as const) : []), "game", "role", "rank"]);
-  const [i, setI] = useState(0);
+  const [step, setStep] = useState<Step>(needsName ? "name" : "game");
   const [game, setGame] = useState<GameConfig | null>(null);
   const [role, setRole] = useState<string | null>(null);
-  const [rank, setRank] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [nameMsg, setNameMsg] = useState("");
 
-  const step = steps[i];
-  const countable = steps.filter((s) => s !== "name");
-  const doneCount = Math.max(0, countable.indexOf(step as Exclude<Step, "name">));
-  const pct = step === "name" ? 0 : Math.round(((doneCount + 1) / countable.length) * 100);
+  // Games without fixed roles (Rocket League) skip the role step.
+  const hasRoles = (g: GameConfig | null) => !g || g.roles.length > 0;
+  const progressSteps: Step[] = ["game", ...(hasRoles(game) ? (["role"] as const) : []), "rank"];
+  const pct = step === "name" ? 0 : Math.round(((progressSteps.indexOf(step) + 1) / progressSteps.length) * 100);
 
   const finish = (g: GameConfig | null, r: string | null, k: string | null) =>
     start(async () => {
-      await finishOnboardingAction({ game: (g?.id as "VALORANT" | "CS2") ?? null, role: r, rank: k });
+      await finishOnboardingAction({ game: g?.id ?? null, role: r, rank: k });
     });
-
-  const next = () => setI((n) => Math.min(n + 1, steps.length - 1));
 
   function pickGame(g: GameConfig) {
     setGame(g);
-    next();
+    setRole(null);
+    setStep(g.roles.length ? "role" : "rank");
   }
   function pickRole(r: string) {
     setRole(r);
-    next();
-  }
-  function pickRank(k: string) {
-    setRank(k);
-    finish(game, role, k);
+    setStep("rank");
   }
   function skip() {
     if (step === "game") return finish(null, null, null); // no game: nothing left to ask
-    if (step === "role") return next();
+    if (step === "role") return setStep("rank");
     if (step === "rank") return finish(game, role, null);
+  }
+  function back() {
+    if (step === "rank") setStep(game && game.roles.length ? "role" : "game");
+    else if (step === "role") setStep("game");
   }
 
   function submitName(e: React.FormEvent) {
@@ -72,20 +61,29 @@ export function OnboardingWizard({
       const { status } = await claimNameAction(name);
       if (status === "ok") {
         setNameMsg("");
-        next();
-      } else {
-        setNameMsg(
-          status === "taken"
-            ? "That name is taken. Try another."
-            : status === "reserved"
-              ? "That name isn't available."
-              : status === "invalid"
-                ? "Use 3 to 20 letters, numbers or underscores."
-                : "Something went wrong. Try again.",
-        );
-      }
+        setStep("game");
+      } else setNameMsg(NAME_MESSAGES[status] ?? NAME_MESSAGES.error);
     });
   }
+
+  const title =
+    step === "name"
+      ? "Pick your name."
+      : step === "game"
+        ? "Pick your game."
+        : step === "role"
+          ? `Pick your ${(game?.roleLabel ?? "role").toLowerCase()}.`
+          : "Pick your rank.";
+  const line =
+    step === "name"
+      ? "That one was taken. Choose another."
+      : step === "game"
+        ? "Where do you compete? You can add more later."
+        : step === "role"
+          ? "How do you play?"
+          : game
+            ? `Your current ${game.name} rank.`
+            : "Where are you today?";
 
   return (
     <div className="flex flex-col gap-8">
@@ -103,8 +101,8 @@ export function OnboardingWizard({
       ) : null}
 
       <div>
-        <h1 className="font-display text-4xl font-bold">{COPY[step].title}</h1>
-        <p className="mt-2 text-mute">{COPY[step].line}</p>
+        <h1 className="font-display text-4xl font-bold">{title}</h1>
+        <p className="mt-2 text-mute">{line}</p>
       </div>
 
       {step === "name" ? (
@@ -140,22 +138,11 @@ export function OnboardingWizard({
 
       {step === "game" ? (
         <div className="grid gap-3 sm:grid-cols-2">
-          {games.map((g) => {
-            const available = g.id === launchGameId;
-            return (
-              <button
-                key={g.id}
-                type="button"
-                aria-disabled={!available}
-                aria-pressed={game?.id === g.id}
-                onClick={() => available && pickGame(g)}
-                className={card}
-              >
-                {g.name}
-                {!available ? <span className="mt-1 block text-sm font-normal text-mute">Coming soon</span> : null}
-              </button>
-            );
-          })}
+          {games.map((g) => (
+            <button key={g.id} type="button" aria-pressed={game?.id === g.id} onClick={() => pickGame(g)} className={card}>
+              {g.name}
+            </button>
+          ))}
         </div>
       ) : null}
 
@@ -172,7 +159,7 @@ export function OnboardingWizard({
       {step === "rank" && game ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {game.ranks.map((k) => (
-            <button key={k} type="button" aria-pressed={rank === k} disabled={pending} onClick={() => pickRank(k)} className={card}>
+            <button key={k} type="button" disabled={pending} onClick={() => finish(game, role, k)} className={card}>
               {k}
             </button>
           ))}
@@ -181,12 +168,7 @@ export function OnboardingWizard({
 
       {step !== "name" ? (
         <div className="flex items-center justify-between">
-          <button
-            type="button"
-            onClick={() => setI((n) => Math.max(0, n - 1))}
-            disabled={i === 0 || pending || steps[i - 1] === "name"}
-            className={buttonClass("ghost", "px-2 disabled:invisible")}
-          >
+          <button type="button" onClick={back} disabled={step === "game" || pending} className={buttonClass("ghost", "px-2 disabled:invisible")}>
             Back
           </button>
           <button type="button" onClick={skip} disabled={pending} className={buttonClass("ghost", "px-2 text-mute")}>

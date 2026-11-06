@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useState } from "react";
 import { copy } from "@/content/copy";
-import { appUrl } from "@/lib/urls";
+import { appFormAction, appFormHidden } from "@/lib/urls";
 
 type State = "idle" | "checking" | "available" | "taken" | "invalid" | "reserved" | "error";
 
@@ -49,13 +49,16 @@ export function ClaimInput({ id: idProp }: { id?: string }) {
 
   return (
     <form
-      action={appUrl("/login")}
+      action={appFormAction("/login")}
       method="get"
       className="w-full max-w-xl"
       onSubmit={(e) => {
         if (!canClaim) e.preventDefault();
       }}
     >
+      {Object.entries(appFormHidden("/login") ?? {}).map(([k, v]) => (
+        <input key={k} type="hidden" name={k} value={v} />
+      ))}
       <label htmlFor={id} className="sr-only">
         {c.label}
       </label>

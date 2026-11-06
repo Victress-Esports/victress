@@ -50,17 +50,7 @@ export function PricingCards() {
                 <span className="tnum font-display text-4xl font-bold">{formatUsd(price)}</span>
                 <span className="text-sm text-mute">{showYear ? "per year" : plan.unit}</span>
               </p>
-              <p className="mt-2 text-mute">{plan.blurb}</p>
-              <ul className="mt-5 flex-1 space-y-2 text-sm">
-                {plan.features.map((f) => (
-                  <li key={f} className="flex gap-2">
-                    <span aria-hidden className="text-coral">
-                      ✓
-                    </span>
-                    {f}
-                  </li>
-                ))}
-              </ul>
+              <p className="mt-4 flex-1 text-mute">{plan.blurb}</p>
               {plan.note ? <p className="mt-4 text-sm text-mute">{plan.note}</p> : null}
               <div className="mt-6">
                 {plan.live ? (

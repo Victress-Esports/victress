@@ -43,6 +43,7 @@ export function Footer() {
           © {new Date().getFullYear()} {copy.footer.rights}
         </p>
       </div>
+      <p className="mx-auto max-w-6xl px-4 pb-10 text-xs text-mute sm:px-6">{copy.footer.trademarks}</p>
     </footer>
   );
 }
