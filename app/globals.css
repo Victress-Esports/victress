@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+/* Brand tokens. Crimson is a deliberate signal, never a full-screen wash.
+   Contrast notes (WCAG 2.2 AA):
+   - White on Crimson = 5.5:1 (buttons, selected states).
+   - Crimson on Carbon = 3.2:1, so use it only for large type, borders and icons on dark.
+   - Coral on Carbon = 6.5:1, so use Coral for small accent text on dark.
+   - Cool Gray on Carbon is too dim for text; --mute is a lighter neutral for secondary text on dark. */
+:root {
+  --crimson: #cf142b;
+  --signal: #f34144;
+  --coral: #ff635f;
+  --warm-coral: #ff847b;
+  --blush: #ffa498;
+  --carbon: #171717;
+  --white: #ffffff;
+  --cool-gray: #5b6068;
+  --mute: #a7acb4;
+  --surface: #1f1f1f;
+  --surface-2: #272727;
+  --line: #2f3236;
+}
+
+@theme inline {
+  --color-crimson: var(--crimson);
+  --color-signal: var(--signal);
+  --color-coral: var(--coral);
+  --color-warm-coral: var(--warm-coral);
+  --color-blush: var(--blush);
+  --color-carbon: var(--carbon);
+  --color-cool-gray: var(--cool-gray);
+  --color-mute: var(--mute);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-space), var(--font-inter), ui-sans-serif, sans-serif;
+}
+
+html {
+  background: var(--carbon);
+  color: var(--white);
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2 {
+  text-wrap: balance;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.03em;
+}
+
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+@layer base {
+  :focus-visible {
+    outline: 3px solid var(--white);
+    outline-offset: 3px;
+  }
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 100;
+  background: var(--white);
+  color: var(--carbon);
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+}
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* Scroll reveal: CSS only, no layout shift, visible by default when unsupported. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 35%;
+    }
+  }
+  .lift {
+    transition: transform 200ms ease, border-color 200ms ease;
+  }
+  .lift:hover {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
