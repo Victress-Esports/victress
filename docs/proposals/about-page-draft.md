@@ -1,6 +1,6 @@
 # About page: draft rewrite (copy for review, not applied)
 
-**Status: DRAFT COPY ONLY.** `content/copy.ts` and `app/m/about/page.tsx` are not changed by this document.
+**Status: APPROVED AND IMPLEMENTED (2026-11-06, decision 9).** Live copy is in `content/copy.ts` (`about`) and `app/m/about/page.tsx`.
 Basis: [strategy document](../strategy/victress-business-purpose.md) sections 1, 4, 7 and 8. The draft follows the marketing rules in `CLAUDE.md`: one tagline, concise plain language, **no hyphens or em dashes** (exceptions: the data label "Self-reported", game names), no promotional repetition, no unsupported claims.
 
 ## What the page must do

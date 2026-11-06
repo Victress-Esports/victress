@@ -210,7 +210,7 @@ const pages = [
       "Turn practice into progress.",
       "An esports player development and recruitment platform.",
       "Scrim Intelligence", "Player Resume", "Scout Desk", "Available now", "Get started", "Log in",
-      "Women in Esports", "A community initiative powered by Victress.", "Community initiative in development", "Victress Women in Esports is in development and is not currently offering funding, coaching, scholarships or recruitment",
+      "Women in Esports", "Why Victress exists", "Victress is called Victress for a purpose.", "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment.",
       "VALORANT", "Counter-Strike 2", "Rocket League", "League of Legends", "Apex Legends", "Overwatch 2",
       "What is Victress?", "How can recruiters discover players?", "Self-reported", "Coming soon", "Sample",
     ],

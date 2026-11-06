@@ -108,34 +108,37 @@ export const copy = {
     final: { title: "Get started.", cta: "Get started", login: "Log in" },
   },
 
-  // Victress Women in Esports: a community initiative powered by Victress. It is a secondary, social-impact commitment:
-  // not a separate company, a fourth pillar, a product or a program that exists today. Nothing here may read as an active service.
+  // Victress Women in Esports: a core expression of why Victress exists (docs/strategy/victress-business-purpose.md, section 4).
+  // It is delivered through the same three pillars, not a separate product, program, company or fourth pillar.
+  // Every line must stay true today: name each pillar's real status and never imply a live program or offer.
   // Do not create another initiative name.
   womenInEsports: {
     brand: "Victress",
     title: "Women in Esports",
-    eyebrow: "Community initiative in development",
-    line: "A community initiative powered by Victress.",
-    message: "Creating visibility, developing talent, and expanding opportunities for women in competitive esports.",
+    eyebrow: "Why Victress exists",
+    line: "Victress is called Victress for a purpose.",
+    message:
+      "Women who compete face extra barriers to being seen, developing and getting opportunities. We address them through the same infrastructure we build for every player.",
     areas: [
       {
         title: "Visibility",
-        line: "Help women competitors establish credible competitive identities, showcase achievements, and gain greater recognition.",
+        line: "A credible record of competitive identity, experience and achievements that players control.",
         pillar: "resume" as const,
       },
       {
         title: "Development",
-        line: "Explore future development resources and mentorship opportunities to help women in competitive esports continue growing.",
+        line: "Meaningful performance feedback from private practice, so progress can be measured and shown.",
         pillar: "scrim" as const,
       },
       {
         title: "Opportunity",
-        line: "Help create pathways toward teams, coaches, collegiate programs, and recruiters.",
+        line: "Structured, evidence based discovery by teams, coaches, collegiate programs and recruiters.",
         pillar: "scout" as const,
       },
     ],
-    connectedTo: "Connected to",
-    note: "Victress Women in Esports is in development and is not currently offering funding, coaching, scholarships or recruitment.",
+    connectedTo: "Delivered through",
+    note: "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment.",
+    more: "Read why Victress exists",
     cta: "Get in touch",
     subject: "Victress Women in Esports",
   },
@@ -174,11 +177,35 @@ export const copy = {
     soonBadge: "Coming soon",
   },
 
+  // About page. Source: docs/proposals/about-page-draft.md (approved for publishing 2026-11-06), based on the strategy document.
+  // Held back until true: privacy control, safety reporting, verified data, outcomes or partnerships.
   about: {
-    title: "What Victress is.",
-    intro: "Victress is an esports player development and recruitment platform.",
+    title: "Why Victress exists.",
+    intro:
+      "Competitive esports has enormous talent and ambition, but the road from practice to opportunity is fragmented. Players practice without always getting useful feedback. Their achievements are scattered across platforms and screenshots. Teams and recruiters often rely on informal networks to find talent.",
     story:
-      "Competitive players practice in private scrims, but that work is hard to capture and hard to show. Victress is being built to connect practice, performance, recognition and opportunity.",
+      "Victress is building the infrastructure to change that: competitive development that is more measurable, talent that is easier to see, evaluation that is more transparent, and opportunities that are more accessible.",
+    pathTitle: "From practice to opportunity.",
+    path: [
+      { title: "Practice", line: "Private scrims and team training." },
+      { title: "Performance evidence", line: "What actually happened, clearly sourced." },
+      { title: "Development", line: "Understanding strengths and trends." },
+      { title: "Recognition", line: "A credible record of what a player can do." },
+      { title: "Opportunity", line: "Connections with teams, coaches, collegiate programs and recruiters." },
+    ],
+    pillarsTitle: "Three connected capabilities.",
+    womenTitle: "Women in Esports.",
+    women: [
+      "Victress is called Victress for a purpose. Women who compete in esports face barriers that include harassment, limited access to competitive networks, informal gatekeeping and difficulty getting their achievements recognized.",
+      "We are not building a separate product for this. We are building the same infrastructure for everyone, and designing it to address those barriers: a Player Resume for visibility, Scrim Intelligence for development, and Scout Desk for opportunity.",
+      "Today the Player Resume is available. Scrim Intelligence and Scout Desk are being built. Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment.",
+    ],
+    valueTitle: "Good for players. Good for the business.",
+    value:
+      "Victress is a technology business built on Creating Shared Value. The products that help players develop, get seen and find opportunities are the same products teams and recruiters pay for. We succeed commercially by making the competitive ecosystem work better.",
+    evidenceTitle: "How we handle evidence.",
+    evidence:
+      "Every stat shows where it came from. Self-reported means the player entered it. As automatic game data arrives, it will be labeled by source. Verification will mean we can show where the evidence came from and that it is intact. It will not be presented as a judgment of how good a player is.",
     nowTitle: "Available now",
     now: [
       "A shareable player profile with your games, roles and ranks.",

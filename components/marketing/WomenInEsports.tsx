@@ -3,9 +3,10 @@ import { ButtonLink } from "@/components/ui/Button";
 import { CONTACT_EMAIL, copy } from "@/content/copy";
 
 /**
- * Victress Women in Esports: a secondary, community-impact section. Smaller than the product pillars on purpose.
- * Each focus area names the existing pillar it connects to and repeats that pillar's real status, so nothing here
- * reads as a live program or an offer.
+ * Victress Women in Esports: a core expression of why Victress exists, delivered through the same three pillars
+ * (docs/strategy/victress-business-purpose.md, section 4). Each focus area names the pillar that delivers it and
+ * repeats that pillar's real status, so nothing here reads as a live program or an offer. The About page carries
+ * the fuller explanation.
  */
 export function WomenInEsports() {
   const e = copy.womenInEsports;
@@ -65,13 +66,17 @@ export function WomenInEsports() {
         </ol>
 
         <p className="mt-8 max-w-2xl text-sm text-mute">{e.note}</p>
-        <ButtonLink
-          href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(e.subject)}`}
-          variant="secondary"
-          className="mt-6"
-        >
-          {e.cta}
-        </ButtonLink>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <ButtonLink href="/about#women-in-esports" variant="secondary">
+            {e.more}
+          </ButtonLink>
+          <ButtonLink
+            href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(e.subject)}`}
+            variant="ghost"
+          >
+            {e.cta}
+          </ButtonLink>
+        </div>
       </div>
     </section>
   );

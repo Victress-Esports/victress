@@ -18,7 +18,7 @@ const body = () => `# Victress
 ## Coming soon (not available yet)
 - Pro, Team and Scout paid plans (join the waitlist on the pricing page).
 - Scout Desk for recruiting, scrim analytics, progress charts, team standings and team portfolios.
-- Victress Women in Esports: a community initiative powered by Victress, still in development, aiming to create visibility, develop talent and expand opportunities for women in competitive esports. It is a secondary community-impact commitment, not a separate company or product, and it is not currently offering funding, coaching, scholarships or recruitment.
+- Victress Women in Esports: a core expression of why Victress exists, delivered through the same three products: Player Resume for visibility (available now), Scrim Intelligence for development (coming soon) and Scout Desk for opportunity (coming soon). It is not a separate product, program or company, and Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment.
 - Automatic game data. Whether and how it will work for each game has not been confirmed.
 
 ## Pages
