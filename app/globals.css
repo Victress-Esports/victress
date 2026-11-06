@@ -50,6 +50,11 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+h1,
+h2 {
+  text-wrap: balance;
+}
+
 .font-display {
   font-family: var(--font-display);
   letter-spacing: -0.03em;

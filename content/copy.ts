@@ -39,7 +39,7 @@ export const copy = {
       {
         id: "profile",
         title: "One link. Your whole story.",
-        line: "A verified player profile you can share anywhere.",
+        line: "A player profile you can share anywhere.",
       },
       {
         id: "progress",
@@ -89,8 +89,8 @@ export const copy = {
         a: "We're starting with one game for our first players. More will follow.",
       },
       {
-        q: "Are my stats verified?",
-        a: "Right now you enter stats yourself, and we label them that way. Verified stats come later.",
+        q: "Where do my stats come from?",
+        a: "You enter them yourself, and we label them that way. Automatic imports are coming later.",
       },
       {
         q: "When do paid plans start?",
