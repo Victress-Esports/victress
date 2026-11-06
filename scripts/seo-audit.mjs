@@ -210,10 +210,11 @@ const pages = [
       "Turn practice into progress.",
       "An esports player development and recruitment platform.",
       "Scrim Intelligence", "Player Resume", "Scout Desk", "Available now", "Get started", "Log in",
+      "Victress Elevate", "Initiative in development", "is not an active program yet",
       "VALORANT", "Counter-Strike 2", "Rocket League", "League of Legends", "Apex Legends", "Overwatch 2",
       "What is Victress?", "How can recruiters discover players?", "Self-reported", "Coming soon", "Sample",
     ],
-    // Approved homepage values. The wings are the logo (nav and footer): the large detailed art must not be a hero visual.
+    // Approved homepage values. The wings are the logo (nav and footer) and a faint cropped backdrop; the full-size art file itself must not be a hero visual.
     exact: {
       title: "Victress | Esports Player Profiles & Performance",
       description:

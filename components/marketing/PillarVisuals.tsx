@@ -1,7 +1,6 @@
-import { SampleTag, SoonTag } from "@/components/marketing/SampleTag";
-import { Card } from "@/components/ui/Card";
+import { AppFrame } from "@/components/marketing/AppFrame";
 
-/** Illustrative only. Every number and name below is invented, and both cards are labeled. */
+/** Illustrative only. Every number and name below is invented, and every frame is labeled Sample. */
 export function ScrimSample() {
   const rows = [
     ["Player A", "82", "71%", "1.2"],
@@ -9,14 +8,8 @@ export function ScrimSample() {
     ["Player C", "61", "59%", "0.8"],
   ];
   return (
-    <Card as="figure" className="w-full max-w-md" aria-label="Sample scrim summary">
-      <figcaption className="flex items-center justify-between gap-3">
-        <p className="text-sm font-semibold">Scrim summary</p>
-        <span className="flex gap-2">
-          <SampleTag />
-          <SoonTag />
-        </span>
-      </figcaption>
+    <AppFrame route="victress.gg/scrims" label="Sample scrim summary" soon>
+      <p className="text-sm font-semibold">Scrim summary</p>
       <table className="tnum mt-4 w-full text-left text-sm">
         <thead className="text-xs text-mute">
           <tr>
@@ -37,7 +30,7 @@ export function ScrimSample() {
           ))}
         </tbody>
       </table>
-    </Card>
+    </AppFrame>
   );
 }
 
@@ -48,14 +41,8 @@ export function ScoutSample() {
     ["Player C", "Sentinel", "Diamond"],
   ];
   return (
-    <Card as="figure" className="w-full max-w-md" aria-label="Sample prospect list">
-      <figcaption className="flex items-center justify-between gap-3">
-        <p className="text-sm font-semibold">Prospects</p>
-        <span className="flex gap-2">
-          <SampleTag />
-          <SoonTag />
-        </span>
-      </figcaption>
+    <AppFrame route="victress.gg/scout" label="Sample prospect list" soon>
+      <p className="text-sm font-semibold">Prospects</p>
       <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-mute">
         {["Game", "Role", "Rank"].map((f) => (
           <span key={f} className="rounded-full border border-line px-3 py-1">
@@ -72,6 +59,6 @@ export function ScoutSample() {
           </li>
         ))}
       </ul>
-    </Card>
+    </AppFrame>
   );
 }

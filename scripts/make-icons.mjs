@@ -50,6 +50,11 @@ for (const w of [128, 256, 512]) await detailed(w).webp({ quality: 90, alphaQual
 // PNG copy for the social-card renderer (next/og does not read webp).
 await detailed(256).png({ compressionLevel: 9 }).toFile("public/brand/wings-emblem-256.png");
 
+// --- Backdrop crops for page compositions (used faint, behind content). Same artwork, only cropped and resized.
+//   wings-half-560.webp: the left wing alone (mirror it in CSS for the right). wings-band-1200.webp: the full pair.
+await sharp(SRC).extract({ left: 30, top: 100, width: 482, height: 765 }).resize(560, null, { kernel: "lanczos3" }).webp({ quality: 72, alphaQuality: 80, effort: 6 }).toFile("public/brand/wings-half-560.webp");
+await detailed(1200).webp({ quality: 68, alphaQuality: 80, effort: 6 }).toFile("public/brand/wings-band-1200.webp");
+
 // --- Lockups (white wordmark, transparent background).
 const font = `font-family="Space Grotesk, Inter, sans-serif" font-weight="700"`;
 {

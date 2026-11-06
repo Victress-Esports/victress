@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { WingsBackdrop } from "@/components/brand/WingsBackdrop";
+import { Elevate } from "@/components/marketing/Elevate";
 import { FaqList } from "@/components/marketing/FaqList";
 import { HeroClaim } from "@/components/marketing/HeroClaim";
 import { ScoutSample, ScrimSample } from "@/components/marketing/PillarVisuals";
@@ -34,8 +36,10 @@ export default function Home() {
         const Visual = visuals[p.id as keyof typeof visuals];
         const live = p.status === "live";
         return (
-          <section key={p.id} aria-labelledby={`pillar-${p.id}`} className="border-t border-line">
-            <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
+          <section key={p.id} aria-labelledby={`pillar-${p.id}`} className="relative overflow-hidden border-t border-line">
+            {/* The original wings, cropped and faint, on the two outer pillars. Never behind the product sample. */}
+            {i !== 1 ? <WingsBackdrop flip={i === 2} className={`top-1/2 hidden h-[520px] w-auto -translate-y-1/2 lg:block ${i === 2 ? "-right-56" : "-left-56"}`} /> : null}
+            <div className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
               <div className={`reveal grid items-center gap-12 lg:grid-cols-2 ${i % 2 ? "lg:[&>*:first-child]:order-2" : ""}`}>
                 <div>
                   <span
@@ -98,6 +102,8 @@ export default function Home() {
           </Card>
         </div>
       </section>
+
+      <Elevate />
 
       <section aria-labelledby="faq-title" className="mx-auto max-w-3xl px-4 pb-20 sm:px-6 sm:pb-28">
         <h2 id="faq-title" className="font-display text-3xl font-bold sm:text-4xl">

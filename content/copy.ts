@@ -108,6 +108,34 @@ export const copy = {
     final: { title: "Get started.", cta: "Get started", login: "Log in" },
   },
 
+  // A small community initiative within Victress, not a product pillar or a program that exists today.
+  elevate: {
+    eyebrow: "Initiative in development",
+    title: "Victress Elevate",
+    line: "An initiative powered by Victress to help more women in competitive esports be seen, develop and be discovered.",
+    areas: [
+      {
+        title: "Visibility",
+        line: "Showcase women competitors and their achievements through Player Resumes and player spotlights.",
+        pillar: "resume" as const,
+      },
+      {
+        title: "Development",
+        line: "Work toward access to performance feedback, development resources and mentorship.",
+        pillar: "scrim" as const,
+      },
+      {
+        title: "Opportunity",
+        line: "Build pathways to teams, collegiate programs, coaches and recruiters.",
+        pillar: "scout" as const,
+      },
+    ],
+    builtOn: "Built on",
+    note: "Victress Elevate is being developed and is not an active program yet. Nothing here is an offer of funding, coaching, scholarships or recruitment.",
+    cta: "Get in touch",
+    subject: "Victress Elevate",
+  },
+
   pricing: {
     title: "Simple pricing.",
     line: "Start free.",
