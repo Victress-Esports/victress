@@ -2,52 +2,59 @@
 
 Nothing in `docs/proposals/` is implemented. Each document needs approval before any database, authentication, permission, billing or privacy change is made, and each production step needs its own approval.
 Governing document: [docs/strategy/victress-business-purpose.md](../strategy/victress-business-purpose.md) (supersedes conflicting earlier instructions).
+**Precedence:** where an older proposal conflicts with a founder direction recorded in the [decision register](decision-register.md), the register governs. Known older sections that predate the recorded directions and have **not** been rewritten (listed as outstanding): `privacy-safety-architecture.md` sections 5.2 and 5.3 (they describe the database receiving the token, which decision 1 rules out) and section 8 (it says link sharing can ship with the privacy foundation, which decision 5 conditions on appointments), and `safety-operations.md` section 1 (it says link sharing does not need to wait).
 
 ## Documents
 | Document | Status |
 |---|---|
-| [Privacy, identity and access architecture](privacy-safety-architecture.md) | Revision 2: consents approved in direction; sharing token design awaiting approval |
-| [Safety operations](safety-operations.md) | New: operating requirements, awaiting owner and staffing decisions |
-| [Organization verification](organization-verification.md) | New: objective criteria, awaiting approval |
-| [Minors and recruiter access](minors-and-recruiter-access.md) | New: restriction maintained, questions for counsel |
-| [Plan entitlement matrix](entitlements.md) | Revision 2: one basic Rookie team; prices unchanged |
-| [About page draft](about-page-draft.md) | Draft copy for review; no page changed |
+| [Privacy, identity and access architecture](privacy-safety-architecture.md) | Revision 2: consents and token architecture approved as design direction; the R3, R6, R9, R10 refinements and the legal policy values are not yet confirmed; sections 5.2, 5.3 and 8 predate decisions 1 and 5 (see Precedence); not authorized for implementation |
+| [Decision register](decision-register.md) | Updated with founder direction (2026-11-06); no approval authorizes implementation |
+| [Readiness review](readiness-review.md) | New: contradictions, token and authorization gaps, migration safety, evidence and legal needs |
+| [Safety operations](safety-operations.md) | Operating requirements; owner, deputy, coverage and report channel not established; targets approved provisionally as internal goals; section 1 on link sharing predates decision 5 (see Precedence) |
+| [Organization verification](organization-verification.md) | Proposal; awaiting counsel; individual scouts excluded; no Scout access to be sold or enabled |
+| [Minors and recruiter access](minors-and-recruiter-access.md) | Restriction maintained, questions for counsel |
+| [Plan entitlement matrix](entitlements.md) | Revision 2.2: one team per Team subscription and "up to 10 members" approved as direction; coach permissions a separate, unbuilt concept; prices unchanged |
+| [About page draft](about-page-draft.md) | Draft only; deferred for the founder's separate language review; nothing published |
 | Age enforcement design | Waits on counsel (see minors); not written |
 | AI crawler policy | Not written in the repo; options are in `docs/compliance-audit.md` |
 | `rls_auto_enable()` change | Not written; the function must not be modified until separately approved |
 | First game integration | **No game is approved.** Needs real demos and a validation spike |
 
-## Approved direction (decisions made)
-1. Private by default; separate consent for public discovery and for leaderboards; deliberate Player Resume sharing.
-2. Handles are never access control. Sharing uses high entropy, revocable tokens. Public directory access only for players who opt in. Private data stays private through every direct request and anonymous endpoint.
-3. Exposure increasing features stay gated until moderation responsibilities exist. No 24/7 coverage is assumed.
-4. Recruiter organizations must be verified on objective criteria. Self-registration does not verify.
-5. Recruiter discovery and contact for minors stay restricted until qualified legal review. No age mechanism or exception is invented.
-6. Rookie includes one basic team with the existing roster limit; advanced team workflows and compute heavy capabilities are paid. Prices unchanged.
-7. About page to be rewritten around purpose (draft ready).
+## What has been decided, and what has not
+**No approval below authorizes implementation.** Each approved item is a direction or a condition; implementing it needs its own explicit authorization.
 
-## Decisions still needed
-| # | Decision | Document |
+**Approved design direction:** private by default with separate consents (earlier founder direction, not a numbered register decision); server side token creation, hashing and resolution with the database never receiving the plaintext token (decision 1); anonymous, edge rate limited, uniform handle availability checks (decision 2); player controlled profile pictures copied into private storage only after the player chooses (decision 3); one team per Team subscription with "up to 10 members" and coach permissions as a separate entitlement concept (decision 8).
+**Approved with conditions:** the privacy migration before public sign in opens, with a profile count check immediately before execution and a stop and plan rule if profiles exist (decision 4); the engagement of qualified counsel, as research and engagement work only (decision 10).
+**Approved provisionally:** response targets as internal goals only (decision 6).
+**Awaiting counsel:** organization verification policy, evidence retention, immutable records and recruiter terms (decision 7); the 90 day link expiry and link sharing policy for players of unknown age (part of decision 1).
+**Awaiting appointment or operational readiness:** Trust and Safety Owner, deputy, coverage schedule, time zone and report channel (decision 5). Nobody has been assigned or has accepted a role.
+**Deferred:** About page and homepage Women in Esports wording (decision 9); demo files and the Scrim Intelligence evaluation track (decision 11).
+
+**Standing restrictions (unchanged):** recruiter discovery and contact stay disabled for all players pending qualified legal review; individual scouts are excluded and no Scout access is sold or enabled; no age mechanism, exception or legal conclusion is invented; no first game integration is approved; the only hyphenated provenance label in brand copy is "Self-reported".
+
+## Decision register summary
+Full entries (founder direction, original proposal, conditions, current repository facts) are in [decision-register.md](decision-register.md).
+
+| # | Decision | Status |
 |---|---|---|
-| 1 | Approve the sharing token design (hash only, shown once, per link scope, expiry, `no-referrer`) | privacy |
-| 2 | `/api/handle-check`: anonymous with edge rate limiting, or require sign in | privacy |
-| 3 | Copy provider pictures into a private bucket (recommended) or upload only | privacy |
-| 4 | Production profile count at approval, and handling of any existing profiles | privacy |
-| 5 | Name the Trust and Safety Owner and Deputy; define review days, hours, time zone | safety |
-| 6 | Accept or adjust the proposed response targets and interim tooling | safety |
-| 7 | Approve verification criteria C1 to C7; individual scouts excluded at first | organizations |
-| 8 | Verification turnaround target; Scout sales order versus verification capacity | organizations |
-| 9 | Teams per Team subscription (one, or a small number); free allowance size and retention | entitlements |
-| 10 | Approve the About draft; approve small homepage Women in Esports alignment | about |
-| 11 | Engage counsel and obtain answers to the minors questions; recruiter terms; retention periods; legal requests; mandatory reporting | minors, safety, organizations |
-| 12 | Supply real demo files and choose pilot players for the validation spike | game data |
+| 1 | Sharing token design | Approved design direction (with amendments); 90 day expiry and link sharing policy awaiting counsel |
+| 2 | Anonymous handle availability check | Approved design direction |
+| 3 | Player controlled profile pictures | Approved design direction (lifecycle documented, not implemented) |
+| 4 | Privacy migration before public sign in | Approved with conditions |
+| 5 | Trust and Safety Owner, deputy, coverage, report channel | Awaiting appointment or operational readiness |
+| 6 | Response targets | Approved provisionally (internal goals only) |
+| 7 | Organization verification | Awaiting counsel |
+| 8 | One team per Team subscription; "up to 10 members" | Approved design direction (with clarification) |
+| 9 | About page and homepage wording | Deferred |
+| 10 | Qualified counsel | Approved with conditions (engagement work only) |
+| 11 | Demo files and Scrim Intelligence evaluation | Deferred |
 
 ## Technical dependencies (in order)
 1. **Privacy and access foundation:** consent columns, sharing tokens, closing anonymous reads, signup defaults, private avatars.
 2. **Safety minimum:** reports, blocks, protective hold, interim tooling, named owner (gates every exposure increasing feature).
 3. **Provenance schema:** `stat_entries.source` is limited to `'manual'`. Needs `self_reported`, `api`, `demo_parsed`, verification status, source identifiers, interface labels and the wording that verification is provenance, not ability.
 4. **Legal review outputs:** minors, retention, recruiter terms, mandatory reporting.
-5. **Scrim Intelligence validation** on real files for the candidate games, then upload, a separate processing worker, match tables, attribution and analysis views.
+5. **Scrim Intelligence validation** (deferred, decision 11; resumes only at the founder's direction) on real files for the candidate games, then upload, a separate processing worker, match tables, attribution and analysis views.
 6. **Player Resume on evidence:** provenance badges, match history, role context.
 7. **Entitlements and usage metering** (server side), including the one team rule.
 8. **Organization verification operating,** then recruiter accounts, consent gated contact and Scout Desk.
@@ -56,10 +63,10 @@ Governing document: [docs/strategy/victress-business-purpose.md](../strategy/vic
 11. **Billing (M4):** checkout, webhooks, entitlement lifecycle, cancellation. Separate approval.
 
 ## Recommended implementation order
-- **Track A, trust (start first):** 1, 2, and the legal work in 4.
-- **Track B, evidence:** 3, then the validation spike in 5 as soon as real files are supplied.
+- **Track A, trust (first in sequence once the founder authorizes implementation):** 1, 2, and the legal work in 4. Counsel engagement (decision 10) is approved work and can proceed now.
+- **Track B, evidence:** 3. The validation spike in 5 is deferred (decision 11) and resumes only at the founder's direction.
 - **Then:** 5 build, 6, 7, 8, 9, 10, 11, each gated on the one before.
-- **Copy:** the About rewrite can ship early because it claims only what exists. Statements about privacy and safety wait until those capabilities are live.
+- **Copy:** About page and homepage wording are deferred (decision 9). Nothing is published. When copy resumes, statements about privacy and safety wait until those capabilities are live.
 
 ## Risks
 | Risk | Why it matters | Mitigation |
