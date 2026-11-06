@@ -18,7 +18,7 @@ const body = () => `# Victress
 ## Coming soon (not available yet)
 - Pro, Team and Scout paid plans (join the waitlist on the pricing page).
 - Scout Desk for recruiting, scrim analytics, progress charts, team standings and team portfolios.
-- Victress Elevate: a small community initiative, powered by Victress and still in development, to help more women in competitive esports gain visibility, development and opportunity. It is not an active program yet and makes no offer of funding, coaching, scholarships or recruitment.
+- Vistrielle by Victress: a women-in-esports community and opportunity initiative supported by the Victress platform, still in development. It is not a separate company or product, and it is not currently offering funding, coaching, scholarships or recruitment.
 - Automatic game data. Whether and how it will work for each game has not been confirmed.
 
 ## Pages

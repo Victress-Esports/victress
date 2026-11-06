@@ -108,32 +108,34 @@ export const copy = {
     final: { title: "Get started.", cta: "Get started", login: "Log in" },
   },
 
-  // A small community initiative within Victress, not a product pillar or a program that exists today.
-  elevate: {
+  // Vistrielle by Victress: a women-in-esports community and opportunity initiative supported by the Victress platform.
+  // It is not a separate company, a fourth pillar or a program that exists today: nothing here may read as an active service.
+  vistrielle: {
     eyebrow: "Initiative in development",
-    title: "Victress Elevate",
-    line: "An initiative powered by Victress to help more women in competitive esports be seen, develop and be discovered.",
+    title: "Vistrielle by Victress",
+    line: "A women-in-esports community and opportunity initiative, supported by the Victress platform.",
+    why: "Women competing in esports face a visibility and opportunity gap. Victress is creating Vistrielle to help address it, while turning competitive practice into measurable progress.",
     areas: [
       {
         title: "Visibility",
-        line: "Showcase women competitors and their achievements through Player Resumes and player spotlights.",
+        line: "Help women competitors establish credible competitive identities and showcase their achievements through Player Resumes.",
         pillar: "resume" as const,
       },
       {
         title: "Development",
-        line: "Work toward access to performance feedback, development resources and mentorship.",
+        line: "Work toward player improvement through performance insights, development resources and potential mentorship as the initiative develops.",
         pillar: "scrim" as const,
       },
       {
         title: "Opportunity",
-        line: "Build pathways to teams, collegiate programs, coaches and recruiters.",
+        line: "Work toward greater exposure and potential connections with teams, coaches, collegiate programs and recruiters through Scout Desk.",
         pillar: "scout" as const,
       },
     ],
-    builtOn: "Built on",
-    note: "Victress Elevate is being developed and is not an active program yet. Nothing here is an offer of funding, coaching, scholarships or recruitment.",
+    builtOn: "Supported by",
+    note: "Vistrielle is in development and is not currently offering funding, coaching, scholarships or recruitment.",
     cta: "Get in touch",
-    subject: "Victress Elevate",
+    subject: "Vistrielle by Victress",
   },
 
   pricing: {

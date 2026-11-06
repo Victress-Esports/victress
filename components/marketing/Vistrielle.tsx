@@ -3,15 +3,15 @@ import { ButtonLink } from "@/components/ui/Button";
 import { CONTACT_EMAIL, copy } from "@/content/copy";
 
 /**
- * Victress Elevate: a restrained introduction to an initiative in development. It ties each focus area to an existing
+ * Vistrielle by Victress: a restrained introduction to an initiative in development. It ties each focus area to an existing
  * pillar and repeats that pillar's real status, so nothing here reads as a live program or an offer.
  */
-export function Elevate() {
-  const e = copy.elevate;
+export function Vistrielle() {
+  const e = copy.vistrielle;
   const pillar = (id: string) => copy.home.pillars.find((p) => p.id === id)!;
   return (
     <section
-      aria-labelledby="elevate-title"
+      aria-labelledby="vistrielle-title"
       className="relative overflow-hidden border-t border-line"
     >
       <WingsBackdrop
@@ -23,12 +23,13 @@ export function Elevate() {
           {e.eyebrow}
         </span>
         <h2
-          id="elevate-title"
+          id="vistrielle-title"
           className="mt-4 font-display text-4xl font-bold leading-tight sm:text-5xl"
         >
           {e.title}
         </h2>
         <p className="mt-4 max-w-2xl text-lg text-mute">{e.line}</p>
+        <p className="mt-3 max-w-2xl text-mute">{e.why}</p>
 
         <ol className="mt-12 grid gap-px overflow-hidden rounded-2xl border border-line bg-line md:grid-cols-3">
           {e.areas.map((a, i) => {
@@ -45,7 +46,7 @@ export function Elevate() {
                 <p className="mt-6 border-t border-line pt-4 text-sm text-mute">
                   {e.builtOn}{" "}
                   <span className="font-semibold text-white">{p.title}</span>
-                  <span className="ml-2 text-xs">
+                  <span className="mt-1 block text-xs">
                     (
                     {p.status === "live"
                       ? copy.home.statusLive
