@@ -7,7 +7,7 @@ export const ogImage = (key: OgKey) => `/api/og?page=${key}`;
 
 /** Describes what each social card shows (the text on app/api/og/route.tsx). */
 const OG_ALT: Record<OgKey, string> = {
-  home: "Victress. Turn practice into progress. Your stats. Your profile. Your competitive edge.",
+  home: "Victress. Turn practice into progress. An esports player development and recruitment platform.",
   pricing: "Victress pricing. Free to start. Pro, Team and Scout are coming soon.",
   teams: "Victress for teams. Run your club in one place. One invite link. One roster.",
   about: "About Victress. Show the work. A profile you own, built on stats you enter.",

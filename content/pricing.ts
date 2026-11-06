@@ -47,7 +47,6 @@ export const PLANS: Plan[] = [
     unit: "per month",
     blurb:
       "Everything your roster needs in one place. Manage players, follow team progress, and keep your program organized.",
-    note: "Founding clubs get free access for their first season.",
     live: false,
     interest: "team",
   },

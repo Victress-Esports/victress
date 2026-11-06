@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Victress",
     short_name: "Victress",
-    description: "Turn practice into progress. Your stats. Your profile. Your competitive edge.",
+    description: "An esports player development and recruitment platform.",
     start_url: "/",
     display: "standalone",
     background_color: "#171717",
@@ -13,7 +13,6 @@ export default function manifest(): MetadataRoute.Manifest {
       { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
       { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
       { src: "/icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
-      { src: "/icon.svg", sizes: "any", type: "image/svg+xml" },
     ],
   };
 }

@@ -14,11 +14,19 @@ export const seo = {
     },
     teams: {
       title: "Victress for teams: run your club in one place",
-      description: "Start a team, share one invite link, and see your whole roster in one place. Free for founding clubs in their first season.",
+      description: "Start a team, share one invite link, and see your whole roster in one place. Shared scrim review is coming soon.",
     },
     about: {
       title: "About Victress",
-      description: "Players put in the work but have nowhere to show it. Victress turns results into a profile you own. We only promise what's live.",
+      description: "Victress is an esports player development and recruitment platform. See what is available now and what is planned.",
+    },
+    partnerships: {
+      title: "Partnerships | Victress",
+      description: "Partnership conversations for collegiate esports programs, competitive teams and tournament organizers.",
+    },
+    contact: {
+      title: "Contact | Victress",
+      description: "Email the Victress team. Questions, partnerships and data requests.",
     },
     privacy: {
       title: "Privacy | Victress",

@@ -1,23 +1,31 @@
 import Link from "next/link";
 
-/** Simplified one-color wing/V mark. Solid shapes only so it holds up at 16px. */
-export function WingMark({ className = "h-8 w-8", title }: { className?: string; title?: string }) {
+/**
+ * The Victress technology wings, cropped from the original artwork (scripts/make-icons.mjs).
+ * Pre-optimized transparent webp files; no on-demand image encoding.
+ */
+export function WingMark({ className = "h-8 w-auto", title }: { className?: string; title?: string }) {
   return (
-    <svg viewBox="0 0 32 32" className={className} fill="currentColor" role={title ? "img" : undefined} aria-hidden={title ? undefined : true}>
-      {title ? <title>{title}</title> : null}
-      <g id="w">
-        <path d="M15 27 1.5 5H8l8 13.5z" />
-        <path d="M15 27 6.5 12H12l5 10z" opacity="0.62" />
-      </g>
-      <use href="#w" transform="matrix(-1 0 0 1 32 0)" />
-    </svg>
+    // eslint-disable-next-line @next/next/no-img-element -- static, pre-sized brand asset
+    <img
+      src="/brand/wings-emblem-128.webp"
+      srcSet="/brand/wings-emblem-128.webp 128w, /brand/wings-emblem-256.webp 256w"
+      sizes="40px"
+      width={128}
+      height={102}
+      alt={title ?? ""}
+      aria-hidden={title ? undefined : true}
+      decoding="async"
+      className={className}
+    />
   );
 }
 
+/** Wings plus the VICTRESS wordmark. */
 export function Logo({ href = "/" }: { href?: string }) {
   return (
     <Link href={href} className="inline-flex items-center gap-2.5 text-white" aria-label="Victress home">
-      <WingMark className="h-7 w-7 text-crimson" />
+      <WingMark />
       <span className="font-display text-lg font-bold tracking-[0.18em]">VICTRESS</span>
     </Link>
   );

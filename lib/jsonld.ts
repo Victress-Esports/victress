@@ -16,7 +16,7 @@ export function organizationAndWebsite() {
         name: "Victress",
         legalName: "Victress LLC",
         url: MARKETING_URL,
-        logo: `${MARKETING_URL}/apple-icon.png`,
+        logo: `${MARKETING_URL}/icon-512.png`,
         slogan: copy.brand.tagline,
         contactPoint: {
           "@type": "ContactPoint",

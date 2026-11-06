@@ -2,19 +2,16 @@
 
 import { CountUp } from "@/components/marketing/CountUp";
 import { SampleTag } from "@/components/marketing/SampleTag";
+import { Card } from "@/components/ui/Card";
 import { useInView } from "@/components/marketing/useInView";
 
 /** Product moment 1: a profile card. The stat numbers count up when it scrolls into view. */
 export function ProfileMoment() {
   const [ref, seen] = useInView<HTMLElement>(0.4);
   return (
-    <article
-      ref={ref}
-      aria-label="Sample player profile"
-      className="lift w-full max-w-md rounded-3xl border border-line bg-surface p-6 shadow-[0_30px_80px_-30px_rgba(207,20,43,0.45)] sm:p-8"
-    >
+    <Card as="article" ref={ref} aria-label="Sample player profile" className="w-full max-w-md">
       <header className="flex items-center gap-4">
-        <div aria-hidden className="grid h-20 w-20 shrink-0 place-items-center rounded-full bg-gradient-to-br from-crimson to-warm-coral font-display text-3xl font-bold">
+        <div aria-hidden className="grid h-20 w-20 shrink-0 place-items-center rounded-full bg-surface-2 font-display text-3xl font-bold text-coral">
           Y
         </div>
         <div className="min-w-0 flex-1">
@@ -47,6 +44,6 @@ export function ProfileMoment() {
         ))}
       </dl>
       <p className="mt-4 text-xs text-mute">Self-reported</p>
-    </article>
+    </Card>
   );
 }

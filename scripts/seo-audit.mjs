@@ -83,7 +83,7 @@ async function auditPage({ host, path, index, types = [], og = true, hidden = fa
   if (index) ok(!/noindex/i.test(robotsMeta + xrt), `indexable page is noindex (${robotsMeta} ${xrt})`);
   else ok(/noindex/i.test(robotsMeta + xrt), "private page is NOT noindex");
 
-  for (const old of ["Perform. Compete. Rise", "Turn performance into progress"]) ok(!html.includes(old), `retired tagline found on page: "${old}"`);
+  for (const old of ["Perform. Compete. Rise", "Turn performance into progress", "Your stats. Your profile. Your competitive edge", "Founding clubs", "founding clubs", "privacy-friendly analytics"]) ok(!html.includes(old), `retired tagline found on page: "${old}"`);
   for (const text of contains) ok(html.includes(text), `page does not contain: "${text}"`);
   for (const text of notContains) ok(!html.includes(text), `page should not contain: "${text}"`);
   if (exact) {
@@ -208,21 +208,24 @@ const pages = [
     // Official messaging pair, and everything a crawler needs to understand the product, present in the server-rendered HTML.
     contains: [
       "Turn practice into progress.",
-      "Your stats. Your profile. Your competitive edge.",
+      "An esports player development and recruitment platform.",
+      "Scrim Intelligence", "Player Resume", "Scout Desk", "Available now", "Get started", "Log in",
       "VALORANT", "Counter-Strike 2", "Rocket League", "League of Legends", "Apex Legends", "Overwatch 2",
       "What is Victress?", "How can recruiters discover players?", "Self-reported", "Coming soon", "Sample",
     ],
-    // Approved homepage values. The logo is not a hero visual: the emblem art must not appear on the page.
+    // Approved homepage values. The wings are the logo (nav and footer): the large detailed art must not be a hero visual.
     exact: {
       title: "Victress | Esports Player Profiles & Performance",
       description:
         "Build your esports player profile, track performance, and showcase your competitive progress. Made for players, teams, and collegiate programs.",
     },
-    notContains: ["wings-480", "wings-720", "brand/wings"],
+    notContains: ["wings-480", "wings-720", "/brand/wings.webp", "Claim your name"],
   },
   mk(MARKETING, "/pricing", true, ["FAQPage", "BreadcrumbList"]),
   mk(MARKETING, "/teams", true, ["BreadcrumbList"]),
   mk(MARKETING, "/about", true, ["BreadcrumbList"]),
+  { host: MARKETING, path: "/partnerships", index: true, types: ["BreadcrumbList"], contains: ["mailto:hello@victressesports.com", "Collegiate esports programs", "Tournament organizers"] },
+  { host: MARKETING, path: "/contact", index: true, types: ["BreadcrumbList"], contains: ["mailto:hello@victressesports.com"] },
   mk(MARKETING, "/privacy", true, ["BreadcrumbList"]),
   { host: MARKETING, path: "/terms", index: true, types: ["BreadcrumbList"], contains: ["at least 13 years old"] },
   mk(APP, "/", true),
@@ -246,7 +249,7 @@ console.log("\n######## PROFILE JSON-LD: only public fields ########");
   ok(!/"(email|rank|role|stats)"/.test(JSON.stringify(ld)), "private/unmarked fields leaked into JSON-LD");
 }
 
-const mPaths = ["/", "/pricing", "/teams", "/about", "/privacy", "/terms"];
+const mPaths = ["/", "/pricing", "/teams", "/partnerships", "/about", "/contact", "/privacy", "/terms"];
 const aPrivate = ["/dashboard", "/dashboard/profile", "/dashboard/stats", "/dashboard/team", "/onboarding", "/login", "/auth/callback", "/auth/signout", "/join/abc123", "/api/waitlist", "/api/handle-check"];
 await auditSite(MARKETING, APP, mPaths, ["/api/waitlist", "/api/handle-check"]);
 const appUrls = await auditSite(
@@ -305,7 +308,8 @@ console.log("\n######## ICONS AND MANIFEST ########");
 {
   const home = (await get(MARKETING, "/")).body;
   ok(/<link rel="icon" href="\/favicon\.ico[^"]*"/.test(home), "favicon.ico link missing");
-  ok(/<link rel="icon" href="\/icon\.svg[^"]*"[^>]*type="image\/svg\+xml"/.test(home), "SVG icon link missing");
+  ok(/<link rel="icon" href="\/icon\.png[^"]*"[^>]*sizes="32x32"/.test(home), "32x32 PNG icon link missing");
+  ok(!/icon\.svg/.test(home), "the old V svg icon is still referenced");
   ok(/<link rel="apple-touch-icon" href="\/apple-icon\.png[^"]*"[^>]*sizes="180x180"/.test(home), "apple-touch-icon link missing");
   ok(/<link rel="manifest" href="\/manifest\.webmanifest"/.test(home), "manifest link missing");
   ok(/<meta name="theme-color" content="#171717"/.test(home), "theme-color missing");
@@ -327,6 +331,7 @@ console.log("\n######## ICONS AND MANIFEST ########");
   console.log("   manifest icons:", man.icons.map((i) => `${i.sizes} ${i.purpose ?? "any"}`).join(" | "));
   ok(man.icons.some((i) => i.purpose === "maskable" && i.sizes === "512x512"), "manifest has no maskable 512 icon");
   ok(man.icons.some((i) => i.sizes === "192x192") && man.icons.some((i) => i.sizes === "512x512" && i.purpose === "any"), "manifest missing 192 / 512 icons");
+  ok(!/competitive edge|Your stats\. Your profile/.test(JSON.stringify(man)), "manifest contains the retired secondary slogan");
   for (const i of man.icons) ok((await get(MARKETING, i.src)).status === 200, `manifest icon ${i.src} does not load`);
 }
 
@@ -350,7 +355,7 @@ console.log("\n######## HOME FAQ, PRODUCT SCHEMA, llms.txt ########");
   console.log(`   /llms.txt -> ${llms.status} ${llms.headers["content-type"]}, ${llms.body.length} chars`);
   ok(llms.status === 200 && /text\/plain/.test(llms.headers["content-type"] ?? ""), "llms.txt should be 200 text/plain");
   ok(/Coming soon/.test(llms.body) && /Self-reported/.test(llms.body) && /not indexed by search engines unless/.test(llms.body), "llms.txt must separate planned from live features and state the profile privacy rule");
-  ok(!/Perform\. Compete|performance into progress/.test(llms.body), "llms.txt contains a retired tagline");
+  ok(!/Perform\. Compete|performance into progress|Your stats\. Your profile|ounding club|privacy-friendly analytics/.test(llms.body), "llms.txt contains a retired slogan or an unapproved claim");
   ok((await get(APP, "/llms.txt")).status === 404, "llms.txt should not be served on the application domain");
   const robots = parseRobots((await get(MARKETING, "/robots.txt")).body);
   ok(!robots.blocked("/llms.txt"), "robots.txt blocks /llms.txt");

@@ -1,22 +1,28 @@
-// All marketing copy lives here. Rules: headline 2 to 6 words, one supporting line of 12 words or fewer,
-// no paragraph over 2 sentences. Never claim a feature is live until it is.
+// All marketing copy lives here. Rules: short headlines, plain language, no paragraph over 2 sentences.
+// Never claim a feature is live until it is. Anything unbuilt says "Coming soon" or "Planned".
+export const CONTACT_EMAIL = "hello@victressesports.com";
+
 export const copy = {
-  // Official brand messaging. Use the pair together in the hero; elsewhere use the primary tagline sparingly.
   brand: {
     name: "Victress",
+    // The one tagline. Do not stack other slogans under it.
     tagline: "Turn practice into progress.",
-    supporting: "Your stats. Your profile. Your competitive edge.",
   },
 
   nav: {
     links: [
       { href: "/pricing", label: "Pricing" },
       { href: "/teams", label: "For teams" },
+      { href: "/partnerships", label: "Partnerships" },
       { href: "/about", label: "About" },
     ],
-    cta: "Claim your name",
+    cta: "Get started",
+    login: "Log in",
+    menuOpen: "Open menu",
+    menuClose: "Close menu",
   },
 
+  // Used by the name-check input (components/marketing/ClaimInput.tsx), which the marketing pages no longer render.
   claim: {
     prefix: "victress.gg/",
     placeholder: "yourname",
@@ -33,50 +39,64 @@ export const copy = {
   home: {
     hero: {
       title: "Turn practice into progress.",
-      line: "Your stats. Your profile. Your competitive edge.",
+      // One factual sentence, not a second slogan.
+      sentence: "An esports player development and recruitment platform.",
+      cta: "Get started",
+      login: "Log in",
     },
-    steps: [
-      { n: "1", title: "Claim your name." },
-      { n: "2", title: "Add your game." },
-      { n: "3", title: "Climb." },
+    // The three pillars. `status` decides the chip: "live" is Available now, "soon" is Coming soon.
+    pillars: [
+      {
+        id: "scrim",
+        title: "Scrim Intelligence",
+        status: "soon" as const,
+        line: "Upload private scrim demo or replay files for automatic performance statistics.",
+        note: "Not available yet.",
+      },
+      {
+        id: "resume",
+        title: "Player Resume",
+        status: "live" as const,
+        line: "A shareable player profile with self-reported stats.",
+        note: "Verified scrim stats are planned, not available yet.",
+      },
+      {
+        id: "scout",
+        title: "Scout Desk",
+        status: "soon" as const,
+        line: "Player discovery and evaluation for teams, coaches and collegiate programs.",
+        note: "Not available yet.",
+      },
     ],
-    // One headline and one short line per scroll moment. The pictures do the rest.
-    features: [
-      { id: "profile", title: "One link. Your whole story.", line: "A player profile you can share anywhere." },
-      { id: "progress", title: "See what's working.", line: "Track your stats and watch yourself improve." },
-      { id: "leaderboard", title: "Know where you stand.", line: "Compare with your club and your community." },
-    ],
-    games: { title: "Six games. Pick yours.", line: "Roles and ranks match the game." },
+    statusLive: "Available now",
+    statusSoon: "Coming soon",
+    games: { title: "Supported games", line: "Roles and ranks match each game." },
     teams: {
-      title: "Run your club like a pro team.",
-      line: "One dashboard for every player.",
+      title: "Manage your roster.",
+      line: "Start a team, invite players with a link and see everyone's game and rank.",
+      soon: "Shared scrim review is coming soon.",
       cta: "Start your team",
-    },
-    soon: {
-      eyebrow: "Coming soon",
-      items: [
-        { interest: "scrims" as const, title: "Scrim analytics", line: "Learn from every scrim." },
-        { interest: "scout" as const, title: "Scout Desk", line: "Get found by programs." },
-      ],
-      cta: "Join the waitlist",
     },
     // Understanding the platform, not buying a plan (the pricing page has its own FAQ).
     // Only describe what exists today; anything unbuilt says so.
     faqTitle: "Questions, answered.",
     faq: [
-      { q: "What is Victress?", a: "An esports player platform. Build a profile, log your stats, and compare on per-game leaderboards." },
+      {
+        q: "What is Victress?",
+        a: "An esports player development and recruitment platform. Today you can build a shareable player profile and manage a team roster. Scrim analysis and recruiting tools are planned.",
+      },
       { q: "Which esports games does Victress support?", a: "VALORANT, Counter-Strike 2, Rocket League, League of Legends, Apex Legends and Overwatch 2." },
       {
         q: "How does Victress track player performance?",
-        a: "You enter your stats and Victress keeps your history, labeled Self-reported. Progress charts and automatic game data are not available yet.",
+        a: "You enter your stats and Victress keeps your history, labeled Self-reported. Automatic stats from scrim files are not available yet.",
       },
       {
         q: "Can players create competitive profiles?",
-        a: "Yes. Claim your name, add your games, roles and ranks, and share one link. Search engines list it only if you turn that on.",
+        a: "Yes. Create a profile, add your games, roles and ranks, and share one link. Search engines list it only if you turn that on.",
       },
       {
         q: "Can teams manage their players?",
-        a: "Yes. Start a team, share an invite link, and see your roster's games and ranks. Team standings and portfolios are coming soon.",
+        a: "Yes. Start a team, share an invite link, and see your roster's games and ranks. Shared scrim review is coming soon.",
       },
       {
         q: "How can recruiters discover players?",
@@ -84,8 +104,8 @@ export const copy = {
       },
       { q: "Is Victress free to use?", a: "Yes. Rookie is free forever. Pro, Team and Scout are coming soon." },
     ],
-    soonBadge: "Coming soon",
-    final: { title: "Claim your name." },
+    soonCta: "Join the waitlist",
+    final: { title: "Get started.", cta: "Get started", login: "Log in" },
   },
 
   pricing: {
@@ -103,29 +123,63 @@ export const copy = {
       { q: "Which games can I add?", a: "VALORANT, CS2, Rocket League, League of Legends, Apex Legends and Overwatch 2." },
       { q: "Where do my stats come from?", a: "You enter them. They're labeled Self-reported." },
       { q: "When do paid plans start?", a: "Not yet. Join the waitlist." },
-      { q: "Can my club join for free?", a: "Founding clubs get their first season free." },
+      { q: "Can my team use Victress?", a: "Yes. You can start a team and invite players on the free plan today. The paid Team plan is coming soon." },
     ],
   },
 
   teams: {
-    title: "Run your club like a pro team.",
+    title: "Manage your roster.",
     line: "One roster. One invite link.",
     cta: "Start your team",
     // `soon` items are not built yet and are shown as Coming soon.
     benefits: [
       { title: "One roster.", line: "Invite players with a link.", soon: false },
       { title: "One dashboard.", line: "See everyone's game and rank.", soon: false },
-      { title: "Team standings.", line: "", soon: true },
-      { title: "Team portfolio.", line: "", soon: true },
+      { title: "Shared scrim review.", line: "Review scrim performance together once scrim analysis is available.", soon: true },
+      { title: "Team standings.", line: "See how your team compares with others.", soon: true },
+      { title: "Team portfolio.", line: "A shareable page for your team.", soon: true },
     ],
     soonBadge: "Coming soon",
-    note: "First season free for founding clubs.",
   },
 
   about: {
-    title: "Why Victress exists.",
-    body: ["Players put in the work but have nowhere to show it.", "Victress gives you a profile you own."],
-    cta: "Claim your name",
+    title: "What Victress is.",
+    intro: "Victress is an esports player development and recruitment platform.",
+    story:
+      "Competitive players practice in private scrims, but that work is hard to capture and hard to show. Victress is being built to connect practice, performance, recognition and opportunity.",
+    nowTitle: "Available now",
+    now: [
+      "A shareable player profile with your games, roles and ranks.",
+      "Self-reported stats for six games, labeled Self-reported.",
+      "Team rosters with invite links.",
+    ],
+    plannedTitle: "Planned",
+    planned: [
+      "Scrim Intelligence: automatic statistics from uploaded scrim demo or replay files.",
+      "Verified scrim stats on the Player Resume.",
+      "Scout Desk: player discovery and evaluation for teams, coaches and collegiate programs.",
+    ],
+    cta: "Get started",
+  },
+
+  partnerships: {
+    title: "Partnerships.",
+    line: "Victress is open to conversations with groups that run or develop competitive esports.",
+    groups: [
+      { title: "Collegiate esports programs", line: "Roster management and player development for your program." },
+      { title: "Competitive teams", line: "Roster management and, once available, shared scrim review." },
+      { title: "Tournament organizers", line: "Ways to connect competition results to player profiles." },
+    ],
+    note: "Nothing on this page is a commitment. Terms are discussed case by case.",
+    cta: "Email us",
+    subject: "Victress partnership",
+  },
+
+  contact: {
+    title: "Contact.",
+    line: "Email us and we'll reply.",
+    cta: "Email us",
+    subject: "Victress",
   },
 
   waitlist: {
@@ -142,6 +196,7 @@ export const copy = {
 
   footer: {
     links: [
+      { href: "/contact", label: "Contact" },
       { href: "/privacy", label: "Privacy" },
       { href: "/terms", label: "Terms" },
     ],
@@ -163,7 +218,7 @@ export const copy = {
       updated: "Placeholder. Final text is pending legal review.",
       body: [
         "We collect your email and the profile details you choose to share.",
-        "We use only privacy-friendly analytics and set no advertising cookies.",
+        "We do not use advertising cookies.",
         "Write to hello@victressesports.com to see or delete your data.",
       ],
     },

@@ -5,7 +5,7 @@ import { APP_URL, MARKETING_URL } from "@/lib/urls";
 // Facts only: what works today is separated from what is planned. Served on the marketing domain only.
 const body = () => `# Victress
 
-> Victress is an esports player platform for aspiring players, amateur teams and collegiate programs. Players build a shareable profile and log their stats; teams manage a roster. Marketing site: ${MARKETING_URL}. Product: ${APP_URL}.
+> Victress is an esports player development and recruitment platform. Players build a shareable profile and log their stats; teams manage a roster. Marketing site: ${MARKETING_URL}. Product: ${APP_URL}.
 
 ## What works today
 - Player profiles at ${APP_URL}/{handle}: name, avatar, bio, games, roles, ranks and stats, shareable by link.
@@ -24,7 +24,9 @@ const body = () => `# Victress
 - [Home](${MARKETING_URL}): the product at a glance, with a questions section.
 - [Pricing](${MARKETING_URL}/pricing): plans and pricing questions.
 - [For teams](${MARKETING_URL}/teams): running a club roster.
-- [About](${MARKETING_URL}/about): why Victress exists.
+- [About](${MARKETING_URL}/about): what Victress is, what is available now and what is planned.
+- [Partnerships](${MARKETING_URL}/partnerships): for collegiate programs, competitive teams and tournament organizers.
+- [Contact](${MARKETING_URL}/contact): hello@victressesports.com.
 - [Privacy](${MARKETING_URL}/privacy) and [Terms](${MARKETING_URL}/terms): draft text, pending legal review.
 
 ## Good to know
