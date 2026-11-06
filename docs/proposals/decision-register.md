@@ -26,7 +26,7 @@ Approval types still needed: **F** founder. **L** qualified legal counsel. **T**
 | 6 | Response targets | **Approved provisionally** (internal goals only) | No |
 | 7 | Organization verification criteria, evidence, records, recruiter terms | **Awaiting counsel** (criteria stay proposals; individual scouts excluded) | No |
 | 8 | One team per Team subscription; roster "up to 10 members" | **Approved design direction** (with clarification) | No |
-| 9 | About page and homepage Women in Esports wording | **Deferred** (drafts only) | No |
+| 9 | About page and homepage Women in Esports wording | **Approved and implemented** (founder direction 2026-11-06, second review: follow the strategy document) | Yes, copy only (branch `claude/marketing-finish`, unmerged) |
 | 10 | Identify and engage qualified counsel | **Approved with conditions** (engagement work only; legal questions stay open) | Engagement work only; no legal conclusion is authorized |
 | 11 | Demo files and Scrim Intelligence evaluation track | **Deferred** | No |
 
@@ -199,15 +199,20 @@ Verification policy; evidence retention; immutable record requirements (includin
 ---
 
 ## 9. About page and homepage Women in Esports wording
-**Status: Deferred. Drafts only. No copy is published or implemented.**
+**Status: Approved and implemented in copy (branch `claude/marketing-finish`, not merged or deployed).**
 
-### Founder direction (2026-11-06)
-- Keep [about-page-draft.md](about-page-draft.md) and the homepage Women in Esports wording as **drafts.** The founder will review the language separately.
-- Continue to describe Women in Esports as **a distinct shared-value and community-impact initiative under the Victress master brand, not a separate commercial business or a core revenue generating product.**
-- The phrase "distinct in presentation, not in substance" is **not approved wording** and is not settled.
+### Founder direction (2026-11-06, second review)
+- The founder supplied the business purpose and Creating Shared Value document (`docs/strategy/victress-business-purpose.md`) and directed that **Creating Shared Value be fully integrated for Women in Esports** on the marketing site.
+- This settles the earlier open question (readiness review C1) in favour of the strategy document: Victress Women in Esports is **a core expression of why Victress exists, delivered through the same three pillars**. It is not a separate product, program, company or fourth pillar. This supersedes the earlier wording "a distinct shared-value and community-impact initiative".
+- The phrase "distinct in presentation, not in substance" remains unused.
 
-### Note
-`CLAUDE.md` and the strategy document still describe Women in Esports as a core expression of Victress's purpose realized through the three pillars. That framing and the latest description are left as they are until the founder's separate language review; no wording has been reconciled here.
+### What was implemented
+- About page: [about-page-draft.md](about-page-draft.md) published, plus a short "Good for players. Good for the business." paragraph taken from strategy section 2.
+- Homepage section: reframed from "community initiative in development" to "Why Victress exists"; the "mentorship opportunities" line is removed; each area names the pillar that delivers it with its real status; links to the About section.
+- `llms.txt` and the SEO audit expectations updated to match.
+
+### Still held back (unchanged)
+The draft's held back statements stay unpublished: player privacy control, reporting and blocking, verified data, outcomes, partnerships. They wait for decisions 1 to 5.
 
 ---
 

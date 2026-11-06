@@ -18,7 +18,7 @@ export const seo = {
     },
     about: {
       title: "About Victress",
-      description: "Victress is an esports player development and recruitment platform. See what is available now and what is planned.",
+      description: "Why Victress exists: infrastructure that turns competitive practice into evidence, recognition and opportunity, including for women in esports. See what is available now and what is planned.",
     },
     platform: {
       title: "Victress platform: from practice to opportunity",

@@ -28,7 +28,7 @@ Governing document: [docs/strategy/victress-business-purpose.md](../strategy/vic
 **Approved provisionally:** response targets as internal goals only (decision 6).
 **Awaiting counsel:** organization verification policy, evidence retention, immutable records and recruiter terms (decision 7); the 90 day link expiry and link sharing policy for players of unknown age (part of decision 1).
 **Awaiting appointment or operational readiness:** Trust and Safety Owner, deputy, coverage schedule, time zone and report channel (decision 5). Nobody has been assigned or has accepted a role.
-**Deferred:** About page and homepage Women in Esports wording (decision 9); demo files and the Scrim Intelligence evaluation track (decision 11).
+**Implemented in copy:** About page and homepage Women in Esports wording (decision 9, follows the strategy document). **Deferred:** demo files and the Scrim Intelligence evaluation track (decision 11).
 
 **Standing restrictions (unchanged):** recruiter discovery and contact stay disabled for all players pending qualified legal review; individual scouts are excluded and no Scout access is sold or enabled; no age mechanism, exception or legal conclusion is invented; no first game integration is approved; the only hyphenated provenance label in brand copy is "Self-reported".
 
@@ -45,7 +45,7 @@ Full entries (founder direction, original proposal, conditions, current reposito
 | 6 | Response targets | Approved provisionally (internal goals only) |
 | 7 | Organization verification | Awaiting counsel |
 | 8 | One team per Team subscription; "up to 10 members" | Approved design direction (with clarification) |
-| 9 | About page and homepage wording | Deferred |
+| 9 | About page and homepage wording | Approved, implemented in copy |
 | 10 | Qualified counsel | Approved with conditions (engagement work only) |
 | 11 | Demo files and Scrim Intelligence evaluation | Deferred |
 
@@ -66,7 +66,7 @@ Full entries (founder direction, original proposal, conditions, current reposito
 - **Track A, trust (first in sequence once the founder authorizes implementation):** 1, 2, and the legal work in 4. Counsel engagement (decision 10) is approved work and can proceed now.
 - **Track B, evidence:** 3. The validation spike in 5 is deferred (decision 11) and resumes only at the founder's direction.
 - **Then:** 5 build, 6, 7, 8, 9, 10, 11, each gated on the one before.
-- **Copy:** About page and homepage wording are deferred (decision 9). Nothing is published. When copy resumes, statements about privacy and safety wait until those capabilities are live.
+- **Copy:** About page and homepage wording follow the strategy document (decision 9). Statements about privacy and safety still wait until those capabilities are live.
 
 ## Risks
 | Risk | Why it matters | Mitigation |
