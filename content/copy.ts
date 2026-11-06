@@ -125,7 +125,7 @@ export const copy = {
       },
       {
         title: "Development",
-        line: "Support player growth through performance insights, development resources, and potential mentorship opportunities as the initiative develops.",
+        line: "Explore future development resources and mentorship opportunities to help women in competitive esports continue growing.",
         pillar: "scrim" as const,
       },
       {
