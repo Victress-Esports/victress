@@ -17,6 +17,9 @@ import { APP_URL, marketingUrl } from "@/lib/urls";
 
 export const revalidate = 60;
 
+/** Only profiles whose owner switched on "Show my profile in search engines" are indexable (and never demo players). */
+const isIndexable = (p: { search_indexable: boolean | null; is_demo: boolean | null }) => !!p.search_indexable && !p.is_demo;
+
 async function load(raw: string) {
   const { verdict, handle } = checkHandle(raw);
   if (verdict !== "ok") return null;
@@ -62,8 +65,10 @@ export async function generateMetadata({ params }: { params: Promise<{ handle: s
     type: "profile",
     image: { url: `/api/og/profile?handle=${handle}`, alt: `${profile.display_name || handle} on Victress` },
   });
-  // Demo players are for previews only and must never be indexed.
-  return profile.is_demo ? { ...meta, robots: { index: false, follow: false } } : meta;
+  if (isIndexable(profile)) return meta;
+  // Not opted in (the default), or a demo player: viewable by link and shareable (social tags stay), but not indexed.
+  // No canonical here: it would send a mixed signal next to noindex.
+  return { ...meta, alternates: undefined, robots: { index: false, follow: false } };
 }
 
 export default async function PublicProfile({ params }: { params: Promise<{ handle: string }> }) {
@@ -73,7 +78,7 @@ export default async function PublicProfile({ params }: { params: Promise<{ hand
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-5xl flex-col px-4 py-8 sm:px-6">
-      {!profile.is_demo ? (
+      {isIndexable(profile) ? (
         <JsonLd
           data={profilePage({
             handle: profile.handle!,

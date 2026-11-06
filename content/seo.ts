@@ -25,7 +25,7 @@ export const seo = {
     },
     terms: {
       title: "Terms | Victress",
-      description: "The rules for using Victress. Self-reported stats are labeled and not verified. Draft text, pending legal review.",
+      description: "The rules for using Victress: you must be 13 or older, and self-reported stats are labeled and not verified. Draft text, pending legal review.",
     },
   },
   app: {

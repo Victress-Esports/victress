@@ -18,6 +18,7 @@ export type Database = {
           is_demo: boolean;
           rank: string | null;
           role: string | null;
+          search_indexable: boolean;
           team_id: string | null;
           updated_at: string;
         };
@@ -33,6 +34,7 @@ export type Database = {
           is_demo?: boolean;
           rank?: string | null;
           role?: string | null;
+          search_indexable?: boolean;
           team_id?: string | null;
           updated_at?: string;
         };
@@ -48,6 +50,7 @@ export type Database = {
           is_demo?: boolean;
           rank?: string | null;
           role?: string | null;
+          search_indexable?: boolean;
           team_id?: string | null;
           updated_at?: string;
         };
@@ -121,6 +124,7 @@ export type Database = {
           is_demo: boolean | null;
           rank: string | null;
           role: string | null;
+          search_indexable: boolean | null;
           team_name: string | null;
           team_slug: string | null;
         };

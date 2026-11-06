@@ -4,9 +4,11 @@ import { privateMetadata } from "@/lib/seo";
 import { redirect } from "next/navigation";
 import { Logo } from "@/components/brand/Logo";
 import { LoginForm } from "@/components/app/LoginForm";
+import { copy } from "@/content/copy";
 import { safeNext } from "@/lib/auth";
 import { checkHandle } from "@/lib/handles";
 import { supabaseServer } from "@/lib/supabase/server";
+import { marketingUrl } from "@/lib/urls";
 
 export const metadata: Metadata = privateMetadata(seo.app.login.title, seo.app.login.description);
 
@@ -42,6 +44,17 @@ export default async function Login({
         </p>
       ) : null}
       <LoginForm claim={claim} next={next} />
+      <p className="text-sm text-mute">
+        {copy.auth.ageNotice}{" "}
+        <a href={marketingUrl("/terms")} className="font-semibold text-white underline underline-offset-2">
+          {copy.auth.terms}
+        </a>{" "}
+        {copy.auth.and}{" "}
+        <a href={marketingUrl("/privacy")} className="font-semibold text-white underline underline-offset-2">
+          {copy.auth.privacy}
+        </a>
+        .
+      </p>
     </main>
   );
 }

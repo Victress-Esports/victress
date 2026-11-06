@@ -5,7 +5,7 @@
 | | victressesports.com | victress.gg |
 |---|---|---|
 | `/robots.txt` | Allow all, disallow `/api/` (except `/api/og`), points at its own sitemap | Same, plus private routes disallowed (below), points at its own sitemap |
-| `/sitemap.xml` | The 6 public pages | Home, open leaderboards, every public profile with a real `lastmod`. Becomes a sitemap index once profiles exceed one file |
+| `/sitemap.xml` | The 6 public pages | Home, open leaderboards, and profiles **that opted in to search**, each with a real `lastmod`. Becomes a sitemap index once profiles exceed one file |
 
 - `www.` redirects to the bare host with a 308 on both domains (`next.config.ts`), so each domain has exactly one canonical host.
 - Preview and staging hosts (`*.vercel.app`) send `X-Robots-Tag: noindex` and a disallow-all `robots.txt`.
@@ -20,7 +20,7 @@ The Disallow rules use `$` and `/` on purpose (`/dashboard$`, `/dashboard/`). A 
 ## Sitemap details
 
 - Marketing pages: listed in `lib/sitemap.ts` (`MARKETING_PATHS`). Add new public pages there.
-- Profiles: `public.sitemap_profiles()` (real handles only; demo players and signup placeholders are excluded). `lastmod` is `profiles.updated_at`, which moves when the profile, its games or its stats change.
+- Profiles: `public.sitemap_profiles()`. Only profiles with `search_indexable = true` are listed (see "Profile search visibility" below), never demo players or signup placeholders. `lastmod` is `profiles.updated_at`, which moves when the profile, its games or its stats change, or when the toggle changes.
 - Leaderboards: only listed once a board is open (10+ real players). Closed boards are `noindex` too.
 - Size: `SITEMAP_PAGE_SIZE` (default 5000 profiles per file). Above that, `/sitemap.xml` becomes an index pointing at `/sitemap/static.xml` and `/sitemap/profiles-1.xml`, `-2.xml`, and so on. The protocol limit is 50,000 URLs per file.
 - Cached for an hour at the edge. If the database is unreachable the route returns 503 rather than a sitemap that silently lacks profiles.
@@ -42,7 +42,7 @@ npm run seo:audit -- 3200
 
 - Marketing home: `Organization` and `WebSite`.
 - Pricing: `FAQPage` (the same text visible on the page) and `BreadcrumbList`. Other marketing pages and leaderboards: `BreadcrumbList`.
-- Public profiles: `ProfilePage` with a `Person`. Only fields shown on the profile are included: name, handle, photo, bio, team and games. Stats, rank and role are not marked up. Demo profiles have none.
+- Public profiles: `ProfilePage` with a `Person`, **only for profiles that opted in to search**. Only fields shown on the profile are included: name, handle, photo, bio, team and games. Stats, rank and role are not marked up.
 
 The audit checks that the JSON parses and has the right types. It does not replace Google's Rich Results Test (below).
 
@@ -76,6 +76,25 @@ A Domain property covers `http`, `https`, `www` and the bare host, so you do not
 - Search Console → Settings → **robots.txt** report on both properties.
 - Lighthouse in Chrome DevTools on the live URLs (mobile).
 
-## Privacy note
+## Profile search visibility (opt-in)
 
-Public profiles are indexable by default and appear in the product sitemap. Players may not expect their profile to show up in search. A "hide my profile from search engines" setting (which would add `noindex` and drop the URL from the sitemap) is a sensible next step, and is not built yet.
+Public profiles are **not indexed by default**. Players turn on **Show my profile in search engines** in the profile editor (Dashboard → Profile → Search engines). The setting is `profiles.search_indexable`, default `false`.
+
+| | Toggle off (default) | Toggle on |
+|---|---|---|
+| Viewable by direct link | Yes | Yes |
+| Meta robots | `noindex, nofollow` | indexable |
+| Canonical link | none | `https://victress.gg/{handle}` |
+| JSON-LD (`ProfilePage`) | none | yes |
+| Open Graph and Twitter card | yes (links still share well) | yes |
+| In the sitemap | no | yes, with `lastmod` |
+
+- Demo players are never indexable, whatever the setting.
+- The save action refreshes the profile page right away, so a change takes effect immediately rather than after the one-minute page cache.
+- Search engines drop an already-listed page the next time they re-crawl it. To speed that up, use Search Console's URL inspection → Request indexing, or the Removals tool.
+- The sitemap is cached for up to an hour at the edge, so an opted-out profile can linger in the sitemap for that long. That is harmless: the page itself is `noindex`.
+- Tested in `supabase/tests/seo.sql` (database) and by driving the real toggle in a browser (default off, on, off, and what a visitor and the sitemap see after each flip).
+
+## Minimum age
+
+The sign-in screen (which is also the signup screen) says "You must be 13 or older to use Victress" and links to the Terms and Privacy Policy. The terms draft starts with the same requirement. This is a notice only: there is no age gate or verification. Have counsel confirm the wording, and whether a checkbox is wanted, before launch.

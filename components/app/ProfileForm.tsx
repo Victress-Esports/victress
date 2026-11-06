@@ -5,7 +5,7 @@ import { useRef, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { buttonClass } from "@/components/ui/Button";
 import { Field, FormMessage, inputClass } from "@/components/ui/form";
-import { changeHandleAction, setAvatarAction, updateProfileAction } from "@/app/a/dashboard/actions";
+import { changeHandleAction, setAvatarAction, setSearchVisibilityAction, updateProfileAction } from "@/app/a/dashboard/actions";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 const MAX_BYTES = 8 * 1024 * 1024; // before resizing; the stored image is ~512px
@@ -198,5 +198,58 @@ export function HandleForm({ handle, lockedUntil, appHost }: { handle: string; l
       </button>
       <FormMessage message={msg} ok={ok} />
     </form>
+  );
+}
+
+/** Opt-in to search engines. Off by default; the profile stays viewable by direct link either way. */
+export function SearchVisibilityToggle({ initial }: { initial: boolean }) {
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  const [on, setOn] = useState(initial);
+  const [msg, setMsg] = useState("");
+
+  function flip() {
+    const next = !on;
+    setOn(next); // optimistic; undone if the save fails
+    start(async () => {
+      const r = await setSearchVisibilityAction(next);
+      if (!r.ok) setOn(!next);
+      setMsg(r.message ?? "");
+      if (r.ok) router.refresh();
+    });
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p id="search-visibility-label" className="font-semibold">
+            Show my profile in search engines
+          </p>
+          <p id="search-visibility-help" className="mt-1 text-sm text-mute">
+            Off by default. When it&apos;s off, search engines are asked not to list your profile. Anyone with your link can still open it.
+          </p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={on}
+          aria-labelledby="search-visibility-label"
+          aria-describedby="search-visibility-help"
+          disabled={pending}
+          onClick={flip}
+          className={`relative mt-1 inline-flex h-8 w-14 shrink-0 items-center rounded-full border transition-colors disabled:opacity-60 ${
+            on ? "border-crimson bg-crimson" : "border-line bg-surface-2"
+          }`}
+        >
+          <span
+            aria-hidden
+            className={`inline-block h-6 w-6 rounded-full bg-white transition-transform ${on ? "translate-x-7" : "translate-x-1"}`}
+          />
+          <span className="sr-only">{on ? "On" : "Off"}</span>
+        </button>
+      </div>
+      <FormMessage message={msg} />
+    </div>
   );
 }

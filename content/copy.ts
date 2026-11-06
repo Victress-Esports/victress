@@ -159,6 +159,14 @@ export const copy = {
     trademarks: "Game names are trademarks of their owners. Victress is not affiliated with or endorsed by them.",
   },
 
+  auth: {
+    // Shown under the sign-in options, which is also how people sign up.
+    ageNotice: "You must be 13 or older to use Victress. By continuing you agree to the",
+    terms: "Terms",
+    and: "and",
+    privacy: "Privacy Policy",
+  },
+
   legal: {
     privacy: {
       title: "Privacy",
@@ -173,6 +181,7 @@ export const copy = {
       title: "Terms",
       updated: "Placeholder. Final text is pending legal review.",
       body: [
+        "You must be at least 13 years old to use Victress.",
         "Use Victress fairly and only share stats that are yours.",
         "Self-reported stats are labeled as such and are not verified.",
         "We may update these terms and will tell you about material changes.",

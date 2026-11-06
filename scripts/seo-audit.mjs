@@ -59,7 +59,7 @@ function parseRobots(txt) {
 
 const seen = { title: new Map(), desc: new Map() };
 
-async function auditPage({ host, path, index, types = [], og = true }) {
+async function auditPage({ host, path, index, types = [], og = true, hidden = false, contains = [] }) {
   const label = `${host}${path}`;
   const res = await get(host, path);
   console.log(`\n# ${label}  [${res.status}] ${index ? "indexable" : "private/noindex"}`);
@@ -82,6 +82,16 @@ async function auditPage({ host, path, index, types = [], og = true }) {
   const xrt = res.headers["x-robots-tag"] ?? "";
   if (index) ok(!/noindex/i.test(robotsMeta + xrt), `indexable page is noindex (${robotsMeta} ${xrt})`);
   else ok(/noindex/i.test(robotsMeta + xrt), "private page is NOT noindex");
+
+  for (const text of contains) ok(html.includes(text), `page does not contain: "${text}"`);
+
+  // A profile whose owner has not opted in to search: viewable, shareable, but no canonical and no structured data.
+  if (hidden) {
+    ok(!/rel="canonical"/.test(html), "opted-out profile still has a canonical link");
+    ok(!/application\/ld\+json/.test(html), "opted-out profile still has JSON-LD");
+    ok(!!meta(html, "property", "og:title") && !!meta(html, "property", "og:image"), "opted-out profile lost its social card tags");
+    ok(meta(html, "name", "twitter:card") === "summary_large_image", "opted-out profile lost its Twitter card");
+  }
 
   if (index && og) {
     const canon = html.match(/<link[^>]*rel="canonical"[^>]*>/i)?.[0].match(/href="([^"]*)"/i)?.[1];
@@ -188,14 +198,15 @@ const pages = [
   mk(MARKETING, "/teams", true, ["BreadcrumbList"]),
   mk(MARKETING, "/about", true, ["BreadcrumbList"]),
   mk(MARKETING, "/privacy", true, ["BreadcrumbList"]),
-  mk(MARKETING, "/terms", true, ["BreadcrumbList"]),
+  { host: MARKETING, path: "/terms", index: true, types: ["BreadcrumbList"], contains: ["at least 13 years old"] },
   mk(APP, "/", true),
   mk(APP, "/leaderboard/valorant", true, ["BreadcrumbList"]),
   mk(APP, "/leaderboard/rocket-league", false, ["BreadcrumbList"]),
-  mk(APP, "/mock_ace", true, ["ProfilePage", "Person"]),
-  mk(APP, "/dashboard_fan", true, ["ProfilePage"]),
-  mk(APP, "/demo_mock", false),
-  mk(APP, "/login", false),
+  mk(APP, "/mock_ace", true, ["ProfilePage", "Person"]), // opted in to search
+  mk(APP, "/dashboard_fan", true, ["ProfilePage"]), // opted in to search
+  { host: APP, path: "/mock_player_12", index: false, hidden: true }, // default: not opted in, still viewable (200)
+  { host: APP, path: "/demo_mock", index: false, hidden: true }, // demo players are never indexed
+  { host: APP, path: "/login", index: false, contains: ["You must be 13 or older", "Terms", "Privacy Policy"] },
 ];
 for (const p of pages) await auditPage(p);
 
@@ -212,8 +223,20 @@ console.log("\n######## PROFILE JSON-LD: only public fields ########");
 const mPaths = ["/", "/pricing", "/teams", "/about", "/privacy", "/terms"];
 const aPrivate = ["/dashboard", "/dashboard/profile", "/dashboard/stats", "/dashboard/team", "/onboarding", "/login", "/auth/callback", "/auth/signout", "/join/abc123", "/api/waitlist", "/api/handle-check"];
 await auditSite(MARKETING, APP, mPaths, ["/api/waitlist", "/api/handle-check"]);
-const appUrls = await auditSite(APP, MARKETING, ["/", "/mock_ace", "/dashboard_fan", "/leaderboard/valorant", "/leaderboard/cs2"], aPrivate);
+const appUrls = await auditSite(
+  APP,
+  MARKETING,
+  ["/", "/mock_ace", "/dashboard_fan", "/mock_player_03", "/mock_player_04", "/mock_player_05", "/leaderboard/valorant", "/leaderboard/cs2"],
+  aPrivate,
+);
 ok(!appUrls.some((u) => /demo_mock|leaderboard\/rocket-league/.test(u.loc)), "demo profile or closed board listed in sitemap");
+// Opt-in only: profiles that never switched the toggle on must not be in the sitemap, even though they are viewable.
+ok(!appUrls.some((u) => /mock_player_(0[6-9]|1[0-2])$/.test(u.loc)), "a profile that has not opted in to search is listed in the sitemap");
+ok(appUrls.filter((u) => /\/(mock_|dashboard_fan)/.test(u.loc)).length === 5, `expected exactly 5 opted-in profiles in the sitemap, found ${appUrls.filter((u) => /\/(mock_|dashboard_fan)/.test(u.loc)).length}`);
+{
+  const r = await get(APP, "/mock_player_12");
+  ok(r.status === 200, `opted-out profile must still be viewable by link, got ${r.status}`);
+}
 ok(!appUrls.some((u) => /\/(p[0-9a-f]{12})$/.test(u.loc)), "placeholder handle listed in sitemap");
 
 console.log("\n######## PRIVATE ROUTES: noindex headers ########");

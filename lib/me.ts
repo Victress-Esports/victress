@@ -8,7 +8,7 @@ export async function loadMe() {
 
   const { data: profile } = await sb
     .from("profiles")
-    .select("handle, display_name, avatar_url, bio, game, role, rank, team_id, is_demo")
+    .select("handle, display_name, avatar_url, bio, game, role, rank, team_id, is_demo, search_indexable")
     .eq("id", user.id)
     .single();
   if (!profile || PLACEHOLDER_HANDLE.test(profile.handle) || !user.user_metadata?.onboarded) redirect("/onboarding");

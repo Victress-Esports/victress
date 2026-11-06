@@ -70,7 +70,7 @@ https://pmamceqshyfptvjgimsf.supabase.co/auth/v1/callback
 
 ## SEO
 
-Titles and descriptions live in `content/seo.ts`; sitemaps and robots are served per domain; structured data is on the home, pricing, leaderboard and profile pages. Details, the audit script and the Search Console and Bing steps are in `docs/seo.md`. Run `npm run seo:audit` (see that file) after changing any page.
+Titles and descriptions live in `content/seo.ts`; sitemaps and robots are served per domain; structured data is on the home, pricing, leaderboard and (opted-in) profile pages. Player profiles are **not indexed by default**: players opt in with a toggle in the profile editor. Details, the audit script and the Search Console and Bing steps are in `docs/seo.md`. Run `npm run seo:audit` (see that file) after changing any page.
 
 ## Leaderboards and demo data
 
