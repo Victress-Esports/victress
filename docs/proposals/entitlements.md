@@ -1,0 +1,102 @@
+# Plan entitlement matrix (proposal)
+
+**Status: PROPOSAL for review. Nothing is implemented.** Prices, plan names and approved plan descriptions are **not changed** by this document (`content/pricing.ts`, `docs/stripe.md`). Billing stays off (`NEXT_PUBLIC_BILLING_ENABLED=false`).
+Strategic basis: [docs/strategy/victress-business-purpose.md](../strategy/victress-business-purpose.md), section 5 (the business model that sustains the purpose), section 3B (accessible development infrastructure) and section 6 (cost-effective expansion).
+
+Approved plans, unchanged:
+
+| Plan | Price | Approved audience and description |
+|---|---|---|
+| Rookie | Free | New and aspiring players. "Your competitive profile starts here. Track your stats, share your progress, and build your presence in esports." |
+| Pro | $7.99/month or $75/year | Competitive players. "A clearer view of your performance. Track your progress, build your player profile, and share it with teams." |
+| Team | $49/month | Competitive teams. "Everything your roster needs in one place. Manage players, follow team progress, and keep your program organized." |
+| Scout | $249/month | Recruiters and collegiate programs. "Find the right players. Explore competitive profiles, compare performance, and organize recruitment prospects." |
+
+## 1. Principles for deciding what is paid
+1. **Never paywall trust.** Privacy controls, consent, reporting and blocking, data provenance labels, and the ability to be discovered **by choice** are available on every plan. Women competitors must not have to pay for safety or for a chance to be seen.
+2. **Charge for what costs money to run and for organizational value.** Compute-heavy processing, storage and retention, team workflows and recruiter tooling are the paid dimensions.
+3. **Rookie is a real entry into the ecosystem**: a full Player Resume, consent controls and meaningful scrim analysis, but with a **bounded processing allowance**. Free processing is never unlimited.
+4. **Downgrades never delete a player's record.** A player who lapses keeps their Player Resume and existing results. Only new processing or advanced views are limited.
+5. **Entitlements are enforced on the server** (processing queue, RPCs), never only in the interface.
+
+## 2. Status today
+Billing is off, so every account has everything that exists. Live now: profile, per-game roles and ranks, self-reported stats, search opt-in, team creation and invites (roster of up to 10), per-game leaderboards. Everything in the matrix below that is not in that list is **not built**.
+
+## 3. Proposed matrix
+Legend: **Yes** included. **Limited** included with a cap (the cap value is a parameter set after the cost measurements in section 5; no figures are promised here). **No** not included. **Not built** means the capability itself does not exist yet.
+
+### Player capabilities
+| Capability | Rookie | Pro | Team | Scout |
+|---|---|---|---|---|
+| Player Resume, shareable link, visibility and consent controls | Yes | Yes | Yes | n/a |
+| Self-reported stats (labeled **Self-reported**) | Yes | Yes | Yes | n/a |
+| Games, roles, ranks (all six games) | Yes | Yes | Yes | n/a |
+| Report and block tools, privacy controls | Yes | Yes | Yes | Yes |
+| Opt in to be scoutable | Yes | Yes | Yes | n/a |
+| Scrim Intelligence (upload and automatic analysis), **Not built** | Limited allowance per month | Larger allowance | Pooled team allowance | n/a |
+| Match history and development trends, **Not built** | Limited history window | Full history | Full history | n/a |
+| Parsed result provenance (`demo_parsed`, `api`) shown on the Resume | Yes | Yes | Yes | n/a |
+| Advanced analysis (utility, economy, positioning), **Not built** | No | Yes | Yes | n/a |
+| Highlights and tournament placements on the Resume, **Not built** | Limited | Yes | Yes | n/a |
+
+### Team capabilities
+| Capability | Rookie | Pro | Team | Scout |
+|---|---|---|---|---|
+| Join a team, appear on a roster | Yes | Yes | Yes | n/a |
+| Create a team and invite players (exists today, roster up to 10) | Open question (see 6.1) | Yes | Yes | n/a |
+| Shared scrim review and team performance, **Not built** | No | No | Yes, pooled allowance | n/a |
+| Player comparisons within a roster, **Not built** | No | No | Yes | n/a |
+| Coach and manager roles and seats, **Not built** | No | No | Yes (seat cap) | n/a |
+| Team development history, **Not built** | No | No | Yes | n/a |
+
+### Recruitment capabilities
+| Capability | Rookie | Pro | Team | Scout |
+|---|---|---|---|---|
+| Discover scoutable players, filter by game, role, rank, region, **Not built** | No | No | No | Yes |
+| Compare players on provenance-tagged evidence, **Not built** | No | No | No | Yes |
+| Prospect lists and notes, **Not built** | No | No | No | Yes (list cap) |
+| Contact requests (consent flow), **Not built** | No | No | No | Limited per month and rate limited |
+| Organization seats, verified organization status, **Not built** | No | No | No | Yes (seat cap) |
+| Access to private contact details | Never without a player's grant, on any plan | | | |
+
+### Data access, retention and usage
+| Item | Rookie | Pro | Team | Scout |
+|---|---|---|---|---|
+| Processed scrims per month | Small cap (TBD) | Larger cap (TBD) | Pooled cap (TBD) | n/a |
+| Uploaded file size and type limit | Same technical limit on all plans, set by the parser and storage | | | |
+| Raw demo file retention | Deleted shortly after parsing; derived results kept (TBD days) | Longer (TBD) | Longer (TBD) | n/a |
+| Derived results retention | Kept while the account exists | Kept | Kept | n/a |
+| Data export and self-serve deletion | Yes (to be built) | Yes | Yes | Yes |
+| Recruiter searches and views | n/a | n/a | n/a | Rate limited and logged |
+
+## 4. Why these lines
+- **Visibility is free.** The Player Resume, consent controls and opt-in scouting sit on Rookie because the strategy ties visibility directly to the purpose (strategy section 4).
+- **Development has a real free tier but a bounded one.** A capped monthly allowance of scrim analysis gives every player meaningful performance feedback while protecting unit costs.
+- **Organizational workflows pay.** Team and recruiter features create value for organizations, which is where the business model charges (strategy section 5).
+- **Contact is never a product feature that overrides consent.** Even Scout cannot see private details without a player's grant.
+
+## 5. Cost implications (to be measured, not assumed)
+No cost figures are claimed because no parser exists yet. The drivers and what is needed to price the limits:
+
+| Driver | Why it matters | What to measure in the validation spike |
+|---|---|---|
+| Raw demo and replay size | Files can be large (hundreds of megabytes is plausible) and dominate storage and bandwidth | Real file sizes per game, compression ratio |
+| Parse compute | Runs on a separate worker, not on Vercel serverless | Wall-clock and memory per match, failure rate |
+| Storage and retention | Raw files kept for N days, derived data kept long term | Bytes per match for raw and derived data |
+| Egress and downloads | Users re-downloading or re-processing | Usage patterns in a pilot |
+| Support and moderation | Safety review is staffed work | Report volume in a pilot |
+
+Method: compute a **cost per processed scrim** (compute + storage over the retention window + egress) from pilot measurements, then set each plan's allowance so that the plan's gross margin stays positive at expected usage, with Rookie's allowance treated as an explicit, budgeted shared-value cost. If the free allowance proves too expensive, reduce it, shorten raw file retention, or limit the free tier to one game, in that order. Do not quietly cut safety or visibility.
+
+## 6. Open questions
+1. **Team creation on Rookie.** Today anyone can create a team. Keep it free (the roster is the entry to the ecosystem) or limit creation to Pro and Team? Joining a team stays free either way.
+2. **Free allowance size and retention.** Set after the cost measurements in section 5.
+3. **Regional or institutional access.** Whether any reduced-cost access for collegiate or community programs should exist is a business decision. Nothing is proposed or promised here, and no discount may be advertised.
+4. **Scout contact limits.** The monthly request cap should balance recruiter usefulness against harassment risk; set it with the moderation design.
+5. **Self-reported versus verified in Pro and Scout views.** Whether recruiter filters default to verified provenance only. Verification speaks to evidence integrity, not ability, and the interface must say so.
+
+## 7. Implementation outline (after approval, not before)
+- Tables: `entitlements` (account or organization, plan, status, period), `usage_events` or counters (processed scrims, contact requests), each written only by server code.
+- Enforcement points: the processing queue (before accepting a job), the recruiter RPCs, contact request creation.
+- Stripe: reuse the existing test-mode product and price ids in `docs/stripe.md`; entitlements derive from verified webhook events. Checkout is built only after entitlements exist (M4, separate approval).
+- Entitlements default to "all current features available" while billing is off, so nothing live is taken away before billing launches.
