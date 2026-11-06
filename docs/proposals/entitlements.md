@@ -1,6 +1,6 @@
 # Plan entitlement matrix (proposal)
 
-**Status: PROPOSAL for review. Nothing is implemented.** Prices, plan names and approved plan descriptions are **not changed** by this document (`content/pricing.ts`, `docs/stripe.md`). Billing stays off (`NEXT_PUBLIC_BILLING_ENABLED=false`).
+**Status: PROPOSAL for review (revision 2: Rookie team recommendation added). Nothing is implemented.** Prices, plan names and approved plan descriptions are **not changed** by this document (`content/pricing.ts`, `docs/stripe.md`). Billing stays off (`NEXT_PUBLIC_BILLING_ENABLED=false`).
 Strategic basis: [docs/strategy/victress-business-purpose.md](../strategy/victress-business-purpose.md), section 5 (the business model that sustains the purpose), section 3B (accessible development infrastructure) and section 6 (cost-effective expansion).
 
 Approved plans, unchanged:
@@ -32,7 +32,7 @@ Legend: **Yes** included. **Limited** included with a cap (the cap value is a pa
 | Self-reported stats (labeled **Self-reported**) | Yes | Yes | Yes | n/a |
 | Games, roles, ranks (all six games) | Yes | Yes | Yes | n/a |
 | Report and block tools, privacy controls | Yes | Yes | Yes | Yes |
-| Opt in to be scoutable | Yes | Yes | Yes | n/a |
+| Opt in to be scoutable (**gated**: no recruiter discovery until safety operations and legal review are in place) | Yes, once available | Yes | Yes | n/a |
 | Scrim Intelligence (upload and automatic analysis), **Not built** | Limited allowance per month | Larger allowance | Pooled team allowance | n/a |
 | Match history and development trends, **Not built** | Limited history window | Full history | Full history | n/a |
 | Parsed result provenance (`demo_parsed`, `api`) shown on the Resume | Yes | Yes | Yes | n/a |
@@ -43,8 +43,9 @@ Legend: **Yes** included. **Limited** included with a cap (the cap value is a pa
 | Capability | Rookie | Pro | Team | Scout |
 |---|---|---|---|---|
 | Join a team, appear on a roster | Yes | Yes | Yes | n/a |
-| Create a team and invite players (exists today, roster up to 10) | Open question (see 6.1) | Yes | Yes | n/a |
-| Shared scrim review and team performance, **Not built** | No | No | Yes, pooled allowance | n/a |
+| **One basic team**: create it, invite players by link, roster up to the existing limit of 10 (exists today) | **Yes, one team** | Yes, one team | Yes | n/a |
+| More than one team owned by the same account | No | No | Open (see section 6) | n/a |
+| Shared scrim review and team performance, **Not built** (advanced) | No | No | Yes, pooled allowance | n/a |
 | Player comparisons within a roster, **Not built** | No | No | Yes | n/a |
 | Coach and manager roles and seats, **Not built** | No | No | Yes (seat cap) | n/a |
 | Team development history, **Not built** | No | No | Yes | n/a |
@@ -69,6 +70,23 @@ Legend: **Yes** included. **Limited** included with a cap (the cap value is a pa
 | Data export and self-serve deletion | Yes (to be built) | Yes | Yes | Yes |
 | Recruiter searches and views | n/a | n/a | n/a | Rate limited and logged |
 
+## 3A. Basic team versus advanced team workflows (Rookie recommendation)
+**Recommendation (approved direction): Rookie includes one basic team with the existing roster limit. Advanced team workflows and compute-heavy capabilities stay in paid plans. Prices are not changed.**
+
+| | Basic team (Rookie, Pro, Team) | Advanced team workflows (Team plan) |
+|---|---|---|
+| Roster | Up to the existing cap of 10 (8 players and 2 coaches), invite link, join and leave, owner removes members, regenerate invite code | Same cap unless a later decision changes it |
+| Team page | Team name and member list visible to members | Team portfolio and team page features (**Not built**) |
+| Scrim analysis | Each member uses their own personal allowance | **Pooled** team allowance, shared scrim review, team trends (**Not built**, compute heavy) |
+| Comparisons | None | Player comparisons within the roster (**Not built**) |
+| Roles and seats | Existing owner, player and coach roles | Coach and manager seats and permissions (**Not built**) |
+| Team development history | None | Yes (**Not built**) |
+| Recruiter visibility of the team | None | Not part of the team plan; recruiter access is the Scout plan and requires verification |
+
+Why: a team is how most players enter the ecosystem, including players who cannot pay, so one basic team keeps that door open and costs almost nothing to run (a roster is a few rows). The costly and organization-level value (pooled processing, comparisons, history, seats) is where the Team plan charges. Nothing is taken away from what exists today.
+
+Implementation outline (after approval): `create_team` checks an entitlement and an "owns at most one team" rule for Rookie and Pro; advanced features check the plan on the server. If a Team subscription lapses, the team and roster **remain**; only advanced workflows stop. Downgrade never removes members or history.
+
 ## 4. Why these lines
 - **Visibility is free.** The Player Resume, consent controls and opt-in scouting sit on Rookie because the strategy ties visibility directly to the purpose (strategy section 4).
 - **Development has a real free tier but a bounded one.** A capped monthly allowance of scrim analysis gives every player meaningful performance feedback while protecting unit costs.
@@ -89,7 +107,7 @@ No cost figures are claimed because no parser exists yet. The drivers and what i
 Method: compute a **cost per processed scrim** (compute + storage over the retention window + egress) from pilot measurements, then set each plan's allowance so that the plan's gross margin stays positive at expected usage, with Rookie's allowance treated as an explicit, budgeted shared-value cost. If the free allowance proves too expensive, reduce it, shorten raw file retention, or limit the free tier to one game, in that order. Do not quietly cut safety or visibility.
 
 ## 6. Open questions
-1. **Team creation on Rookie.** Today anyone can create a team. Keep it free (the roster is the entry to the ecosystem) or limit creation to Pro and Team? Joining a team stays free either way.
+1. **Team creation on Rookie: decided direction.** One basic team with the existing roster limit is on Rookie (section 3A). Open detail: how many teams one Team subscription covers (one per subscription, or a small number).
 2. **Free allowance size and retention.** Set after the cost measurements in section 5.
 3. **Regional or institutional access.** Whether any reduced-cost access for collegiate or community programs should exist is a business decision. Nothing is proposed or promised here, and no discount may be advertised.
 4. **Scout contact limits.** The monthly request cap should balance recruiter usefulness against harassment risk; set it with the moderation design.
