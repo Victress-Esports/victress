@@ -108,34 +108,36 @@ export const copy = {
     final: { title: "Get started.", cta: "Get started", login: "Log in" },
   },
 
-  // Vistrielle by Victress: a women-in-esports community and opportunity initiative supported by the Victress platform.
-  // It is not a separate company, a fourth pillar or a program that exists today: nothing here may read as an active service.
-  vistrielle: {
-    eyebrow: "Initiative in development",
-    title: "Vistrielle by Victress",
-    line: "A women-in-esports community and opportunity initiative, supported by the Victress platform.",
-    why: "Women competing in esports face a visibility and opportunity gap. Victress is creating Vistrielle to help address it, while turning competitive practice into measurable progress.",
+  // Victress Women in Esports: a community initiative powered by Victress. It is a secondary, social-impact commitment:
+  // not a separate company, a fourth pillar, a product or a program that exists today. Nothing here may read as an active service.
+  // Do not create another initiative name.
+  womenInEsports: {
+    brand: "Victress",
+    title: "Women in Esports",
+    eyebrow: "Community initiative in development",
+    line: "A community initiative powered by Victress.",
+    message: "Creating visibility, developing talent, and expanding opportunities for women in competitive esports.",
     areas: [
       {
         title: "Visibility",
-        line: "Help women competitors establish credible competitive identities and showcase their achievements through Player Resumes.",
+        line: "Help women competitors establish credible competitive identities, showcase achievements, and gain greater recognition.",
         pillar: "resume" as const,
       },
       {
         title: "Development",
-        line: "Work toward player improvement through performance insights, development resources and potential mentorship as the initiative develops.",
+        line: "Support player growth through performance insights, development resources, and potential mentorship opportunities as the initiative develops.",
         pillar: "scrim" as const,
       },
       {
         title: "Opportunity",
-        line: "Work toward greater exposure and potential connections with teams, coaches, collegiate programs and recruiters through Scout Desk.",
+        line: "Help create pathways toward teams, coaches, collegiate programs, and recruiters.",
         pillar: "scout" as const,
       },
     ],
-    builtOn: "Supported by",
-    note: "Vistrielle is in development and is not currently offering funding, coaching, scholarships or recruitment.",
+    connectedTo: "Connected to",
+    note: "Victress Women in Esports is in development and is not currently offering funding, coaching, scholarships or recruitment.",
     cta: "Get in touch",
-    subject: "Vistrielle by Victress",
+    subject: "Victress Women in Esports",
   },
 
   pricing: {

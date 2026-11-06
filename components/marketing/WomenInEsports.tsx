@@ -3,35 +3,40 @@ import { ButtonLink } from "@/components/ui/Button";
 import { CONTACT_EMAIL, copy } from "@/content/copy";
 
 /**
- * Vistrielle by Victress: a restrained introduction to an initiative in development. It ties each focus area to an existing
- * pillar and repeats that pillar's real status, so nothing here reads as a live program or an offer.
+ * Victress Women in Esports: a secondary, community-impact section. Smaller than the product pillars on purpose.
+ * Each focus area names the existing pillar it connects to and repeats that pillar's real status, so nothing here
+ * reads as a live program or an offer.
  */
-export function Vistrielle() {
-  const e = copy.vistrielle;
+export function WomenInEsports() {
+  const e = copy.womenInEsports;
   const pillar = (id: string) => copy.home.pillars.find((p) => p.id === id)!;
   return (
     <section
-      aria-labelledby="vistrielle-title"
+      aria-labelledby="women-in-esports-title"
       className="relative overflow-hidden border-t border-line"
     >
       <WingsBackdrop
         variant="band"
         className="-right-40 -top-6 hidden w-[760px] max-w-none sm:block"
       />
-      <div className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
+      <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
         <span className="inline-flex rounded-full bg-surface-2 px-3 py-1 text-xs font-semibold text-signal">
           {e.eyebrow}
         </span>
+        {/* Accessible name is the full written reference: "Victress Women in Esports". */}
         <h2
-          id="vistrielle-title"
-          className="mt-4 font-display text-4xl font-bold leading-tight sm:text-5xl"
+          id="women-in-esports-title"
+          className="mt-4 font-display font-bold leading-tight"
         >
-          {e.title}
+          <span className="block text-sm uppercase tracking-[0.18em] text-mute">
+            {e.brand}
+          </span>{" "}
+          <span className="mt-1 block text-3xl sm:text-4xl">{e.title}</span>
         </h2>
-        <p className="mt-4 max-w-2xl text-lg text-mute">{e.line}</p>
-        <p className="mt-3 max-w-2xl text-mute">{e.why}</p>
+        <p className="mt-3 text-mute">{e.line}</p>
+        <p className="mt-2 max-w-2xl text-lg">{e.message}</p>
 
-        <ol className="mt-12 grid gap-px overflow-hidden rounded-2xl border border-line bg-line md:grid-cols-3">
+        <ol className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-line bg-line md:grid-cols-3">
           {e.areas.map((a, i) => {
             const p = pillar(a.pillar);
             return (
@@ -44,7 +49,7 @@ export function Vistrielle() {
                 </h3>
                 <p className="mt-2 text-mute">{a.line}</p>
                 <p className="mt-6 border-t border-line pt-4 text-sm text-mute">
-                  {e.builtOn}{" "}
+                  {e.connectedTo}{" "}
                   <span className="font-semibold text-white">{p.title}</span>
                   <span className="mt-1 block text-xs">
                     (

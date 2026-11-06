@@ -83,7 +83,7 @@ async function auditPage({ host, path, index, types = [], og = true, hidden = fa
   if (index) ok(!/noindex/i.test(robotsMeta + xrt), `indexable page is noindex (${robotsMeta} ${xrt})`);
   else ok(/noindex/i.test(robotsMeta + xrt), "private page is NOT noindex");
 
-  for (const old of ["Perform. Compete. Rise", "Turn performance into progress", "Your stats. Your profile. Your competitive edge", "Founding clubs", "founding clubs", "privacy-friendly analytics", "Elevate"]) ok(!html.includes(old), `retired tagline found on page: "${old}"`);
+  for (const old of ["Perform. Compete. Rise", "Turn performance into progress", "Your stats. Your profile. Your competitive edge", "Founding clubs", "founding clubs", "privacy-friendly analytics", "Elevate", "Vistrielle"]) ok(!html.includes(old), `retired tagline found on page: "${old}"`);
   for (const text of contains) ok(html.includes(text), `page does not contain: "${text}"`);
   for (const text of notContains) ok(!html.includes(text), `page should not contain: "${text}"`);
   if (exact) {
@@ -210,7 +210,7 @@ const pages = [
       "Turn practice into progress.",
       "An esports player development and recruitment platform.",
       "Scrim Intelligence", "Player Resume", "Scout Desk", "Available now", "Get started", "Log in",
-      "Vistrielle by Victress", "Initiative in development", "is not currently offering funding, coaching, scholarships or recruitment",
+      "Women in Esports", "A community initiative powered by Victress.", "Community initiative in development", "Victress Women in Esports is in development and is not currently offering funding, coaching, scholarships or recruitment",
       "VALORANT", "Counter-Strike 2", "Rocket League", "League of Legends", "Apex Legends", "Overwatch 2",
       "What is Victress?", "How can recruiters discover players?", "Self-reported", "Coming soon", "Sample",
     ],

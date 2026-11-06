@@ -5,8 +5,8 @@ import { HeroClaim } from "@/components/marketing/HeroClaim";
 import { ScoutSample, ScrimSample } from "@/components/marketing/PillarVisuals";
 import { ProfileMoment } from "@/components/marketing/ProfileMoment";
 import { TeamRoster } from "@/components/marketing/TeamRoster";
-import { Vistrielle } from "@/components/marketing/Vistrielle";
 import { WaitlistButton } from "@/components/marketing/WaitlistButton";
+import { WomenInEsports } from "@/components/marketing/WomenInEsports";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -148,7 +148,7 @@ export default function Home() {
         </div>
       </section>
 
-      <Vistrielle />
+      <WomenInEsports />
 
       <section
         aria-labelledby="faq-title"
