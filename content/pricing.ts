@@ -10,7 +10,7 @@ export interface Plan {
   yearly?: number;
   /** Shown after the price, e.g. "forever" or "per roster". */
   unit: string;
-  /** Plan description. Only describe what exists, or what is clearly marked Coming soon. */
+  /** Approved plan descriptions (kept verbatim). Paid plans are marked Coming soon until they are built. */
   blurb: string;
   note?: string;
   live: boolean;
@@ -24,7 +24,8 @@ export const PLANS: Plan[] = [
     name: "Rookie",
     monthly: 0,
     unit: "forever",
-    blurb: "Your competitive profile starts here.",
+    blurb:
+      "Your competitive profile starts here. Track your stats, share your progress, and build your presence in esports.",
     live: true,
   },
   {
@@ -33,7 +34,8 @@ export const PLANS: Plan[] = [
     monthly: 7.99,
     yearly: 75,
     unit: "per month",
-    blurb: "A clearer view of your performance.",
+    blurb:
+      "A clearer view of your performance. Track your progress, build your player profile, and share it with teams.",
     live: false,
     interest: "pro",
     highlight: true,
@@ -43,8 +45,9 @@ export const PLANS: Plan[] = [
     name: "Team",
     monthly: 49,
     unit: "per month",
-    blurb: "Everything your roster needs in one place.",
-    note: "First season free for founding clubs.",
+    blurb:
+      "Everything your roster needs in one place. Manage players, follow team progress, and keep your program organized.",
+    note: "Founding clubs get free access for their first season.",
     live: false,
     interest: "team",
   },
@@ -53,7 +56,8 @@ export const PLANS: Plan[] = [
     name: "Scout",
     monthly: 249,
     unit: "per month",
-    blurb: "Find the right players.",
+    blurb:
+      "Find the right players. Explore competitive profiles, compare performance, and organize recruitment prospects.",
     live: false,
     interest: "scout",
   },
