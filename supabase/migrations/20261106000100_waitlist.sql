@@ -1,4 +1,4 @@
--- Waitlist for features that are not live yet. NOT yet applied to the remote project (applied with M2).
+-- Waitlist for features that are not live yet. Applied to the remote project at the start of M2.
 create table public.waitlist (
   id uuid primary key default gen_random_uuid(),
   email text not null check (char_length(email) <= 254),
