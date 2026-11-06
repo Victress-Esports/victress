@@ -25,6 +25,13 @@ The Disallow rules use `$` and `/` on purpose (`/dashboard$`, `/dashboard/`). A 
 - Size: `SITEMAP_PAGE_SIZE` (default 5000 profiles per file). Above that, `/sitemap.xml` becomes an index pointing at `/sitemap/static.xml` and `/sitemap/profiles-1.xml`, `-2.xml`, and so on. The protocol limit is 50,000 URLs per file.
 - Cached for an hour at the edge. If the database is unreachable the route returns 503 rather than a sitemap that silently lacks profiles.
 
+## Homepage FAQ, product schema and llms.txt
+
+- The homepage has its own FAQ (7 questions about the platform; the pricing page keeps its purchase-focused FAQ). Both are marked up as `FAQPage` from the same visible text, and the audit fails if a question is duplicated between the two pages.
+- `WebApplication` JSON-LD describes the product at victress.gg: the free plan only, live features only. Do not add ratings, review counts or user numbers unless they exist.
+- `/llms.txt` is served on the marketing domain only. It separates what works today from what is coming soon. Update it when features ship.
+- Full audit, including AI-crawler options and the age/COPPA findings: `docs/compliance-audit.md`.
+
 ## Titles and descriptions
 
 All copy lives in `content/seo.ts`. Titles are under 60 characters and descriptions under 160. `npm run seo:audit` checks lengths, uniqueness, canonical, Open Graph, Twitter, robots, JSON-LD, status codes, redirects, and that robots.txt and the sitemap agree.

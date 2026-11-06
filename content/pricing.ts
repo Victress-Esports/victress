@@ -24,8 +24,7 @@ export const PLANS: Plan[] = [
     name: "Rookie",
     monthly: 0,
     unit: "forever",
-    blurb:
-      "Your competitive profile starts here. Track your stats, share your progress, and build your presence in esports.",
+    blurb: "Your competitive profile starts here.",
     live: true,
   },
   {
@@ -34,8 +33,7 @@ export const PLANS: Plan[] = [
     monthly: 7.99,
     yearly: 75,
     unit: "per month",
-    blurb:
-      "A clearer view of your performance. Track your progress, build your player profile, and share it with teams.",
+    blurb: "A clearer view of your performance.",
     live: false,
     interest: "pro",
     highlight: true,
@@ -45,9 +43,8 @@ export const PLANS: Plan[] = [
     name: "Team",
     monthly: 49,
     unit: "per month",
-    blurb:
-      "Everything your roster needs in one place. Manage players, follow team progress, and keep your program organized.",
-    note: "Founding clubs get free access for their first season.",
+    blurb: "Everything your roster needs in one place.",
+    note: "First season free for founding clubs.",
     live: false,
     interest: "team",
   },
@@ -56,8 +53,7 @@ export const PLANS: Plan[] = [
     name: "Scout",
     monthly: 249,
     unit: "per month",
-    blurb:
-      "Find the right players. Explore competitive profiles, compare performance, and organize recruitment prospects.",
+    blurb: "Find the right players.",
     live: false,
     interest: "scout",
   },

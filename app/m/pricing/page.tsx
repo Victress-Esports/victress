@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { FaqList } from "@/components/marketing/FaqList";
 import { PricingCards } from "@/components/marketing/PricingCards";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { copy } from "@/content/copy";
@@ -25,18 +26,8 @@ export default function Pricing() {
         <h2 id="faq" className="font-display text-3xl font-bold">
           {p.faqTitle}
         </h2>
-        <div className="mt-6 divide-y divide-line border-y border-line">
-          {p.faq.map((f) => (
-            <details key={f.q} className="group py-1">
-              <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 text-lg font-semibold">
-                {f.q}
-                <span aria-hidden className="text-coral transition-transform group-open:rotate-45">
-                  +
-                </span>
-              </summary>
-              <p className="pb-5 text-mute">{f.a}</p>
-            </details>
-          ))}
+        <div className="mt-6">
+          <FaqList items={p.faq} />
         </div>
       </section>
     </div>

@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 // Generic social cards (1200x630). `page` is an allow-list key, so nobody can print arbitrary text on our image.
 const CARDS: Record<string, { kicker: string; title: string; line: string }> = {
-  home: { kicker: "VICTRESS", title: "Perform. Compete. Rise.", line: "Your profile. Your stats. Your rank." },
+  home: { kicker: "VICTRESS", title: "Turn practice into progress.", line: "Your stats. Your profile. Your competitive edge." },
   pricing: { kicker: "VICTRESS PRICING", title: "Free to start.", line: "Pro, Team and Scout are coming soon." },
   teams: { kicker: "VICTRESS FOR TEAMS", title: "Run your club in one place.", line: "One invite link. One roster." },
   about: { kicker: "ABOUT VICTRESS", title: "Show the work.", line: "A profile you own, built on stats you enter." },

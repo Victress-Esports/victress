@@ -30,7 +30,6 @@ export function Footer() {
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div>
           <Logo />
-          <p className="mt-3 text-sm text-mute">{copy.footer.line}</p>
         </div>
         <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-mute">
           {[...copy.nav.links, ...copy.footer.links].map((l) => (

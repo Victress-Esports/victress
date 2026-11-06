@@ -1,4 +1,4 @@
-import { copy } from "@/content/copy";
+import { SampleTag } from "@/components/marketing/SampleTag";
 
 // CSS/SVG product mockups. All data is sample data, labeled as such.
 const Frame = ({ children, label }: { children: React.ReactNode; label: string }) => (
@@ -6,7 +6,9 @@ const Frame = ({ children, label }: { children: React.ReactNode; label: string }
     <div role="img" aria-label={label}>
       {children}
     </div>
-    <figcaption className="mt-5 text-xs text-mute">{copy.home.sampleNote}</figcaption>
+    <figcaption className="mt-5">
+      <SampleTag />
+    </figcaption>
   </figure>
 );
 

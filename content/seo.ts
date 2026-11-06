@@ -4,8 +4,9 @@
 export const seo = {
   marketing: {
     home: {
-      title: "Victress | Turn performance into progress",
-      description: "Claim your name and build a shareable player profile. Track your stats in VALORANT, CS2 and four more games.",
+      title: "Victress | Esports Player Profiles & Performance",
+      description:
+        "Build your esports player profile, track performance, and showcase your competitive progress. Made for players, teams, and collegiate programs.",
     },
     pricing: {
       title: "Victress pricing: free to start",

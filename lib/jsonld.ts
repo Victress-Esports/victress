@@ -25,6 +25,19 @@ export function organizationAndWebsite() {
         },
       },
       {
+        // The product itself (victress.gg). Only what exists today: a free plan, and features that are live.
+        "@type": "WebApplication",
+        "@id": `${APP_URL}/#app`,
+        name: "Victress",
+        url: APP_URL,
+        description: "Esports player profiles and performance tracking for VALORANT, Counter-Strike 2, Rocket League, League of Legends, Apex Legends and Overwatch 2.",
+        operatingSystem: "Web",
+        applicationCategory: "SportsApplication",
+        publisher: { "@id": `${MARKETING_URL}/#organization` },
+        offers: { "@type": "Offer", name: "Rookie", price: "0", priceCurrency: "USD" },
+        featureList: ["Shareable player profile", "Six supported games", "Self-reported stats", "Team rosters with invite links", "Per-game leaderboards"],
+      },
+      {
         "@type": "WebSite",
         "@id": `${MARKETING_URL}/#website`,
         name: "Victress",

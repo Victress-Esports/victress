@@ -26,6 +26,8 @@ export interface GameConfig {
   /** URL slug used by /leaderboard/{slug}. */
   slug: string;
   name: string;
+  /** Compact name for chips. */
+  short: string;
   /** Featured games get homepage and marketing placement. All games are fully available in onboarding and profiles. */
   featured: boolean;
   /** What the game calls a role ("Role", "Legend class"). Empty `roles` means the game has no fixed roles. */
@@ -44,6 +46,7 @@ const VALORANT: GameConfig = {
   id: "VALORANT",
   slug: "valorant",
   name: "VALORANT",
+  short: "VALORANT",
   featured: true,
   roleLabel: "Role",
   roles: ["Duelist", "Initiator", "Controller", "Sentinel"],
@@ -62,6 +65,7 @@ const CS2: GameConfig = {
   id: "CS2",
   slug: "cs2",
   name: "Counter-Strike 2",
+  short: "CS2",
   featured: true,
   roleLabel: "Role",
   // Not game-defined: these are the community's standard CS roles.
@@ -83,6 +87,7 @@ const ROCKET_LEAGUE: GameConfig = {
   id: "ROCKET_LEAGUE",
   slug: "rocket-league",
   name: "Rocket League",
+  short: "Rocket League",
   featured: false,
   roleLabel: "Role",
   roles: [], // no fixed roles
@@ -103,6 +108,7 @@ const LOL: GameConfig = {
   id: "LOL",
   slug: "league-of-legends",
   name: "League of Legends",
+  short: "LoL",
   featured: false,
   roleLabel: "Position",
   roles: ["Top", "Jungle", "Mid", "Bot", "Support"],
@@ -122,6 +128,7 @@ const APEX: GameConfig = {
   id: "APEX",
   slug: "apex-legends",
   name: "Apex Legends",
+  short: "Apex",
   featured: false,
   roleLabel: "Legend class",
   roles: ["Assault", "Skirmisher", "Recon", "Controller", "Support"],
@@ -140,6 +147,7 @@ const OVERWATCH2: GameConfig = {
   id: "OVERWATCH2",
   slug: "overwatch-2",
   name: "Overwatch 2",
+  short: "Overwatch 2",
   featured: false,
   roleLabel: "Role",
   roles: ["Tank", "Damage", "Support"],

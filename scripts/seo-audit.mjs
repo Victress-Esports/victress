@@ -59,7 +59,7 @@ function parseRobots(txt) {
 
 const seen = { title: new Map(), desc: new Map() };
 
-async function auditPage({ host, path, index, types = [], og = true, hidden = false, contains = [] }) {
+async function auditPage({ host, path, index, types = [], og = true, hidden = false, contains = [], exact, notContains = [] }) {
   const label = `${host}${path}`;
   const res = await get(host, path);
   console.log(`\n# ${label}  [${res.status}] ${index ? "indexable" : "private/noindex"}`);
@@ -83,7 +83,13 @@ async function auditPage({ host, path, index, types = [], og = true, hidden = fa
   if (index) ok(!/noindex/i.test(robotsMeta + xrt), `indexable page is noindex (${robotsMeta} ${xrt})`);
   else ok(/noindex/i.test(robotsMeta + xrt), "private page is NOT noindex");
 
+  for (const old of ["Perform. Compete. Rise", "Turn performance into progress"]) ok(!html.includes(old), `retired tagline found on page: "${old}"`);
   for (const text of contains) ok(html.includes(text), `page does not contain: "${text}"`);
+  for (const text of notContains) ok(!html.includes(text), `page should not contain: "${text}"`);
+  if (exact) {
+    ok(title === exact.title, `title is "${title}", expected "${exact.title}"`);
+    ok(desc === exact.description, `description differs from the approved value`);
+  }
 
   // A profile whose owner has not opted in to search: viewable, shareable, but no canonical and no structured data.
   if (hidden) {
@@ -107,6 +113,7 @@ async function auditPage({ host, path, index, types = [], og = true, hidden = fa
     ok(meta(html, "name", "twitter:title") === title, "twitter:title missing");
     const img = meta(html, "property", "og:image");
     ok(!!img && img.startsWith(`https://${host}/`), `og:image ${img} is not absolute on this host`);
+    ok((meta(html, "property", "og:image:alt") ?? "").length > 10, "og:image:alt missing");
     ok(meta(html, "property", "og:image:width") === "1200" && meta(html, "property", "og:image:height") === "630", "og:image size tags missing");
     ok(meta(html, "name", "twitter:image") === img, "twitter:image differs from og:image");
     if (img) {
@@ -193,7 +200,26 @@ async function auditSite(host, other, expectedPaths, privatePaths) {
 console.log("######## PAGES ########");
 const mk = (host, path, index, types = []) => ({ host, path, index, types });
 const pages = [
-  mk(MARKETING, "/", true, ["Organization", "WebSite"]),
+  {
+    host: MARKETING,
+    path: "/",
+    index: true,
+    types: ["Organization", "WebSite", "WebApplication", "FAQPage"],
+    // Official messaging pair, and everything a crawler needs to understand the product, present in the server-rendered HTML.
+    contains: [
+      "Turn practice into progress.",
+      "Your stats. Your profile. Your competitive edge.",
+      "VALORANT", "Counter-Strike 2", "Rocket League", "League of Legends", "Apex Legends", "Overwatch 2",
+      "What is Victress?", "How can recruiters discover players?", "Self-reported", "Coming soon", "Sample",
+    ],
+    // Approved homepage values. The logo is not a hero visual: the emblem art must not appear on the page.
+    exact: {
+      title: "Victress | Esports Player Profiles & Performance",
+      description:
+        "Build your esports player profile, track performance, and showcase your competitive progress. Made for players, teams, and collegiate programs.",
+    },
+    notContains: ["wings-480", "wings-720", "brand/wings"],
+  },
   mk(MARKETING, "/pricing", true, ["FAQPage", "BreadcrumbList"]),
   mk(MARKETING, "/teams", true, ["BreadcrumbList"]),
   mk(MARKETING, "/about", true, ["BreadcrumbList"]),
@@ -273,6 +299,74 @@ for (const [h, p] of [[`www.${MARKETING}`, "/pricing?x=1"], [`www.${APP}`, "/moc
   console.log(`   ${h}${p}  -> ${r.status}  location ${r.headers.location}`);
   // The bare root may come back with or without the trailing slash; both are the same URL.
   ok(r.status === 308 && (r.headers.location === want || (p === "/" && r.headers.location === want.replace(/\/$/, ""))), `www redirect: got ${r.status} ${r.headers.location}, want 308 ${want}`);
+}
+
+console.log("\n######## ICONS AND MANIFEST ########");
+{
+  const home = (await get(MARKETING, "/")).body;
+  ok(/<link rel="icon" href="\/favicon\.ico[^"]*"/.test(home), "favicon.ico link missing");
+  ok(/<link rel="icon" href="\/icon\.svg[^"]*"[^>]*type="image\/svg\+xml"/.test(home), "SVG icon link missing");
+  ok(/<link rel="apple-touch-icon" href="\/apple-icon\.png[^"]*"[^>]*sizes="180x180"/.test(home), "apple-touch-icon link missing");
+  ok(/<link rel="manifest" href="\/manifest\.webmanifest"/.test(home), "manifest link missing");
+  ok(/<meta name="theme-color" content="#171717"/.test(home), "theme-color missing");
+
+  const ico = await get(MARKETING, "/favicon.ico");
+  const n = ico.buf.readUInt16LE(4);
+  const frames = Array.from({ length: n }, (_, i) => ico.buf[6 + 16 * i] || 256).sort((a, b) => a - b);
+  console.log(`   favicon.ico frames: ${frames.join(", ")} px`);
+  ok(ico.status === 200 && JSON.stringify(frames) === JSON.stringify([16, 32, 48]), `favicon.ico frames ${frames}, expected 16, 32, 48`);
+
+  const { default: sharp } = await import("sharp");
+  const apple = await get(MARKETING, "/apple-icon.png");
+  const raw = await sharp(apple.buf).raw().toBuffer();
+  const meta2 = await sharp(apple.buf).metadata();
+  console.log(`   apple-icon: ${meta2.width}x${meta2.height}, corner alpha ${raw[3]}`);
+  ok(meta2.width === 180 && meta2.height === 180 && raw[3] === 255, "apple-touch icon must be 180x180 with opaque corners");
+
+  const man = JSON.parse((await get(MARKETING, "/manifest.webmanifest")).body);
+  console.log("   manifest icons:", man.icons.map((i) => `${i.sizes} ${i.purpose ?? "any"}`).join(" | "));
+  ok(man.icons.some((i) => i.purpose === "maskable" && i.sizes === "512x512"), "manifest has no maskable 512 icon");
+  ok(man.icons.some((i) => i.sizes === "192x192") && man.icons.some((i) => i.sizes === "512x512" && i.purpose === "any"), "manifest missing 192 / 512 icons");
+  for (const i of man.icons) ok((await get(MARKETING, i.src)).status === 200, `manifest icon ${i.src} does not load`);
+}
+
+console.log("\n######## HOME FAQ, PRODUCT SCHEMA, llms.txt ########");
+{
+  const home = (await get(MARKETING, "/")).body;
+  const pricing = (await get(MARKETING, "/pricing")).body;
+  const ld = [...home.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => JSON.parse(m[1]));
+  const faq = ld.find((d) => d["@type"] === "FAQPage");
+  console.log(`   home FAQ questions in JSON-LD: ${faq?.mainEntity.length}`);
+  ok(faq?.mainEntity.length === 7, `home FAQPage should have 7 questions, has ${faq?.mainEntity.length}`);
+  const homeQs = new Set(faq.mainEntity.map((q) => q.name));
+  const pricingFaq = [...pricing.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => JSON.parse(m[1])).find((d) => d["@type"] === "FAQPage");
+  for (const q of pricingFaq.mainEntity) ok(!homeQs.has(q.name), `question duplicated on home and pricing: ${q.name}`);
+  for (const q of faq.mainEntity) ok(home.includes(">" + q.name.replace(/'/g, "&#x27;") + "<") || home.includes(q.name), `FAQ question is in the JSON-LD but not visible on the page: ${q.name}`);
+  const app = ld.flatMap((d) => d["@graph"] ?? []).find((n) => n["@type"] === "WebApplication");
+  console.log(`   WebApplication: ${app?.url}, offers ${JSON.stringify(app?.offers)}`);
+  ok(app?.url === "https://victress.gg" && app.offers.price === "0", "WebApplication should point at victress.gg and only offer the free plan");
+
+  const llms = await get(MARKETING, "/llms.txt");
+  console.log(`   /llms.txt -> ${llms.status} ${llms.headers["content-type"]}, ${llms.body.length} chars`);
+  ok(llms.status === 200 && /text\/plain/.test(llms.headers["content-type"] ?? ""), "llms.txt should be 200 text/plain");
+  ok(/Coming soon/.test(llms.body) && /Self-reported/.test(llms.body) && /not indexed by search engines unless/.test(llms.body), "llms.txt must separate planned from live features and state the profile privacy rule");
+  ok(!/Perform\. Compete|performance into progress/.test(llms.body), "llms.txt contains a retired tagline");
+  ok((await get(APP, "/llms.txt")).status === 404, "llms.txt should not be served on the application domain");
+  const robots = parseRobots((await get(MARKETING, "/robots.txt")).body);
+  ok(!robots.blocked("/llms.txt"), "robots.txt blocks /llms.txt");
+}
+
+console.log("\n######## DOMAIN SEPARATION ########");
+for (const [h, p] of [[APP, "/pricing"], [APP, "/teams"], [APP, "/about"], [APP, "/privacy"], [APP, "/terms"], [MARKETING, "/login"], [MARKETING, "/dashboard"], [MARKETING, "/leaderboard/valorant"]]) {
+  const r = await get(h, p);
+  console.log(`   ${h}${p} -> ${r.status}`);
+  ok(r.status === 404, `${h}${p} should be 404 (no duplicate of the other domain's pages), got ${r.status}`);
+}
+{
+  // the application domain must never be the marketing home's canonical or og:url
+  const home = (await get(MARKETING, "/")).body;
+  ok(!/victress\.gg/.test((home.match(/<link rel="canonical"[^>]*>/) ?? [""])[0]), "marketing home canonical points at victress.gg");
+  ok(!/victress\.gg/.test(meta(home, "property", "og:url") ?? ""), "marketing home og:url points at victress.gg");
 }
 
 console.log(`\n${failures === 0 ? "ALL SEO CHECKS PASSED" : failures + " CHECK(S) FAILED"}`);

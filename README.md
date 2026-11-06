@@ -1,6 +1,6 @@
 # Victress
 
-Esports player-performance platform. **Perform. Compete. Rise.**
+Esports player-performance platform. **Turn practice into progress.**
 
 One Next.js (App Router, TypeScript, Tailwind v4) project that serves two domains:
 
