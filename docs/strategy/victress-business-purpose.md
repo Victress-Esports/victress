@@ -1,6 +1,6 @@
 <!--
 AUTHORITATIVE STRATEGIC REFERENCE.
-This document is the source of truth for why Victress exists, how it creates value, and where it is going.
+This is the primary strategy document: the authoritative reference for why Victress exists, how it creates value, and where it is going.
 It supersedes any earlier instruction that conflicts with it, including instructions that described Women in Esports
 as a secondary initiative or a separate social impact activity. Saved verbatim; do not shorten or reinterpret it.
 Link: CLAUDE.md

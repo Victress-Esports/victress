@@ -50,6 +50,7 @@ Keep routing, authentication, canonicals and responsibilities separate. Do not a
 - Preserve the original Victress wings emblem. Never redraw it or replace it with a generic V.
 - Palette: Crimson #CF142B, Signal Red #F34144, Coral #FF635F, Warm Coral #FF847B, Blush #FFA498, Carbon #171717, White #FFFFFF, Cool Gray #5B6068.
 - Premium, restrained, product led. Concise copy, real application previews. No generic gaming visuals, excessive animation, glow or gradients.
+- Do not use the phrase "source of truth" in Victress materials. Say "authoritative reference" or "primary strategy document".
 - Avoid hyphens and em dashes in Victress marketing copy. Exceptions: game names (Counter-Strike) and the data provenance label "Self-reported".
 - Approved pricing and plan descriptions stay verbatim (`content/pricing.ts`, `docs/stripe.md`).
 
