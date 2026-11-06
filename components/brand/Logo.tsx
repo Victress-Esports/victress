@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 /** Simplified one-color wing/V mark. Solid shapes only so it holds up at 16px. */
@@ -21,20 +20,5 @@ export function Logo({ href = "/" }: { href?: string }) {
       <WingMark className="h-7 w-7 text-crimson" />
       <span className="font-display text-lg font-bold tracking-[0.18em]">VICTRESS</span>
     </Link>
-  );
-}
-
-/** Detailed wing art. Hero and large surfaces only. */
-export function WingArt({ className, priority = false, size = "full" }: { className?: string; priority?: boolean; size?: "full" | "small" }) {
-  return (
-    <Image
-      src={size === "small" ? "/brand/wings-640.webp" : "/brand/wings.webp"}
-      alt=""
-      width={size === "small" ? 640 : 1024}
-      height={size === "small" ? 640 : 1024}
-      priority={priority}
-      sizes="(min-width: 1024px) 560px, 90vw"
-      className={className}
-    />
   );
 }

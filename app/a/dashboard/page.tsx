@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { seo } from "@/content/seo";
+import { privateMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { CopyLink } from "@/components/app/CopyLink";
 import { ProfileCard } from "@/components/app/ProfileCard";
@@ -8,7 +10,7 @@ import { loadMe } from "@/lib/me";
 import { appHost, statRows } from "@/lib/profiles";
 import { APP_URL } from "@/lib/urls";
 
-export const metadata: Metadata = { title: "Dashboard", robots: { index: false } };
+export const metadata: Metadata = privateMetadata(seo.app.dashboard.title, seo.app.dashboard.description);
 
 export default async function Dashboard() {
   const { profile, games, entries, team } = await loadMe();

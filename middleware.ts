@@ -1,26 +1,14 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-
-// Production hosts get a fixed site. Everything else (localhost, Vercel previews) may switch with a cookie.
-const PROD_HOSTS = new Set(["victress.gg", "www.victress.gg", "victressesports.com", "www.victressesports.com"]);
-
-type Site = "m" | "a";
-
-function siteFor(host: string, cookie: string | undefined): Site {
-  const h = host.toLowerCase().split(":")[0];
-  if (h.startsWith("app.") || h === "victress.gg" || h.endsWith(".victress.gg")) return "a";
-  if (h.startsWith("marketing.") || PROD_HOSTS.has(h)) return "m";
-  // Preview / bare localhost: the hop endpoint sets this cookie. Default is the marketing site.
-  return cookie === "a" ? "a" : "m";
-}
+import { bareHost, isLocalHost, isProdHost, siteFor } from "@/lib/hosts";
 
 /** Same-site relative paths only. */
 const safePath = (p: string | null) => (p && p.startsWith("/") && !p.startsWith("//") && !p.includes("\\") ? p : "/");
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const host = (req.headers.get("host") ?? "").toLowerCase().split(":")[0];
-  const isProd = PROD_HOSTS.has(host);
+  const host = bareHost(req.headers.get("host"));
+  const isProd = isProdHost(host);
 
   // /m and /a are internal. Direct requests on any host are a 404.
   if (/^\/(m|a)(\/|$)/.test(pathname)) {
@@ -37,7 +25,7 @@ export async function middleware(req: NextRequest) {
     return res;
   }
 
-  const side = siteFor(req.headers.get("host") ?? "", req.cookies.get("v_site")?.value);
+  const side = siteFor(host, req.cookies.get("v_site")?.value);
   const url = req.nextUrl.clone();
   url.pathname = `/${side}${pathname === "/" ? "" : pathname}`;
   let res = NextResponse.rewrite(url);
@@ -60,7 +48,7 @@ export async function middleware(req: NextRequest) {
   }
 
   // Previews and staging must never be indexed.
-  if (!isProd && !host.endsWith("localhost")) res.headers.set("X-Robots-Tag", "noindex, nofollow");
+  if (!isProd && !isLocalHost(host)) res.headers.set("X-Robots-Tag", "noindex, nofollow");
   return res;
 }
 

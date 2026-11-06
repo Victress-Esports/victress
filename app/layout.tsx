@@ -21,7 +21,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         {children}
-        <Analytics />
+        {/* The script is served by Vercel only (enable Analytics in the project). Elsewhere it would 404. */}
+        {process.env.VERCEL ? <Analytics /> : null}
       </body>
     </html>
   );

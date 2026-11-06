@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import { seo } from "@/content/seo";
+import { privateMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { StatForm, StatHistory, type StatEntry } from "@/components/app/StatForm";
 import { buttonClass } from "@/components/ui/Button";
 import { Section } from "@/components/ui/form";
 import { loadMe } from "@/lib/me";
 
-export const metadata: Metadata = { title: "Stats", robots: { index: false } };
+export const metadata: Metadata = privateMetadata(seo.app.stats.title, seo.app.stats.description);
 
 export default async function Stats() {
   const { profile, games, entries } = await loadMe();

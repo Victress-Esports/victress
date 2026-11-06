@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { seo } from "@/content/seo";
+import { privateMetadata } from "@/lib/seo";
 import { redirect } from "next/navigation";
 import { Logo } from "@/components/brand/Logo";
 import { LoginForm } from "@/components/app/LoginForm";
@@ -6,7 +8,7 @@ import { safeNext } from "@/lib/auth";
 import { checkHandle } from "@/lib/handles";
 import { supabaseServer } from "@/lib/supabase/server";
 
-export const metadata: Metadata = { title: "Sign in", robots: { index: false } };
+export const metadata: Metadata = privateMetadata(seo.app.login.title, seo.app.login.description);
 
 export default async function Login({
   searchParams,
@@ -26,7 +28,7 @@ export default async function Login({
   const claim = verdict === "ok" ? handle : "";
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-8 px-4 py-16">
+    <main id="main" className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-8 px-4 py-16">
       <Logo />
       <div>
         <h1 className="font-display text-4xl font-bold leading-tight">
@@ -40,6 +42,6 @@ export default async function Login({
         </p>
       ) : null}
       <LoginForm claim={claim} next={next} />
-    </div>
+    </main>
   );
 }

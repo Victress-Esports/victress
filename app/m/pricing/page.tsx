@@ -1,17 +1,19 @@
 import type { Metadata } from "next";
 import { PricingCards } from "@/components/marketing/PricingCards";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { copy } from "@/content/copy";
+import { seo } from "@/content/seo";
+import { faqPage, marketingCrumbs } from "@/lib/jsonld";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Pricing",
-  description: "Start free with Rookie. Pro, Team and Scout plans are coming soon.",
-  alternates: { canonical: "/pricing" },
-};
+export const metadata: Metadata = pageMetadata({ ...seo.marketing.pricing, path: "/pricing", image: "pricing" });
 
 export default function Pricing() {
   const p = copy.pricing;
   return (
     <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+      <JsonLd data={marketingCrumbs("Pricing", "/pricing")} />
+      <JsonLd data={faqPage(p.faq)} />
       <header className="text-center">
         <h1 className="font-display text-5xl font-bold sm:text-6xl">{p.title}</h1>
         <p className="mt-4 text-lg text-mute">{p.line}</p>

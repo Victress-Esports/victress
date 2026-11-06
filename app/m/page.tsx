@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
-import { WingArt } from "@/components/brand/Logo";
+import { WingArt } from "@/components/brand/WingArt";
 import { ClaimInput } from "@/components/marketing/ClaimInput";
 import { LeaderboardMock, ProfileCardMock, ProgressMock } from "@/components/marketing/Mockups";
 import { WaitlistButton } from "@/components/marketing/WaitlistButton";
 import { ButtonLink } from "@/components/ui/Button";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { copy } from "@/content/copy";
+import { seo } from "@/content/seo";
+import { organizationAndWebsite } from "@/lib/jsonld";
+import { pageMetadata } from "@/lib/seo";
 import { GAMES, type GameId } from "@/content/games";
 import { appUrl } from "@/lib/urls";
 
-export const metadata: Metadata = {
-  title: { absolute: "Victress. Turn performance into progress." },
-  alternates: { canonical: "/" },
-};
+export const metadata: Metadata = pageMetadata({ ...seo.marketing.home, path: "/", image: "home" });
 
 const visuals = { profile: ProfileCardMock, progress: ProgressMock, leaderboard: LeaderboardMock };
 
@@ -19,6 +20,7 @@ export default function Home() {
   const h = copy.home;
   return (
     <>
+      <JsonLd data={organizationAndWebsite()} />
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-20 pt-16 sm:px-6 lg:grid-cols-2 lg:pt-24">
@@ -29,9 +31,9 @@ export default function Home() {
               <ClaimInput id="claim-hero" />
             </div>
           </div>
-          <div className="relative mx-auto w-full max-w-md lg:max-w-none" aria-hidden>
-            <div className="absolute inset-0 -z-10 rounded-full bg-crimson/20 blur-3xl" />
-            <WingArt priority className="h-auto w-full" />
+          <div className="relative mx-auto w-full max-w-md lg:max-w-none">
+            <div aria-hidden className="absolute inset-0 -z-10 bg-[radial-gradient(closest-side,rgba(207,20,43,0.30),transparent)]" />
+            <WingArt preload className="h-auto w-full" />
           </div>
         </div>
       </section>

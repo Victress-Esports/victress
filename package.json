@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "assets": "node scripts/make-wings.mjs"
+    "assets": "node scripts/make-wings.mjs && node scripts/make-icons.mjs",
+    "seo:audit": "node scripts/seo-audit.mjs"
   },
   "dependencies": {
     "@react-email/components": "^1.0.12",

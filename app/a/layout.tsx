@@ -1,17 +1,14 @@
 import type { Metadata } from "next";
+import { seo } from "@/content/seo";
 import { APP_URL } from "@/lib/urls";
 
+// Every page sets its own title, description and social tags (lib/seo.ts); these are only a fallback.
+// Each page renders its own <main id="main">, so there is exactly one main landmark per page.
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
-  description: "Your Victress player profile, stats and rank.",
-  openGraph: {
-    siteName: "Victress",
-    type: "website",
-    images: [{ url: "/api/og", width: 1200, height: 630, alt: "Victress. Perform. Compete. Rise." }],
-  },
-  twitter: { card: "summary_large_image", images: ["/api/og"] },
+  description: seo.app.home.description,
 };
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  return <main id="main">{children}</main>;
+  return <>{children}</>;
 }

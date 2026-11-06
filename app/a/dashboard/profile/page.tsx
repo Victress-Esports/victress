@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import { seo } from "@/content/seo";
+import { privateMetadata } from "@/lib/seo";
 import { GamesManager } from "@/components/app/GamesManager";
 import { AvatarUploader, HandleForm, ProfileForm } from "@/components/app/ProfileForm";
 import { Section } from "@/components/ui/form";
 import { loadMe } from "@/lib/me";
 import { appHost } from "@/lib/profiles";
 
-export const metadata: Metadata = { title: "Edit profile", robots: { index: false } };
+export const metadata: Metadata = privateMetadata(seo.app.editProfile.title, seo.app.editProfile.description);
 
 export default async function ProfileEditor() {
   const { sb, user, profile, games } = await loadMe();

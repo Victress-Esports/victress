@@ -103,13 +103,12 @@ h2 {
   }
 }
 
+/* Slide only. A fade would show text at reduced contrast mid-animation (an accessibility failure). */
 @keyframes reveal {
   from {
-    opacity: 0;
     transform: translateY(24px);
   }
   to {
-    opacity: 1;
     transform: none;
   }
 }

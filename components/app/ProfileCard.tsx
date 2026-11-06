@@ -31,7 +31,7 @@ export function ProfileCard(p: ProfileCardProps) {
     <article className="w-full max-w-md rounded-3xl border border-line bg-surface p-6 shadow-[0_30px_80px_-30px_rgba(207,20,43,0.45)]">
       <header className="flex items-center gap-4">
         {p.avatarUrl ? (
-          <Image src={p.avatarUrl} alt="" width={64} height={64} className="h-16 w-16 rounded-full object-cover" />
+          <Image src={p.avatarUrl} alt={`${name}'s profile photo`} width={64} height={64} className="h-16 w-16 rounded-full object-cover" />
         ) : (
           <div
             aria-hidden

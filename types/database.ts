@@ -19,6 +19,7 @@ export type Database = {
           rank: string | null;
           role: string | null;
           team_id: string | null;
+          updated_at: string;
         };
         Insert: {
           avatar_url?: string | null;
@@ -33,6 +34,7 @@ export type Database = {
           rank?: string | null;
           role?: string | null;
           team_id?: string | null;
+          updated_at?: string;
         };
         Update: {
           avatar_url?: string | null;
@@ -47,6 +49,7 @@ export type Database = {
           rank?: string | null;
           role?: string | null;
           team_id?: string | null;
+          updated_at?: string;
         };
         Relationships: [];
       };
@@ -152,6 +155,8 @@ export type Database = {
       metrics_are_valid: { Args: { m: Json }; Returns: boolean };
       regenerate_invite_code: { Args: Record<string, never>; Returns: string | null };
       remove_team_member: { Args: { p_profile: string }; Returns: string };
+      sitemap_profile_count: { Args: Record<string, never>; Returns: number };
+      sitemap_profiles: { Args: { p_limit?: number; p_offset?: number }; Returns: { handle: string; updated_at: string }[] };
       set_primary_game: { Args: { p_game: string }; Returns: string };
       team_invite_code: { Args: Record<string, never>; Returns: string | null };
       team_invite_info: { Args: { p_code: string }; Returns: Json };

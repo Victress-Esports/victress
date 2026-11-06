@@ -1,18 +1,19 @@
 import type { Metadata } from "next";
 import { ButtonLink } from "@/components/ui/Button";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { copy } from "@/content/copy";
+import { seo } from "@/content/seo";
+import { marketingCrumbs } from "@/lib/jsonld";
+import { pageMetadata } from "@/lib/seo";
 import { appUrl } from "@/lib/urls";
 
-export const metadata: Metadata = {
-  title: "For teams",
-  description: "One dashboard for every player in your club.",
-  alternates: { canonical: "/teams" },
-};
+export const metadata: Metadata = pageMetadata({ ...seo.marketing.teams, path: "/teams", image: "teams" });
 
 export default function Teams() {
   const t = copy.teams;
   return (
     <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
+      <JsonLd data={marketingCrumbs("For teams", "/teams")} />
       <header className="max-w-3xl">
         <h1 className="font-display text-5xl font-bold leading-tight sm:text-7xl">{t.title}</h1>
         <p className="mt-5 text-lg text-mute">{t.line}</p>

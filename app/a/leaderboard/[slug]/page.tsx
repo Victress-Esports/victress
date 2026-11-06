@@ -4,26 +4,24 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Logo } from "@/components/brand/Logo";
 import { buttonClass } from "@/components/ui/Button";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { GAME_LIST, formatStat, gameBySlug } from "@/content/games";
+import { leaderboardSeo, seo } from "@/content/seo";
+import { breadcrumbs } from "@/lib/jsonld";
+import { MIN_PLAYERS, boardPlayerCount, includeDemo } from "@/lib/leaderboard";
+import { pageMetadata, privateMetadata } from "@/lib/seo";
 import { supabasePublic } from "@/lib/supabase/public";
-import { marketingUrl } from "@/lib/urls";
+import { APP_URL, marketingUrl } from "@/lib/urls";
 
 export const revalidate = 60;
 
-/** A board opens once this many real (non-demo) players have entered stats for the game. */
-const MIN_PLAYERS = 10;
-
-/** Demo players are only ever included where LEADERBOARD_INCLUDE_DEMO=true (dev and preview, never production). */
-const includeDemo = () => process.env.LEADERBOARD_INCLUDE_DEMO === "true";
-
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const game = gameBySlug((await params).slug);
-  if (!game) return { title: "Leaderboard", robots: { index: false } };
-  return {
-    title: `${game.name} leaderboard`,
-    description: `See how ${game.name} players on Victress compare. Stats are self-reported.`,
-    alternates: { canonical: `/leaderboard/${game.slug}` },
-  };
+  if (!game) return privateMetadata(seo.app.notFound.title, seo.app.notFound.description);
+  const meta = pageMetadata({ ...leaderboardSeo(game.name), path: `/leaderboard/${game.slug}`, image: "leaderboard" });
+  // A board that has not opened yet is a thin page: keep it out of the index until it has real players.
+  const open = (await boardPlayerCount(game.id)) >= MIN_PLAYERS;
+  return open ? meta : { ...meta, robots: { index: false, follow: true } };
 }
 
 export default async function Leaderboard({
@@ -40,8 +38,7 @@ export default async function Leaderboard({
 
   const db = supabasePublic();
   const demo = includeDemo();
-  const { data: count } = await db.rpc("leaderboard_player_count", { p_game: game.id, p_include_demo: demo });
-  const players = count ?? 0;
+  const players = await boardPlayerCount(game.id);
   const open = players >= MIN_PLAYERS;
 
   const { data: rows } = open
@@ -50,6 +47,12 @@ export default async function Leaderboard({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
+      <JsonLd
+        data={breadcrumbs([
+          { name: "Home", url: APP_URL },
+          { name: `${game.name} leaderboard`, url: `${APP_URL}/leaderboard/${game.slug}` },
+        ])}
+      />
       <header className="flex items-center justify-between">
         <Logo href={marketingUrl("/")} />
         <Link href="/dashboard" className={buttonClass("ghost", "min-h-11 px-3 text-sm")}>

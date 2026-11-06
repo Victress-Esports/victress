@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import { seo } from "@/content/seo";
+import { privateMetadata } from "@/lib/seo";
 import { CreateTeamForm, InviteBox, LeaveTeamButton, RemoveMemberButton } from "@/components/app/TeamPanel";
 import { Section } from "@/components/ui/form";
 import { getGame } from "@/content/games";
 import { loadMe } from "@/lib/me";
 import { appUrl } from "@/lib/urls";
 
-export const metadata: Metadata = { title: "Team", robots: { index: false } };
+export const metadata: Metadata = privateMetadata(seo.app.team.title, seo.app.team.description);
 
 export default async function Team() {
   const { sb, user, team } = await loadMe();
