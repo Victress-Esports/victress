@@ -1,3 +1,4 @@
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // victressesports.com -> /m (marketing), victress.gg -> /a (product).
@@ -8,7 +9,7 @@ function target(host: string): "m" | "a" {
   return "m";
 }
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // /m and /a are internal. Direct requests on either domain are a 404.
@@ -16,9 +17,28 @@ export function middleware(req: NextRequest) {
     return NextResponse.rewrite(new URL("/__not-found", req.url), { status: 404 });
   }
 
+  const side = target(req.headers.get("host") ?? "");
   const url = req.nextUrl.clone();
-  url.pathname = `/${target(req.headers.get("host") ?? "")}${pathname === "/" ? "" : pathname}`;
-  return NextResponse.rewrite(url);
+  url.pathname = `/${side}${pathname === "/" ? "" : pathname}`;
+  let res = NextResponse.rewrite(url);
+
+  // Product domain: keep the Supabase session fresh. Only runs when the visitor has auth cookies.
+  const supaUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supaKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (side === "a" && supaUrl && supaKey && req.cookies.getAll().some((c) => c.name.startsWith("sb-"))) {
+    const supabase = createServerClient(supaUrl, supaKey, {
+      cookies: {
+        getAll: () => req.cookies.getAll(),
+        setAll: (list) => {
+          for (const { name, value } of list) req.cookies.set(name, value);
+          res = NextResponse.rewrite(url, { request: req });
+          for (const { name, value, options } of list) res.cookies.set(name, value, options);
+        },
+      },
+    });
+    await supabase.auth.getUser();
+  }
+  return res;
 }
 
 export const config = {

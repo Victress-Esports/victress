@@ -1,20 +1,45 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Logo } from "@/components/brand/Logo";
+import { LoginForm } from "@/components/app/LoginForm";
+import { safeNext } from "@/lib/auth";
 import { checkHandle } from "@/lib/handles";
+import { supabaseServer } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Sign in", robots: { index: false } };
 
-// Stub for M1 so the claim flow has somewhere to land. Real auth ships in M2.
-export default async function Login({ searchParams }: { searchParams: Promise<{ claim?: string }> }) {
-  const { claim } = await searchParams;
-  const { verdict, handle } = checkHandle(claim ?? "");
+export default async function Login({
+  searchParams,
+}: {
+  searchParams: Promise<{ claim?: string; next?: string; error?: string }>;
+}) {
+  const sp = await searchParams;
+  const next = safeNext(sp.next, "");
+
+  const sb = await supabaseServer();
+  const {
+    data: { user },
+  } = await sb.auth.getUser();
+  if (user) redirect(next || "/dashboard");
+
+  const { verdict, handle } = checkHandle(sp.claim ?? "");
+  const claim = verdict === "ok" ? handle : "";
+
   return (
-    <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 px-4 py-16">
+    <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-8 px-4 py-16">
       <Logo />
-      <h1 className="font-display text-4xl font-bold">
-        {verdict === "ok" ? `Almost yours, ${handle}.` : "Sign in"}
-      </h1>
-      <p className="text-mute">Sign-in opens very soon. Your name will be waiting.</p>
+      <div>
+        <h1 className="font-display text-4xl font-bold leading-tight">
+          {claim ? `Claim ${claim}.` : "Welcome back."}
+        </h1>
+        <p className="mt-3 text-mute">{claim ? `victress.gg/${claim} is one tap away.` : "Sign in to your profile."}</p>
+      </div>
+      {sp.error ? (
+        <p role="alert" className="rounded-xl border border-line bg-surface px-4 py-3 text-sm text-coral">
+          That link didn&apos;t work. Try again.
+        </p>
+      ) : null}
+      <LoginForm claim={claim} next={next} />
     </div>
   );
 }
