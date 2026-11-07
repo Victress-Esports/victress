@@ -36,7 +36,7 @@ At pilot scale this is not a practical attack; at the scale the product is built
 4. Options 5 and 6 when real teams exist.
 
 ## Decisions needed
-Code length and alphabet; whether expiry is wanted; the N and window for join attempts; whether the Vercel plan includes the edge rule. Also whether invite pages should stay noindex and no referrer (the join page already sends the analytics scrubber's treatment and the code is never sent to analytics).
+Code length and alphabet; whether expiry is wanted; the N and window for join attempts; whether the Vercel plan includes the edge rule. The join page and `/join/*` are already noindex; whether invite pages should also send no referrer is not decided.
 
 ## Not covered
 Brute forcing sharing links is a separate case: those tokens are 256 bits and only a hash is stored (see the privacy design), so they are out of reach of guessing.
