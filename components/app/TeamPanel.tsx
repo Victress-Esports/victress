@@ -3,6 +3,7 @@
 import { useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { buttonClass } from "@/components/ui/Button";
+import { track } from "@/lib/analytics/client";
 import { CopyLink } from "@/components/app/CopyLink";
 import { FormMessage, inputClass } from "@/components/ui/form";
 import { createTeamAction, leaveTeamAction, regenerateInviteAction, removeMemberAction } from "@/app/a/dashboard/actions";
@@ -18,7 +19,10 @@ export function CreateTeamForm() {
     start(async () => {
       const r = await createTeamAction(name);
       setMsg(r.message ?? "");
-      if (r.ok) router.refresh();
+      if (r.ok) {
+        track("team_created");
+        router.refresh();
+      }
     });
   }
 

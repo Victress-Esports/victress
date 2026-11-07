@@ -6,6 +6,7 @@ import { buttonClass } from "@/components/ui/Button";
 import { Field, FormMessage, inputClass } from "@/components/ui/form";
 import { addStatEntryAction, deleteStatEntryAction } from "@/app/a/dashboard/actions";
 import { GAMES, formatStat, type GameId } from "@/content/games";
+import { track } from "@/lib/analytics/client";
 
 export function StatForm({ games, defaultGame }: { games: string[]; defaultGame: string }) {
   const router = useRouter();
@@ -25,6 +26,7 @@ export function StatForm({ games, defaultGame }: { games: string[]; defaultGame:
       setMsg(r.message ?? "");
       setOk(r.ok);
       if (r.ok) {
+        track("player_resume_updated", { update_type: "stats" });
         setValues({});
         router.refresh();
       }

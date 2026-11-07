@@ -7,6 +7,7 @@ import { buttonClass } from "@/components/ui/Button";
 import { Field, FormMessage, inputClass } from "@/components/ui/form";
 import { changeHandleAction, setAvatarAction, setSearchVisibilityAction, updateProfileAction } from "@/app/a/dashboard/actions";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { track } from "@/lib/analytics/client";
 
 const MAX_BYTES = 8 * 1024 * 1024; // before resizing; the stored image is ~512px
 
@@ -22,7 +23,10 @@ export function ProfileForm({ displayName, bio }: { displayName: string; bio: st
     start(async () => {
       const r = await updateProfileAction({ display_name: name, bio: text });
       setMsg(r.message ?? "");
-      if (r.ok) router.refresh();
+      if (r.ok) {
+        track("player_resume_updated", { update_type: "profile" });
+        router.refresh();
+      }
     });
   }
 
