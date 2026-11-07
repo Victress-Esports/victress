@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { initAnalytics, onConsentChange, onRoute, track } from "@/lib/analytics/client";
+import { flushPendingEvent, initAnalytics, onConsentChange, onRoute, track } from "@/lib/analytics/client";
 import { CONSENT_EVENT, type ConsentValue } from "@/lib/analytics/consent";
 import type { SiteKey } from "@/lib/analytics/sanitize";
 import { supabaseBrowser } from "@/lib/supabase/client";
@@ -27,6 +27,8 @@ export function Analytics({ site, gtmId }: { site: SiteKey; gtmId: string }) {
 
   useEffect(() => {
     onRoute();
+    // An event held by an action that redirected (onboarding finish) is sent on the page after it, never on the form itself.
+    if (!pathname.startsWith("/onboarding")) flushPendingEvent();
   }, [pathname]);
 
   // Marketing: clicks that send a visitor to the application. Only fixed link copy and the campaign placement are sent.

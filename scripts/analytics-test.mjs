@@ -41,11 +41,12 @@ t("app paths with secrets or names are replaced and never load the container", (
   }
 });
 t("app static pages, game boards and unknown deep paths", () => {
-  for (const p of ["/", "/login", "/onboarding", "/dashboard", "/dashboard/team", "/leaderboard", "/leaderboard/valorant"]) { const c = classifyPath("a", p); assert.equal(c.path, p); assert.equal(c.noLoad, false); }
+  for (const p of ["/", "/login", "/onboarding", "/dashboard", "/dashboard/team", "/dashboard/resume", "/dashboard/scrims", "/dashboard/privacy", "/dashboard/scout", "/leaderboard", "/leaderboard/valorant"]) { const c = classifyPath("a", p); assert.equal(c.path, p); assert.equal(c.noLoad, false); }
   assert.equal(classifyPath("a", "/leaderboard/notagame").path, "/other");
   assert.equal(classifyPath("a", "/dashboard/whatever/else").path, "/other");
 });
 t("marketing paths keep their path; unknown ones are /other", () => {
+  for (const p of ["/platform", "/women-in-esports", "/design-partner"]) { const c = classifyPath("m", p); assert.equal(c.path, p); assert.equal(c.noLoad, false); }
   assert.equal(classifyPath("m", "/pricing").path, "/pricing"); assert.equal(classifyPath("m", "/pricing/").path, "/pricing"); assert.equal(classifyPath("m", "/nope").path, "/other");
 });
 
@@ -91,4 +92,25 @@ t("no event name or parameter name suggests personal data", () => {
   const bad = /email|name$|password|token|phone|address|handle|user_?id/;
   for (const e of EVENT_NAMES) assert.ok(!bad.test(e), e);
 });
+{
+  const { analyticsFor } = await import("../lib/analytics/config.ts");
+  const save = { ...process.env };
+  const reset = () => { for (const k of ["ANALYTICS_MODE", "NODE_ENV", "VERCEL"]) { if (save[k] === undefined) delete process.env[k]; else process.env[k] = save[k]; } };
+  t("analyticsFor: off unless a mode is set", () => { delete process.env.ANALYTICS_MODE; assert.equal(analyticsFor("victress.gg"), null); });
+  t("analyticsFor: debug works in development only", () => {
+    process.env.ANALYTICS_MODE = "debug"; process.env.NODE_ENV = "development"; delete process.env.VERCEL;
+    assert.ok(analyticsFor("app.localhost:3000"));
+    process.env.NODE_ENV = "production"; assert.equal(analyticsFor("app.localhost:3000"), null);
+    process.env.NODE_ENV = "development"; process.env.VERCEL = "1"; assert.equal(analyticsFor("app.localhost:3000"), null);
+    reset();
+  });
+  t("analyticsFor: production mode loads only on real production hosts, each with its own container", () => {
+    process.env.ANALYTICS_MODE = "production";
+    assert.equal(analyticsFor("victress.gg")?.gtmId, "GTM-PXQKSWP2");
+    assert.equal(analyticsFor("victressesports.com")?.gtmId, "GTM-N38XS3DR");
+    assert.equal(analyticsFor("preview-abc.vercel.app"), null);
+    assert.equal(analyticsFor("app.localhost:3000"), null);
+    reset();
+  });
+}
 console.log(`\nALL ${n} ANALYTICS UNIT CHECKS PASSED`);

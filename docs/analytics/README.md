@@ -16,7 +16,7 @@ Both sites are one Next.js app on one deployment. The container is chosen from t
 The container ids are public values and live in `lib/analytics/config.ts`. The GA4 measurement id is **not** in the code: it is configured in each container's Google tag, so there is one install path only (no second `gtag.js`).
 
 ## 2. How it is switched on
-1. **`ANALYTICS_MODE`** (server environment variable, see `.env.example`): unset or `off` = never loads (default); `production` = loads only on the four real production hostnames; `debug` = any host, for local verification only and never to be set on a deployment. Preview deployments and `localhost` never load a container in `production` mode.
+1. **`ANALYTICS_MODE`** (server environment variable, see `.env.example`): unset or `off` = never loads (default); `production` = loads only on the four real production hostnames; `debug` = any host, for local verification only; it is ignored (treated as off) in a production build and on Vercel, so it cannot be left on by mistake. Preview deployments and `localhost` never load a container in `production` mode.
 2. **Consent.** Even when the mode is on, nothing loads for a visitor until analytics consent is granted (cookie `v_consent=granted`, `lib/analytics/consent.ts`). **No consent banner exists yet**, so in production nothing would load. Building one needs approval (see the compliance review). Setting `v_consent=denied` or calling `setConsent("denied")` stops events, sends a Consent Mode update with everything denied, and removes `_ga` cookies on a best effort basis.
 3. **Disable instantly:** remove `ANALYTICS_MODE` (or set `off`) and redeploy.
 
@@ -48,7 +48,7 @@ The brief asked for the container snippet in `<head>` and a `<noscript>` iframe 
 | `sign_up_click` | marketing | A click on a link to the application's `/login` | `cta_location` | Implemented |
 | `generate_lead` | marketing | Waitlist submission succeeded | `lead_type: waitlist`, `interest` (plan or scrims). **Never the email** | Implemented (an addition: the waitlist is the one real form) |
 | `login`, `sign_up` | app | A fresh sign in is seen in the browser | `method`: google, discord, email or other | Implemented. **Not verified end to end** (sign in needs real providers): detects a sign in in the last 2 minutes, treats a user created within 15 seconds of sign in as new, once per sign in |
-| `player_resume_created` | app | Onboarding submitted | `game`, `role_selected`, `rank_selected` | Implemented. Counted at submission (the action redirects, so nothing runs after it); a failed save would still count |
+| `player_resume_created` | app | Onboarding submitted | `game`, `role_selected`, `rank_selected` | Implemented. Held when onboarding is submitted and sent on the next page; cancelled if the save comes back as a failure, so a failed save is not counted. Fires also when the player skips every question (`game` is `none`) |
 | `player_resume_updated` | app | Profile saved, or a stat entry added | `update_type`: profile or stats | Implemented |
 | `player_resume_shared` | app | "Copy your link" on a Player Resume link (not team invite links) | `method: copy_link` | Implemented |
 | `team_created`, `team_joined` | app | Team created, or an invite accepted | none | Implemented |

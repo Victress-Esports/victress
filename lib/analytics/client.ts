@@ -109,6 +109,43 @@ export function onConsentChange(value: "granted" | "denied") {
   else onRoute();
 }
 
+const PENDING = "v_pending_event";
+
+/**
+ * For an action that redirects on success (nothing runs after it in the browser): remember the event and send it on the next
+ * page, only once the action did not come back with a failure. Held in sessionStorage only when consent is already granted.
+ */
+export function trackOnNextPage(name: string, params: Record<string, unknown> = {}) {
+  if (!st.site || getConsent() !== "granted" || !scrubParams(st.site, name, params)) return;
+  try {
+    sessionStorage.setItem(PENDING, JSON.stringify({ name, params }));
+  } catch {
+    /* storage unavailable: the event is simply not sent */
+  }
+}
+
+/** The action came back (it failed, or did not redirect): do not count it. */
+export function cancelPendingEvent() {
+  try {
+    sessionStorage.removeItem(PENDING);
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Sends the remembered event, once, on the page after the action. */
+export function flushPendingEvent() {
+  try {
+    const raw = sessionStorage.getItem(PENDING);
+    if (!raw) return;
+    sessionStorage.removeItem(PENDING);
+    const e = JSON.parse(raw) as { name: string; params: Record<string, unknown> };
+    track(e.name, e.params);
+  } catch {
+    /* ignore */
+  }
+}
+
 /** Sends an allowed event. Dropped without consent. Held (up to 20) until the container loads. */
 export function track(name: string, params: Record<string, unknown> = {}) {
   if (!st.site || getConsent() !== "granted") return;

@@ -13,8 +13,13 @@ export interface Classified {
   noLoad: boolean;
 }
 
-const MARKETING_PAGES = new Set(["/", "/pricing", "/teams", "/partnerships", "/about", "/contact", "/privacy", "/terms"]);
-const APP_PAGES = new Set(["/", "/login", "/onboarding", "/dashboard", "/dashboard/profile", "/dashboard/stats", "/dashboard/team", "/leaderboard"]);
+const MARKETING_PAGES = new Set([
+  "/", "/pricing", "/teams", "/partnerships", "/about", "/contact", "/privacy", "/terms", "/platform", "/women-in-esports", "/design-partner",
+]);
+const APP_PAGES = new Set([
+  "/", "/login", "/onboarding", "/dashboard", "/dashboard/profile", "/dashboard/stats", "/dashboard/team", "/dashboard/resume", "/dashboard/scrims",
+  "/dashboard/privacy", "/dashboard/scout", "/leaderboard",
+]);
 const GAME_SLUGS = new Set(GAME_LIST.map((g) => g.slug));
 
 /** The only query parameters ever sent: campaign attribution. Everything else (next, claim, code, error, tokens) is dropped. */
