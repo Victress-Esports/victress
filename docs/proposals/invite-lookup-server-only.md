@@ -13,11 +13,45 @@ Part of [team-invite-rate-limiting.md](team-invite-rate-limiting.md): this is op
 revoke execute on function public.team_invite_info(text) from public, anon, authenticated;
 grant execute on function public.team_invite_info(text) to service_role;
 ```
-2. `app/a/join/[code]/page.tsx` calls it with the service role client (`lib/supabase-admin.ts`), after an in memory limit of 20 lookups per IP per 10 minutes (`lib/ratelimit.ts`). A limited visitor sees the same page as for an invalid code, plus a "try again later" line; nothing reveals whether a code exists. The in memory limiter is per server instance, which is acceptable for a pilot and is documented in `lib/ratelimit.ts`; a Vercel firewall rule or Redis store is the stronger form.
+2. `app/a/join/[code]/page.tsx` calls it with the service role client (`lib/supabase-admin.ts`), after an in memory limit of 20 lookups per IP per 10 minutes (`lib/ratelimit.ts`). A limited visitor sees the same page as for an invalid code, plus a "try again later" line; nothing reveals whether a code exists. **The limit is stored in memory (a `Map` in `lib/ratelimit.ts`), per server instance. It does not hold across serverless instances**: each warm instance keeps its own counts, a cold start resets them, and N instances allow roughly N times the limit. It is a speed bump, not a guarantee. See "Database backed counter (proposed)" below.
 3. `join_team` is unchanged: it needs a signed in user.
 
 ## Deployment order (important)
 The new page code works **before** the migration (the service role can already call the function) and **after** it. The old page code breaks **after** the migration (the anon call is denied, so every invite link would look invalid). Therefore: deploy the code first, then apply the migration.
+
+## What this does and does not close
+- **Closes:** the anonymous path. After the migration, `POST /rest/v1/rpc/team_invite_info` with the public key is denied, so codes cannot be tested through the lookup function.
+- **Does not close:** guessing through `join_team(code)`. Any signed in user can call it through the public API, and it answers `invalid` for an unknown code and a different status (`ok`, `in_other_team`, `full`, `already_member`) for a real one. Sign ups are free, so this path stays open until attempt throttling inside `join_team` (option 2) is built. With 130 bit codes for new teams guessing is impractical either way; teams created before the longer codes (none exist today) would have 48 bit codes.
+
+## Database backed counter (proposed, no migration written)
+Needed to make the lookup limit hold across instances, and to throttle `join_team`. Sketch for review:
+```sql
+-- PROPOSAL ONLY, not in supabase/migrations
+create table public.invite_attempts (
+  key text not null,                 -- sha256 of 'lookup:' || ip, or 'join:' || user id; never a raw IP
+  window_start timestamptz not null,
+  attempts int not null default 0,
+  primary key (key, window_start)
+);
+alter table public.invite_attempts enable row level security;
+revoke all on public.invite_attempts from public, anon, authenticated;
+grant select, insert, update, delete on public.invite_attempts to service_role;
+
+-- Returns true when the caller may proceed. Fixed 10 minute windows; one atomic upsert per call.
+create function public.invite_attempt_allowed(p_key text, p_limit int)
+returns boolean language plpgsql security definer set search_path = '' as $$
+declare w timestamptz := date_bin('10 minutes', now(), timestamptz '2000-01-01'); n int;
+begin
+  insert into public.invite_attempts (key, window_start, attempts) values (p_key, w, 1)
+  on conflict (key, window_start) do update set attempts = public.invite_attempts.attempts + 1
+  returning attempts into n;
+  return n <= p_limit;
+end $$;
+revoke execute on function public.invite_attempt_allowed(text, int) from public, anon, authenticated;
+grant execute on function public.invite_attempt_allowed(text, int) to service_role;
+-- plus a cleanup of windows older than a day (a scheduled delete, or on each call with a small probability).
+```
+Costs and decisions: one extra database round trip per join page view; the table stores hashed IPs, which is personal data and needs a retention rule and a line in the privacy text (pending legal review); it needs its own migration, dry run, rollback and tests. `join_team` would call the same function with the user id as key (and record failures only), which is option 2. The alternative is a Vercel firewall rule or an Upstash Redis store, which need no migration but add a service or a plan feature. The in memory limit in this PR stays as the first line either way.
 
 ## Dry run (one call, ends in a rollback), to run on staging first
 ```sql
