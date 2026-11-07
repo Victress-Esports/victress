@@ -151,7 +151,7 @@ export function AvatarUploader({ userId, avatarUrl, initial }: { userId: string;
 }
 
 /** `lockedUntil` is a formatted date when a name change is on cooldown, otherwise null (decided on the server). */
-export function HandleForm({ handle, lockedUntil, appHost }: { handle: string; lockedUntil: string | null; appHost: string }) {
+export function HandleForm({ handle, lockedUntil }: { handle: string; lockedUntil: string | null; appHost?: string }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [value, setValue] = useState(handle);
@@ -174,12 +174,12 @@ export function HandleForm({ handle, lockedUntil, appHost }: { handle: string; l
     <form onSubmit={submit} className="flex flex-col gap-3">
       <Field
         id="pf-handle"
-        label="Your link"
+        label="Your name"
         hint={locked ? `You can change your name once every 30 days. Next change: ${lockedUntil}.` : "You can change your name once every 30 days."}
       >
         <div className="flex min-h-12 items-center rounded-xl border border-line bg-surface pl-4 focus-within:border-white">
           <span className="select-none text-mute" aria-hidden>
-            {appHost}/
+            @
           </span>
           <input
             id="pf-handle"

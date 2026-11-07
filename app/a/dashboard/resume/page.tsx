@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ComingSoonNote } from "@/components/app/ComingSoonNote";
 import { GamesManager } from "@/components/app/GamesManager";
 import { ProfileForm } from "@/components/app/ProfileForm";
 import { ProvenanceTag } from "@/components/app/ProvenanceTag";
@@ -8,16 +9,17 @@ import { ResumeVisibility } from "@/components/app/ResumeVisibility";
 import { buttonClass } from "@/components/ui/Button";
 import { Section } from "@/components/ui/form";
 import { getGame } from "@/content/games";
+import { isMissingTable } from "@/lib/db-errors";
 import { cleanFields } from "@/lib/privacy";
 import { loadMe } from "@/lib/me";
 import { appHost, statRows } from "@/lib/profiles";
 import { privateMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = privateMetadata("Player Resume | Victress", "Build your Player Resume: games, stats, tournaments and highlights.");
+export const metadata: Metadata = privateMetadata("Player Resume | Victress", "Your games and self-reported stats. Tournaments, highlights and sharing are coming soon.");
 
 export default async function ResumePage() {
   const { sb, user, profile, games, entries, team } = await loadMe();
-  const [{ data: tournaments }, { data: highlights }] = await Promise.all([
+  const [{ data: tournaments, error: tournamentsError }, { data: highlights, error: highlightsError }] = await Promise.all([
     sb
       .from("tournament_entries")
       .select("id, game, name, placement, team_name, played_on")
@@ -26,6 +28,9 @@ export default async function ResumePage() {
       .order("created_at", { ascending: false }),
     sb.from("highlights").select("id, game, title, url, note").eq("profile_id", user.id).order("created_at", { ascending: false }),
   ]);
+
+  // The tables behind these two sections come from a migration that may not be applied yet: say so instead of showing forms that cannot save.
+  const resumeExtrasMissing = isMissingTable(tournamentsError) || isMissingTable(highlightsError);
 
   // Newest entry per game (entries are newest first).
   const latest = new Map<string, (typeof entries)[number]>();
@@ -85,12 +90,12 @@ export default async function ResumePage() {
         </Link>
       </Section>
 
-      <Section title="Tournament history" line="Events you have played. Private for now.">
-        <TournamentSection rows={(tournaments ?? []) as TournamentRow[]} games={gameIds} />
+      <Section title="Tournament history" line={resumeExtrasMissing ? "Coming soon" : "Events you have played. Private for now."}>
+        {resumeExtrasMissing ? <ComingSoonNote what="Tournament history" /> : <TournamentSection rows={(tournaments ?? []) as TournamentRow[]} games={gameIds} />}
       </Section>
 
-      <Section title="Highlights" line="Links to clips you host elsewhere. Private for now.">
-        <HighlightSection rows={(highlights ?? []) as HighlightRow[]} games={gameIds} />
+      <Section title="Highlights" line={resumeExtrasMissing ? "Coming soon" : "Links to clips you host elsewhere. Private for now."}>
+        {resumeExtrasMissing ? <ComingSoonNote what="Highlights" /> : <HighlightSection rows={(highlights ?? []) as HighlightRow[]} games={gameIds} />}
       </Section>
 
       <Section title="Who can see your resume">
