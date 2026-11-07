@@ -222,7 +222,7 @@ const pages = [
     contains: [
       "Turn practice into progress.",
       "Performance intelligence and player development infrastructure for competitive esports.", "Explore the Platform", "Become a Design Partner", "Three products, one pathway.",
-      "Scrim Intelligence", "Player Resume", "Scout Desk", "Available now", "Get started", "Log in",
+      "Scrim Intelligence", "Player Resume", "Scout Desk", "In development", "Get started", "Log in",
       "Women in Esports", "Victress is called Victress for a purpose.", "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment.",
       "VALORANT", "Counter-Strike 2", "Rocket League", "League of Legends", "Apex Legends", "Overwatch 2",
       "What is Victress?", "How can recruiters discover players?", "Self-reported", "Coming soon", "Sample",
@@ -232,7 +232,7 @@ const pages = [
       title: "Turn practice into progress. | Victress",
       description: "Players enter their own stats and teams manage rosters today. Player Resume is in development. Scrim Intelligence and Scout Desk are coming soon.",
     },
-    notContains: ["wings-480", "wings-720", "/brand/wings.webp", "Claim your name"],
+    notContains: ["wings-480", "wings-720", "/brand/wings.webp", "Claim your name", "Available now", "shareable player profile", "share one link"],
   },
   mk(MARKETING, "/pricing", true, ["FAQPage", "BreadcrumbList"]),
   mk(MARKETING, "/teams", true, ["BreadcrumbList"]),

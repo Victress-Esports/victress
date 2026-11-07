@@ -94,14 +94,14 @@ export default async function Dashboard() {
         <ModuleCard
           href="/dashboard/resume"
           title="Player Resume"
-          line="Games, stats, tournaments and highlights, with each number labeled by source."
-          chip={<StatusChip tone="on">Available now</StatusChip>}
+          line="Your games, roles, ranks and stats, with each number labeled by source. Tournaments and highlights are in development."
+          chip={<StatusChip>In development</StatusChip>}
         />
         <ModuleCard
           href="/dashboard/scrims"
           title="Scrim Intelligence"
-          line="Log your practice matches and store private practice files. Automated analysis is coming soon."
-          chip={<StatusChip>{uploads ? (approvedPartner === true ? "Uploads open" : "Uploads: approved partners only") : "Uploads not open yet"}</StatusChip>}
+          line="Match logs, private practice files and automated analysis are in development. Not available yet."
+          chip={<StatusChip>In development</StatusChip>}
         />
         <ModuleCard
           href="/dashboard/privacy"

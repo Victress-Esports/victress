@@ -51,7 +51,7 @@ export const seo = {
   app: {
     home: {
       title: "Claim your name | Victress",
-      description: "Pick your name on victress.gg, add your game, and share one player profile anywhere.",
+      description: "Create a Victress account, pick your name, add your games and enter your own stats. Profiles are private by default.",
     },
     login: {
       title: "Sign in | Victress",
@@ -91,7 +91,7 @@ export const seo = {
 /** Leaderboard pages are built per game. */
 export const leaderboardSeo = (gameName: string) => ({
   title: `${gameName} leaderboard | Victress`,
-  description: `See how ${gameName} players on Victress compare. Stats are entered by players and labeled Self-reported.`,
+  description: `${gameName} leaderboards are coming soon. Stats on Victress are entered by players and labeled Self-reported.`,
 });
 
 /** Public profile pages. Never longer than the limits, whatever the player typed. */
