@@ -106,13 +106,56 @@ const text = async (page) => (await page.locator("body").innerText()).replace(/\
   check(/Uploads are not open yet/.test(t) && (await page.locator('input[type="file"]').count()) === 0, "scrims: no uploader while the flag is off");
   check(/Self-reported/.test(t) && /API/.test(t) && /Demo parsed/.test(t), "scrims: all three provenance labels are explained");
   check(!/\d+(\.\d+)?\s*(ACS|K\/D)/i.test(t), "scrims: no stats are shown");
+  // match log
+  check(/Match log/.test(t) && /No matches logged yet/.test(t), "scrims: the match log starts empty");
+  await page.fill("#m-opp", "Mock Rivals");
+  await page.fill("#m-score", "13-9");
+  await page.fill("#m-map", "Ascent");
+  await page.getByRole("button", { name: "Log match" }).click();
+  await page.waitForSelector("text=Win · 13-9 vs Mock Rivals");
+  check(true, "scrims: a match with opponent, score, map and date can be logged");
+  check(/1 wins · 0 losses · 0 draws, counted from the 1 match you logged/.test(await text(page)), "scrims: the tally is counted only from the player's own entries");
+  await page.selectOption("#m-result", "loss");
+  await page.fill("#m-score", "nine to thirteen");
+  await page.getByRole("button", { name: "Log match" }).click();
+  await page.waitForSelector("text=Write the score like 13-9.");
+  check(true, "scrims: a free text score is refused");
+  await page.fill("#m-score", "7:13");
+  await page.getByRole("button", { name: "Log match" }).click();
+  await page.waitForSelector("text=Loss · 7:13");
+  await page.reload();
+  check(/1 wins · 1 losses/.test(await text(page)), "scrims: logged matches persist after a reload");
+  await page.getByRole("button", { name: /^Remove match .* vs Mock Rivals$/ }).first().click();
+  await page.waitForFunction(() => /1 wins · 0 losses|0 wins · 1 losses/.test(document.body.innerText));
+  check(true, "scrims: a match can be removed");
+  check((await page.locator('input[type="file"]').count()) === 0, "scrims: the match log adds no file upload control");
   check(errors.length === 0, `rookie: no page errors ${errors.join(" | ")}`);
   await ctx.close();
 }
 
-// --- uploads on
+// --- uploads on, but the account is not an approved design partner: closed in the interface AND at Storage
 {
   const { ctx, page } = await session("rookie", ON);
+  await page.goto(`http://app.localhost:${ON}/dashboard/scrims`);
+  const t0 = await text(page);
+  check(/approved design partners only/i.test(t0) && (await page.locator('input[type="file"]').count()) === 0, "scrims (flag on, not approved): no uploader; says approved design partners only");
+  await page.goto(`http://app.localhost:${ON}/dashboard`);
+  check(/Uploads: approved partners only/.test(await text(page)), "hub (flag on, not approved): does not claim uploads are open");
+  // Calling Storage and the table directly with this user's own session token (what a determined user could do).
+  const cookie = (await ctx.cookies()).find((c) => c.name.startsWith("sb-"));
+  const token = JSON.parse(Buffer.from(cookie.value.replace(/^base64-/, ""), "base64url").toString()).access_token;
+  const uid = "00000000-0000-4000-9000-000000000001";
+  const hdr = { apikey: "mock", authorization: `Bearer ${token}` };
+  const direct = await fetch(`http://127.0.0.1:${MOCK}/storage/v1/object/scrim-uploads/${uid}/direct.dem`, { method: "POST", headers: { ...hdr, "content-type": "application/octet-stream" }, body: Buffer.alloc(64) });
+  check(direct.status === 403, "a user not on the allowlist cannot write to Storage directly");
+  const rec = await fetch(`http://127.0.0.1:${MOCK}/rest/v1/scrim_uploads`, { method: "POST", headers: { ...hdr, "content-type": "application/json" }, body: JSON.stringify({ profile_id: uid, game: "CS2", storage_path: `${uid}/direct.dem`, original_name: "direct.dem", size_bytes: 1 }) });
+  check(rec.status === 403, "a user cannot record an upload row directly");
+  await ctx.close();
+}
+
+// --- uploads on, approved design partner
+{
+  const { ctx, page } = await session("partner", ON);
   await page.goto(`http://app.localhost:${ON}/dashboard/scrims`);
   const file = page.locator('input[type="file"]');
   check((await file.count()) === 1 && (await file.isDisabled()), "scrims (flag on): the picker is locked until the player confirms");
@@ -129,7 +172,13 @@ const text = async (page) => (await page.locator("body").innerText()).replace(/\
   await page.waitForFunction(() => !document.body.innerText.includes("practice.dem"));
   check(true, "scrims: a file can be deleted");
   await page.goto(`http://app.localhost:${ON}/dashboard`);
-  check(/Uploads open/.test(await text(page)), "hub (flag on): the Scrim card shows uploads open");
+  check(/Uploads open/.test(await text(page)), "hub (flag on, approved partner): the Scrim card shows uploads open");
+  // Even an approved partner cannot write the row (or size_bytes) themselves: only the server action records uploads.
+  const cookie = (await ctx.cookies()).find((c) => c.name.startsWith("sb-"));
+  const token = JSON.parse(Buffer.from(cookie.value.replace(/^base64-/, ""), "base64url").toString()).access_token;
+  const uid = "00000000-0000-4000-9000-000000000005";
+  const rec = await fetch(`http://127.0.0.1:${MOCK}/rest/v1/scrim_uploads`, { method: "POST", headers: { apikey: "mock", authorization: `Bearer ${token}`, "content-type": "application/json" }, body: JSON.stringify({ profile_id: uid, game: "CS2", storage_path: `${uid}/x.dem`, original_name: "x.dem", size_bytes: 1 }) });
+  check(rec.status === 403, "an approved partner cannot write scrim_uploads (or size_bytes) directly");
   await ctx.close();
 }
 

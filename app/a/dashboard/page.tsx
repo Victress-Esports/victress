@@ -33,9 +33,10 @@ function ModuleCard({ href, title, line, chip }: { href?: string; title: string;
 }
 
 export default async function Dashboard() {
-  const { user, profile, games, entries, team } = await loadMe();
+  const { sb, user, profile, games, entries, team } = await loadMe();
   const tier = await currentTier();
   const uploads = scrimUploadsEnabled();
+  const { data: approvedPartner } = uploads ? await sb.rpc("upload_allowed") : { data: false };
   const sharing = sharingEnabled();
   const directory = directoryEnabled();
   const listed = profile.directory_listed;
@@ -99,8 +100,8 @@ export default async function Dashboard() {
         <ModuleCard
           href="/dashboard/scrims"
           title="Scrim Intelligence"
-          line="Private practice files. Automated analysis is coming soon."
-          chip={<StatusChip>{uploads ? "Uploads open" : "Uploads not open yet"}</StatusChip>}
+          line="Log your practice matches and store private practice files. Automated analysis is coming soon."
+          chip={<StatusChip>{uploads ? (approvedPartner === true ? "Uploads open" : "Uploads: approved partners only") : "Uploads not open yet"}</StatusChip>}
         />
         <ModuleCard
           href="/dashboard/privacy"

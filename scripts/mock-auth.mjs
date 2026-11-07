@@ -12,6 +12,7 @@ export const PERSONAS = {
   rookie: { n: 1, label: "Rookie player", note: "Onboarded, VALORANT, one Self-reported stat entry", account_type: "player", onboarded: true },
   team: { n: 2, label: "Team member", note: "Rookie plan, on a roster of three, owns the team", account_type: "team", onboarded: true },
   scout: { n: 3, label: "Recruiter or scout", note: "Account type recruiter. Plan is still Rookie: Scout Desk stays locked", account_type: "recruiter", onboarded: true },
+  partner: { n: 5, label: "Approved design partner", note: "On the upload allowlist (uploads still need the flag on)", account_type: "player", onboarded: true, allowlisted: true },
   new: { n: 4, label: "New user", note: "Not onboarded yet: starts at the account type step", account_type: undefined, onboarded: false },
 };
 
@@ -26,7 +27,7 @@ function seed(key) {
     public_fields: { display_name: false, avatar: false, bio: false, team: false, stats: false, rank_role: false },
     handle_changed_at: null, created_at: now(), updated_at: now(), ...extra,
   });
-  const T = { profiles: [], player_games: [], stat_entries: [], teams: [], team_members: [], tournament_entries: [], highlights: [], scrim_uploads: [], profile_share_links: [] };
+  const T = { profiles: [], player_games: [], stat_entries: [], teams: [], team_members: [], tournament_entries: [], highlights: [], scrim_matches: [], scrim_uploads: [], profile_share_links: [] };
   const me = profile(p.n, key === "new" ? "p" + "0123456789ab" : `mock_${key}`);
   if (key === "new") Object.assign(me, { game: null, role: null, rank: null });
   T.profiles.push(me);
@@ -47,7 +48,7 @@ function seed(key) {
   }
   const meta = { ...(p.onboarded ? { onboarded: true } : {}), ...(p.account_type ? { account_type: p.account_type } : {}) };
   const user = { id: uid, aud: "authenticated", role: "authenticated", email: `${key}@example.invalid`, app_metadata: { provider: "email" }, user_metadata: meta, created_at: now() };
-  state = { persona: key, user, tables: T, files: new Map() };
+  state = { persona: key, user, tables: T, files: new Map(), allowlisted: !!p.allowlisted };
 }
 
 const b64u = (o) => Buffer.from(typeof o === "string" ? o : JSON.stringify(o)).toString("base64url");
@@ -84,7 +85,7 @@ function parseFilter(v) {
   return (x) => (neg ? !test(x) : test(x));
 }
 
-const OWN_KEY = { profiles: "id", player_games: "profile_id", stat_entries: "profile_id", tournament_entries: "profile_id", highlights: "profile_id", scrim_uploads: "profile_id", profile_share_links: "profile_id" };
+const OWN_KEY = { scrim_matches: "profile_id", profiles: "id", player_games: "profile_id", stat_entries: "profile_id", tournament_entries: "profile_id", highlights: "profile_id", scrim_uploads: "profile_id", profile_share_links: "profile_id" };
 
 // Mirrors the row level rules the real database applies (owner only), for the tables the signed in pages use.
 function visible(table, row, uid) {
@@ -129,6 +130,7 @@ function rest(req, res, url, body) {
     if (lim) list = list.slice(0, lim);
     return respond(list.map(project));
   }
+  if (table === "scrim_uploads" && req.method !== "GET" && req.method !== "DELETE") return send(res, { code: "42501", message: "permission denied for table scrim_uploads" }, 403);
   if (req.method === "POST") {
     const items = Array.isArray(body) ? body : [body];
     const made = [];
@@ -136,9 +138,13 @@ function rest(req, res, url, body) {
       if (it[OWN_KEY[table]] && it[OWN_KEY[table]] !== uid) return send(res, { code: "42501", message: "new row violates row-level security policy" }, 403);
       if (table === "scrim_uploads" && (!String(it.storage_path).startsWith(uid + "/") || it.size_bytes > 209715200)) return send(res, { code: "23514", message: "check constraint" }, 400);
       if (table === "highlights" && !/^https:\/\//.test(it.url)) return send(res, { code: "23514", message: "check constraint" }, 400);
+      if (table === "scrim_matches") {
+        if (!["win", "loss", "draw"].includes(it.result) || (it.score && !/^[0-9]{1,3} ?[-:] ?[0-9]{1,3}$/.test(it.score))) return send(res, { code: "23514", message: "check constraint" }, 400);
+        it.source = "manual";
+      }
       // Primary keys the real tables enforce: a repeat insert is a unique violation (23505), which the app turns into an update.
       if (table === "player_games" && rows.some((r) => r.profile_id === uid && r.game === it.game)) return send(res, { code: "23505", message: "duplicate key value violates unique constraint" }, 409);
-      const cap = { tournament_entries: 50, highlights: 20, scrim_uploads: 25 }[table];
+      const cap = { tournament_entries: 50, highlights: 20, scrim_uploads: 25, scrim_matches: 500 }[table];
       if (cap && rows.filter((r) => r.profile_id === uid).length >= cap) return send(res, { code: "P0001", message: "dashboard_limit" }, 400);
       const row = { id: randomUUID(), created_at: now(), ...it };
       if (table === "scrim_uploads") row.status = "stored";
@@ -166,6 +172,7 @@ function rpc(res, name, args) {
   const T = state.tables, uid = state.user.id, me = T.profiles.find((p) => p.id === uid);
   switch (name) {
     case "handle_change_available_at": return send(res, null);
+    case "upload_allowed": return send(res, state.allowlisted);
     case "team_invite_code": return send(res, me.team_id ? "MOCKINVITE1" : null);
     case "team_roster":
       return send(res, T.team_members.filter((m) => m.team_id === me.team_id).map((m) => {
@@ -206,7 +213,7 @@ function storage(req, res, url, body, raw) {
   }
   if (req.method === "POST") {
     const [bucket, ...rest] = p.split("/");
-    if (rest[0] !== uid) return send(res, { statusCode: "403", error: "Unauthorized", message: "new row violates row-level security policy" }, 403);
+    if (rest[0] !== uid || (bucket === "scrim-uploads" && !state.allowlisted)) return send(res, { statusCode: "403", error: "Unauthorized", message: "new row violates row-level security policy" }, 403);
     state.files.set(`${bucket}/${rest.join("/")}`, raw.length);
     return send(res, { Key: p });
   }
@@ -231,11 +238,23 @@ export function handleUserRequest(req, res, url, body, raw) {
   if (!user) return false;
   if (p.startsWith("/rest/v1/rpc/")) {
     const name = p.replace("/rest/v1/rpc/", "");
-    const known = ["handle_change_available_at", "team_invite_code", "team_roster", "claim_handle", "set_primary_game", "create_team"];
+    const known = ["handle_change_available_at", "team_invite_code", "team_roster", "claim_handle", "set_primary_game", "create_team", "upload_allowed"];
     if (!known.includes(name)) return false;
     return rpc(res, name, body ?? {}), true;
   }
   if (p.startsWith("/rest/v1/")) return rest(req, res, url, body), true;
   if (p.startsWith("/storage/v1/object/")) return storage(req, res, url, body ?? {}, raw), true;
+  return false;
+}
+
+/** The server records uploads with the service role (clients have no write access to scrim_uploads). */
+export function handleServiceRequest(req, res, url, body) {
+  if (!state || req.headers.apikey !== "mock-service") return false;
+  if (url.pathname === "/rest/v1/scrim_uploads" && req.method === "POST") {
+    const row = { id: randomUUID(), status: "stored", created_at: now(), ...body };
+    if (state.tables.scrim_uploads.length >= 25) return send(res, { code: "P0001", message: "dashboard_limit" }, 400), true;
+    state.tables.scrim_uploads.push(row);
+    return send(res, undefined, 201), true;
+  }
   return false;
 }
