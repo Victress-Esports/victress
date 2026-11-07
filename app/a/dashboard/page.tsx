@@ -100,7 +100,7 @@ export default async function Dashboard() {
         <ModuleCard
           href="/dashboard/scrims"
           title="Scrim Intelligence"
-          line="Private practice files. Automated analysis is coming soon."
+          line="Log your practice matches and store private practice files. Automated analysis is coming soon."
           chip={<StatusChip>{uploads ? (approvedPartner === true ? "Uploads open" : "Uploads: approved partners only") : "Uploads not open yet"}</StatusChip>}
         />
         <ModuleCard

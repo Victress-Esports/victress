@@ -27,7 +27,7 @@ function seed(key) {
     public_fields: { display_name: false, avatar: false, bio: false, team: false, stats: false, rank_role: false },
     handle_changed_at: null, created_at: now(), updated_at: now(), ...extra,
   });
-  const T = { profiles: [], player_games: [], stat_entries: [], teams: [], team_members: [], tournament_entries: [], highlights: [], scrim_uploads: [], profile_share_links: [] };
+  const T = { profiles: [], player_games: [], stat_entries: [], teams: [], team_members: [], tournament_entries: [], highlights: [], scrim_matches: [], scrim_uploads: [], profile_share_links: [] };
   const me = profile(p.n, key === "new" ? "p" + "0123456789ab" : `mock_${key}`);
   if (key === "new") Object.assign(me, { game: null, role: null, rank: null });
   T.profiles.push(me);
@@ -85,7 +85,7 @@ function parseFilter(v) {
   return (x) => (neg ? !test(x) : test(x));
 }
 
-const OWN_KEY = { profiles: "id", player_games: "profile_id", stat_entries: "profile_id", tournament_entries: "profile_id", highlights: "profile_id", scrim_uploads: "profile_id", profile_share_links: "profile_id" };
+const OWN_KEY = { scrim_matches: "profile_id", profiles: "id", player_games: "profile_id", stat_entries: "profile_id", tournament_entries: "profile_id", highlights: "profile_id", scrim_uploads: "profile_id", profile_share_links: "profile_id" };
 
 // Mirrors the row level rules the real database applies (owner only), for the tables the signed in pages use.
 function visible(table, row, uid) {
@@ -138,7 +138,11 @@ function rest(req, res, url, body) {
       if (it[OWN_KEY[table]] && it[OWN_KEY[table]] !== uid) return send(res, { code: "42501", message: "new row violates row-level security policy" }, 403);
       if (table === "scrim_uploads" && (!String(it.storage_path).startsWith(uid + "/") || it.size_bytes > 209715200)) return send(res, { code: "23514", message: "check constraint" }, 400);
       if (table === "highlights" && !/^https:\/\//.test(it.url)) return send(res, { code: "23514", message: "check constraint" }, 400);
-      const cap = { tournament_entries: 50, highlights: 20, scrim_uploads: 25 }[table];
+      if (table === "scrim_matches") {
+        if (!["win", "loss", "draw"].includes(it.result) || (it.score && !/^[0-9]{1,3} ?[-:] ?[0-9]{1,3}$/.test(it.score))) return send(res, { code: "23514", message: "check constraint" }, 400);
+        it.source = "manual";
+      }
+      const cap = { tournament_entries: 50, highlights: 20, scrim_uploads: 25, scrim_matches: 500 }[table];
       if (cap && rows.filter((r) => r.profile_id === uid).length >= cap) return send(res, { code: "P0001", message: "dashboard_limit" }, 400);
       const row = { id: randomUUID(), created_at: now(), ...it };
       if (table === "scrim_uploads") row.status = "stored";
