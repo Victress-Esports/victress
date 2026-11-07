@@ -62,6 +62,8 @@ Legend: **Yes** included. **Limited** included with a cap (the cap value is a pa
 
 **Scope note (decision 7, awaiting counsel):** individual scouts are excluded from the initial scope, and Scout access is not sold or enabled until verification capacity and the necessary policy exist. Recruiter discovery and contact stay disabled for all players pending qualified legal review. The rows above are proposals only.
 
+**Founder direction 2026-11-07:** Scout Desk (player discovery) is gated to the Scout plan only. It is not opened to the Team plan until the founder approves otherwise. The approved plan descriptions list player discovery under Scout only.
+
 ### Data access, retention and usage
 | Item | Rookie | Pro | Team | Scout |
 |---|---|---|---|---|

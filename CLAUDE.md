@@ -1,9 +1,9 @@
 # Victress project principles
 
 ## Authoritative strategy
-**Read [docs/strategy/victress-business-purpose.md](docs/strategy/victress-business-purpose.md) first.** It is the authoritative strategic reference for why Victress exists, how it creates shared value and where it is going. It supersedes any conflicting historical instruction, including earlier instructions that described Women in Esports as a secondary initiative or a separate social impact activity. Do not shorten, reinterpret or compete with it. If a request or older note conflicts with it, follow the strategy document and say so.
+**Read [docs/strategy/victress-business-purpose.md](docs/strategy/victress-business-purpose.md) first.** It is the authoritative strategic reference for why Victress exists, how it creates shared value and where it is going. **It is version 2, saved 2026-11-07**; version 1 is kept only for history in `docs/strategy/superseded/` and must not be followed where it conflicts. It supersedes any conflicting historical instruction, including earlier instructions that described Women in Esports as a secondary initiative, a separate social impact activity, or the whole of the company's purpose. Do not shorten, reinterpret or compete with it. If a request or older note conflicts with it, follow the strategy document and say so.
 
-Victress is building the infrastructure that helps competitive esports players develop, prove their abilities and get discovered. Practice, Performance Evidence, Development, Recognition, Opportunity.
+Victress is building connected infrastructure for esports player development, performance intelligence and talent discovery, for the broader esports ecosystem (not one demographic, game or level). Practice → Performance Evidence → Development → Recognition → Opportunity.
 
 ## 1. One company, one platform, Creating Shared Value
 - Victress is a technology business. **Creating Shared Value is the business strategy**, not a marketing overlay, a charity program or a separate corporate responsibility activity. Social value and business value come from the same products, infrastructure and relationships.
@@ -11,9 +11,10 @@ Victress is building the infrastructure that helps competitive esports players d
   1. **Scrim Intelligence:** turn private competitive practice into meaningful performance information.
   2. **Player Resume:** a credible way to represent competitive identity, experience, achievements and development.
   3. **Scout Desk:** structured discovery and evaluation connecting talent with teams, coaches, collegiate programs and recruiters.
-- Creating Shared Value dimensions map onto the platform: reconceiving products and markets (the three pillars), redefining productivity in the value chain (data integrity, transparent evaluation, privacy and consent, accessible tools, trustworthy recruitment), enabling ecosystem development (teams, leagues, tournaments, collegiate programs, communities).
-- **Women in Esports is a core expression of why Victress exists.** It is realized through the same three pillars (visibility through Player Resume, development through Scrim Intelligence, opportunity through Scout Desk). It is not a fourth pillar, a separate women's product, a separate company, a separate standard of competition or a disconnected campaign. Written in full it is "Victress Women in Esports". Do not invent any other initiative name (not Victress Elevate, not Vistrielle).
+- Creating Shared Value (Porter and Kramer) has three mechanisms, all applied: **reconceiving products and markets** (the three products), **redefining productivity in the value chain** (data integrity and transparency, contextual evaluation, privacy and consent, accessibility, responsible platform development), and **enabling local cluster development** (community engagement, grassroots and collegiate partnerships, industry collaboration). They are connected ways of building the business, not charitable programs. Sponsorships, donations, awareness campaigns and partnerships alone are not CSV.
+- **Women in Esports is an intentional shared-value commitment**: an application of the CSV strategy, **not a limitation on Victress's customer base or commercial purpose**. The platform serves all esports players and organizations. The commitment is to use the same products and ecosystem relationships to help address barriers women competitors often face (access to development resources, demonstrating abilities, recognition, progression), and to **listen to women players, grassroots communities and collegiate programs first** rather than assume the barriers. It is not a fourth product, a separate commercial platform, a separate women's platform or a replacement for the core business. Written in full it is "Victress Women in Esports". Do not invent any other initiative name (not Victress Elevate, not Vistrielle).
 - Reflect the purpose in business messaging, especially the About page, without turning every page into promotional messaging.
+- Victress will not promise programs, access or services it cannot reliably deliver. Access initiatives are developed from feasibility, community need and available resources.
 - Never claim partnerships, programs, funding, mentorship, scholarships, coaching, placements, recruitment outcomes, player spotlights or functionality that do not exist. Anything unbuilt is labeled Coming soon or Planned.
 
 ## 2. Automated data is fundamental; provenance is mandatory
@@ -40,7 +41,7 @@ Keep routing, authentication, canonicals and responsibilities separate. Do not a
 ## 5. Protect the business and its users
 - Privacy, consent and player control are foundational. Separate account identity, public player identity, competitive records and private contact details. Contact details and private identity are never disclosed without consent. Search indexing being opt-in does not make publicly readable data private.
 - Preserve Supabase Row Level Security. Use additive migrations, tested in a rolled back transaction first.
-- Safety matters: women competitors face harassment. Reporting, blocking and moderation are part of the product, not an afterthought.
+- Safety matters: players, including women competitors, may face additional safety, privacy or representation concerns. Reporting, blocking and moderation are part of the product, not an afterthought.
 - Make no unsupported privacy, security, age (COPPA) or compliance claims. Legal text stays labeled as pending legal review.
 - Never launch billing, change production data or change production database behavior without explicit approval. Keep `NEXT_PUBLIC_BILLING_ENABLED=false`. Do not change pricing or plan definitions without approval.
 - Never commit secrets. The service role key stays server side.
@@ -57,7 +58,8 @@ Keep routing, authentication, canonicals and responsibilities separate. Do not a
 ## 7. Workflow
 - Inspect the actual repository and deployment state before changing anything.
 - Work in scoped branches and pull requests. Run typecheck, lint, build and the SEO audit (`npm run seo:audit`). Report exactly what changed.
-- Never merge or deploy without approval. PR #2 and #3 stay unmerged until told otherwise.
+- Never merge or deploy without approval. PR #2 and #3 stay unmerged until told otherwise. One milestone per pull request, on its own branch.
+- **Privacy first:** no pilot data (uploads, resumes, contact details) is collected until the privacy foundation (consent controls, closed anonymous reads, share tokens) is built, tested and approved for production. Migrations are tested on a throwaway local Postgres (`supabase/tests/local/run.sh`) before any production step, and each production step needs its own explicit authorization (`docs/proposals/decision-register.md`).
 - Design proposals live in `docs/proposals/`. Do not implement a proposed database, authentication, permission, billing or privacy change until it is approved.
 - Do not expand a task into unrelated improvements. Do not replace working functionality only to tidy the code.
 - Do not delete parked design files (`Mockups.tsx`, `WingArt.tsx`, `StatChart.tsx`, `LeaderboardClimb.tsx`, `GamePicker.tsx`) until the project is finalized and dependencies are checked.
