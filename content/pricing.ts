@@ -10,7 +10,7 @@ export interface Plan {
   yearly?: number;
   /** Shown after the price, e.g. "forever" or "per roster". */
   unit: string;
-  /** Plan description. Only describe what exists, or what is clearly marked Coming soon. */
+  /** Approved plan descriptions (kept verbatim). Paid plans are marked Coming soon until they are built. */
   blurb: string;
   note?: string;
   live: boolean;
@@ -47,7 +47,6 @@ export const PLANS: Plan[] = [
     unit: "per month",
     blurb:
       "Everything your roster needs in one place. Manage players, follow team progress, and keep your program organized.",
-    note: "Founding clubs get free access for their first season.",
     live: false,
     interest: "team",
   },

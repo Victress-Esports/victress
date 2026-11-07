@@ -1,7 +1,10 @@
+import type { Metadata } from "next";
 import { DashboardNav } from "@/components/app/DashboardNav";
 import { Logo } from "@/components/brand/Logo";
 import { buttonClass } from "@/components/ui/Button";
 import { requireUser } from "@/lib/auth";
+
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   await requireUser();

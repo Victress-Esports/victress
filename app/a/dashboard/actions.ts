@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { checkHandle } from "@/lib/handles";
@@ -25,6 +26,22 @@ export async function updateProfileAction(input: z.input<typeof profileSchema>):
     .update({ display_name: p.data.display_name || null, bio: p.data.bio || null })
     .eq("id", user.id);
   return error ? fail() : { ok: true, message: "Saved." };
+}
+
+/** Whether search engines may index this player's public profile. Off by default; the profile stays viewable by link either way. */
+export async function setSearchVisibilityAction(on: boolean): Promise<Result> {
+  const { sb, user } = await requireUser();
+  if (typeof on !== "boolean") return fail();
+  const { data, error } = await sb.from("profiles").update({ search_indexable: on }).eq("id", user.id).select("handle").single();
+  if (error || !data) return fail();
+  // Public profile pages are cached for up to a minute; refresh this one now so a change takes effect immediately.
+  revalidatePath(`/${data.handle}`);
+  return {
+    ok: true,
+    message: on
+      ? "Search engines can now list your profile. It can take days to appear."
+      : "Your profile is hidden from search engines. Pages already listed drop out the next time they re-crawl.",
+  };
 }
 
 /** The client uploads the image to Storage; this records the URL, but only if it points into the user's own folder. */

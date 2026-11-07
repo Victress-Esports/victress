@@ -1,5 +1,6 @@
 import "server-only";
 import { Resend } from "resend";
+import { CONTACT_EMAIL } from "@/content/copy";
 import WaitlistConfirm from "@/emails/WaitlistConfirm";
 import Welcome from "@/emails/Welcome";
 
@@ -37,6 +38,29 @@ export async function sendWelcome(to: string, handle: string) {
     to,
     subject: "Welcome to Victress",
     react: Welcome({ handle }),
+  });
+  if (error) throw new Error(error.message);
+}
+
+const oneLine = (v: string) => v.replace(/[\r\n]+/g, " ").trim();
+
+/**
+ * Sends a Design Partner application or an early access request to the Victress inbox. The submitter's address is the
+ * Reply-To, so replying goes to them. Plain text only (no HTML to inject into). Nothing is stored.
+ * Throws when email is not configured or Resend refuses it, so the form never reports success it did not achieve.
+ */
+export async function sendContactMessage(msg: { kind: "organization" | "player"; replyTo: string; fields: [string, string][] }) {
+  const resend = client();
+  if (!resend) throw new Error("email not configured");
+  const org = msg.fields.find(([k]) => k === "Organization")?.[1];
+  const subject = msg.kind === "organization" ? `Design partner application${org ? `: ${oneLine(org).slice(0, 80)}` : ""}` : "Early access request from a player";
+  const text = msg.fields.map(([k, v]) => `${k}: ${v}`).join("\n\n");
+  const { error } = await resend.emails.send({
+    from: `Victress <${from()}>`,
+    to: CONTACT_EMAIL,
+    replyTo: msg.replyTo,
+    subject: `[Victress site] ${subject}`,
+    text,
   });
   if (error) throw new Error(error.message);
 }

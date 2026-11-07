@@ -1,6 +1,6 @@
 # Victress
 
-Esports player-performance platform. **Perform. Compete. Rise.**
+Esports player-performance platform. **Turn practice into progress.**
 
 One Next.js (App Router, TypeScript, Tailwind v4) project that serves two domains:
 
@@ -26,7 +26,7 @@ Local dev, both domains on one port:
 - Marketing: http://marketing.localhost:3000
 - Product: http://app.localhost:3000
 
-Scripts: `npm run typecheck`, `npm run lint`, `npm run build`, `npm run assets` (rebuilds the transparent wing images from `public/brand/wings.jpg`).
+Scripts: `npm run typecheck`, `npm run lint`, `npm run build`, `npm run seo:audit`, `npm run assets` (rebuilds the wing images and the icons).
 
 ## Environment variables
 
@@ -67,6 +67,10 @@ https://pmamceqshyfptvjgimsf.supabase.co/auth/v1/callback
 2. **Google**: Google Cloud Console > APIs & Services > OAuth consent screen (External; scopes `openid`, `email`, `profile`), then Credentials > Create credentials > OAuth client ID > Web application. Under *Authorized redirect URIs* add the Supabase URL above. Copy the Client ID and Client Secret into Supabase > Authentication > Providers > Google, and enable it.
 3. **Discord**: Discord Developer Portal > New Application > OAuth2. Under *Redirects* add the Supabase URL above. Copy the Client ID and Client Secret (Reset Secret) into Supabase > Authentication > Providers > Discord, and enable it.
 4. **Email magic link**: Providers > Email is on by default. Supabase's built-in mailer is heavily rate-limited, so set custom SMTP (Project Settings > Authentication > SMTP): host `smtp.resend.com`, port `465`, username `resend`, password = your Resend API key, sender `hello@victressesports.com` (the domain must be verified in Resend).
+
+## SEO
+
+Titles and descriptions live in `content/seo.ts`; sitemaps and robots are served per domain; structured data is on the home, pricing, leaderboard and (opted-in) profile pages. Player profiles are **not indexed by default**: players opt in with a toggle in the profile editor. Details, the audit script and the Search Console and Bing steps are in `docs/seo.md`. Run `npm run seo:audit` (see that file) after changing any page.
 
 ## Leaderboards and demo data
 

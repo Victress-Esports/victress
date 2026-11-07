@@ -29,6 +29,9 @@ for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
   if (seen[p - 1] || seen[p + 1] || seen[p - w] || seen[p + w]) out[p * 4 + 3] = 150;
 }
 const base = sharp(out, { raw: { width: w, height: h, channels: 4 } });
-await base.clone().webp({ quality: 88, alphaQuality: 90 }).toFile("public/brand/wings.webp");
-await base.clone().resize(640).webp({ quality: 85 }).toFile("public/brand/wings-640.webp");
-console.log("wrote wings.webp and wings-640.webp");
+// Three pre-optimized sizes. components/brand/WingArt.tsx serves them through a custom next/image loader,
+// so no image is encoded on demand (an on-demand AVIF encode added about 1 second to the first visitor's LCP).
+await base.clone().webp({ quality: 80, alphaQuality: 84 }).toFile("public/brand/wings.webp"); // 1024
+await base.clone().resize(720).webp({ quality: 74, alphaQuality: 80 }).toFile("public/brand/wings-720.webp");
+await base.clone().resize(480).webp({ quality: 72, alphaQuality: 78 }).toFile("public/brand/wings-480.webp");
+console.log("wrote wings.webp (1024), wings-720.webp, wings-480.webp");

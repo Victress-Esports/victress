@@ -6,7 +6,7 @@ import { appFormAction, appFormHidden } from "@/lib/urls";
 
 type State = "idle" | "checking" | "available" | "taken" | "invalid" | "reserved" | "error";
 
-export function ClaimInput({ id: idProp }: { id?: string }) {
+export function ClaimInput({ id: idProp, onChange }: { id?: string; onChange?: (handle: string) => void }) {
   const autoId = useId();
   const id = idProp ?? autoId;
   const [value, setValue] = useState("");
@@ -71,7 +71,11 @@ export function ClaimInput({ id: idProp }: { id?: string }) {
             id={id}
             name="claim"
             value={value}
-            onChange={(e) => setValue(e.target.value.replace(/\s/g, ""))}
+            onChange={(e) => {
+              const next = e.target.value.replace(/\s/g, "");
+              setValue(next);
+              onChange?.(next.toLowerCase());
+            }}
             placeholder={c.placeholder}
             autoComplete="off"
             autoCapitalize="none"

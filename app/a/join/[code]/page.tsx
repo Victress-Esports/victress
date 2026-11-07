@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { seo } from "@/content/seo";
+import { privateMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { JoinTeamButton } from "@/components/app/JoinTeamButton";
 import { Logo } from "@/components/brand/Logo";
@@ -6,7 +8,7 @@ import { ButtonLink, buttonClass } from "@/components/ui/Button";
 import { supabasePublic } from "@/lib/supabase/public";
 import { supabaseServer } from "@/lib/supabase/server";
 
-export const metadata: Metadata = { title: "Join your team", robots: { index: false } };
+export const metadata: Metadata = privateMetadata(seo.app.join.title, seo.app.join.description);
 
 export default async function Join({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
@@ -21,7 +23,7 @@ export default async function Join({ params }: { params: Promise<{ code: string 
   } = await sb.auth.getUser();
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-8 px-4 py-16">
+    <main id="main" className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-8 px-4 py-16">
       <Logo />
       {info ? (
         <>
@@ -51,6 +53,6 @@ export default async function Join({ params }: { params: Promise<{ code: string 
           </Link>
         </div>
       )}
-    </div>
+    </main>
   );
 }

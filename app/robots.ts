@@ -1,26 +1,42 @@
 import type { MetadataRoute } from "next";
 import { headers } from "next/headers";
+import { isLocalHost, isProdHost, siteFor } from "@/lib/hosts";
 import { APP_URL, MARKETING_URL } from "@/lib/urls";
 
-const PROD_HOSTS = new Set(["victress.gg", "www.victress.gg", "victressesports.com", "www.victressesports.com"]);
-
+// robots.txt per domain, each pointing at its own sitemap.
+// Disallow rules use "/" or "$" so they match only the private routes, never a player whose handle starts the same way
+// (for example /dashboard_fan or /joint_ace are valid profile URLs).
 export default async function robots(): Promise<MetadataRoute.Robots> {
-  const host = ((await headers()).get("host") ?? "").split(":")[0];
-  const isApp = host.startsWith("app.") || host.endsWith("victress.gg");
-  const isLocal = host.endsWith("localhost");
+  const host = (await headers()).get("host");
 
   // Previews and staging: keep every crawler out.
-  if (!PROD_HOSTS.has(host) && !isLocal && !host.startsWith("app.") && !host.startsWith("marketing.")) {
-    return { rules: { userAgent: "*", disallow: "/" } };
+  if (!isProdHost(host) && !isLocalHost(host)) return { rules: { userAgent: "*", disallow: "/" } };
+
+  if (siteFor(host) === "m") {
+    return {
+      rules: { userAgent: "*", allow: ["/", "/api/og"], disallow: ["/api/"] },
+      sitemap: `${MARKETING_URL}/sitemap.xml`,
+    };
   }
 
-  const base = isApp ? APP_URL : MARKETING_URL;
   return {
     rules: {
       userAgent: "*",
-      allow: "/",
-      disallow: isApp ? ["/api/", "/dashboard", "/onboarding", "/login", "/join"] : ["/api/"],
+      // /api/og stays crawlable: Twitter, Facebook and LinkedIn fetch social cards from there.
+      allow: ["/", "/api/og"],
+      disallow: [
+        "/api/",
+        "/auth/",
+        "/dashboard$",
+        "/dashboard/",
+        "/onboarding$",
+        "/onboarding/",
+        "/login$",
+        "/login/",
+        "/join/",
+        "/__site/",
+      ],
     },
-    sitemap: `${base}/sitemap.xml`,
+    sitemap: `${APP_URL}/sitemap.xml`,
   };
 }

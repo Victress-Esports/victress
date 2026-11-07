@@ -10,7 +10,7 @@ export const viewport: Viewport = { themeColor: "#171717", colorScheme: "dark" }
 
 export const metadata: Metadata = {
   applicationName: "Victress",
-  title: { default: "Victress. Perform. Compete. Rise.", template: "%s | Victress" },
+  title: { default: "Victress | Esports Player Profiles & Performance", template: "%s | Victress" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -21,7 +21,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         {children}
-        <Analytics />
+        {/* The script is served by Vercel only (enable Analytics in the project). Elsewhere it would 404. */}
+        {process.env.VERCEL ? <Analytics /> : null}
       </body>
     </html>
   );
