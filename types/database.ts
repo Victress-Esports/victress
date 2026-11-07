@@ -67,6 +67,16 @@ export type Database = {
         };
         Relationships: [];
       };
+      profile_share_links: {
+        Row: {
+          created_at: string; expires_at: string | null; fields: Json; id: string; label: string | null;
+          last_viewed_at: string | null; profile_id: string; revoked_at: string | null; view_count: number;
+        };
+        // token_hash is write only: the database never returns it to the application.
+        Insert: { expires_at?: string | null; fields?: Json; label?: string | null; profile_id: string; token_hash: string };
+        Update: { expires_at?: string | null; fields?: Json; label?: string | null; revoked_at?: string | null };
+        Relationships: [];
+      };
       player_games: {
         Row: { created_at: string; game: string; is_primary: boolean; profile_id: string; rank: string | null; role: string | null };
         Insert: { created_at?: string; game: string; is_primary?: boolean; profile_id: string; rank?: string | null; role?: string | null };
