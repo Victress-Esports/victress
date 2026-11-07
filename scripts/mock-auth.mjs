@@ -136,10 +136,13 @@ function rest(req, res, url, body) {
       if (it[OWN_KEY[table]] && it[OWN_KEY[table]] !== uid) return send(res, { code: "42501", message: "new row violates row-level security policy" }, 403);
       if (table === "scrim_uploads" && (!String(it.storage_path).startsWith(uid + "/") || it.size_bytes > 209715200)) return send(res, { code: "23514", message: "check constraint" }, 400);
       if (table === "highlights" && !/^https:\/\//.test(it.url)) return send(res, { code: "23514", message: "check constraint" }, 400);
+      // Primary keys the real tables enforce: a repeat insert is a unique violation (23505), which the app turns into an update.
+      if (table === "player_games" && rows.some((r) => r.profile_id === uid && r.game === it.game)) return send(res, { code: "23505", message: "duplicate key value violates unique constraint" }, 409);
       const cap = { tournament_entries: 50, highlights: 20, scrim_uploads: 25 }[table];
       if (cap && rows.filter((r) => r.profile_id === uid).length >= cap) return send(res, { code: "P0001", message: "dashboard_limit" }, 400);
       const row = { id: randomUUID(), created_at: now(), ...it };
       if (table === "scrim_uploads") row.status = "stored";
+      if (table === "player_games") row.is_primary = row.is_primary ?? false;
       if (table === "profile_share_links") Object.assign(row, { revoked_at: null, last_viewed_at: null, view_count: 0 });
       rows.push(row);
       made.push(row);
