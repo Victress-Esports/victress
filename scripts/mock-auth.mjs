@@ -142,10 +142,13 @@ function rest(req, res, url, body) {
         if (!["win", "loss", "draw"].includes(it.result) || (it.score && !/^[0-9]{1,3} ?[-:] ?[0-9]{1,3}$/.test(it.score))) return send(res, { code: "23514", message: "check constraint" }, 400);
         it.source = "manual";
       }
+      // Primary keys the real tables enforce: a repeat insert is a unique violation (23505), which the app turns into an update.
+      if (table === "player_games" && rows.some((r) => r.profile_id === uid && r.game === it.game)) return send(res, { code: "23505", message: "duplicate key value violates unique constraint" }, 409);
       const cap = { tournament_entries: 50, highlights: 20, scrim_uploads: 25, scrim_matches: 500 }[table];
       if (cap && rows.filter((r) => r.profile_id === uid).length >= cap) return send(res, { code: "P0001", message: "dashboard_limit" }, 400);
       const row = { id: randomUUID(), created_at: now(), ...it };
       if (table === "scrim_uploads") row.status = "stored";
+      if (table === "player_games") row.is_primary = row.is_primary ?? false;
       if (table === "profile_share_links") Object.assign(row, { revoked_at: null, last_viewed_at: null, view_count: 0 });
       rows.push(row);
       made.push(row);

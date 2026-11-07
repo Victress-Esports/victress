@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { GamesManager } from "@/components/app/GamesManager";
+import { ProfileForm } from "@/components/app/ProfileForm";
 import { ProvenanceTag } from "@/components/app/ProvenanceTag";
 import { HighlightSection, TournamentSection, type HighlightRow, type TournamentRow } from "@/components/app/ResumeSections";
 import { ResumeVisibility } from "@/components/app/ResumeVisibility";
@@ -38,25 +40,12 @@ export default async function ResumePage() {
         <p className="mt-2 text-mute">Your competitive identity, experience and development in one place. You decide who sees what.</p>
       </div>
 
-      <Section title="Games, role and rank" line="Your primary game shows first.">
-        {games.length ? (
-          <ul className="flex flex-col gap-2">
-            {games.map((g) => (
-              <li key={g.game} className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface-2 px-4 py-3">
-                <span className="font-semibold">
-                  {getGame(g.game)?.name ?? g.game}
-                  {g.is_primary ? <span className="ml-2 text-xs font-semibold text-coral">Primary</span> : null}
-                </span>
-                <span className="text-sm text-mute">{[g.role, g.rank].filter(Boolean).join(" · ") || "Add role and rank"}</span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-mute">Add the games you play.</p>
-        )}
-        <Link href="/dashboard/profile" className={buttonClass("secondary", "mt-4")}>
-          Edit games
-        </Link>
+      <Section title="About you" line="Your display name and bio. Each is shown only if you choose to show it (see Who can see your resume below).">
+        <ProfileForm displayName={profile.display_name ?? ""} bio={profile.bio ?? ""} />
+      </Section>
+
+      <Section title="Games, role and rank" line="Add every game you play and mark one as primary. Your primary game shows first.">
+        <GamesManager games={games} />
       </Section>
 
       <Section title="Stats" line="Each stat shows where it came from.">
