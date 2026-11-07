@@ -2,10 +2,10 @@ import { GAME_LIST } from "@/content/games";
 import { MIN_PLAYERS } from "@/lib/leaderboard";
 import { PAGE_SIZE, appBase, type UrlEntry } from "@/lib/sitemap";
 import { directoryEnabled } from "@/lib/privacy";
-import { supabaseAdmin } from "@/lib/supabase-admin";
+import { supabaseAdmin, supabaseAdminConfigured } from "@/lib/supabase-admin";
 
 // Only directory listed profiles that also opted into search engines are ever listed; nothing while the directory is off.
-const configured = () => directoryEnabled() && !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+const configured = () => directoryEnabled() && supabaseAdminConfigured();
 
 /** Number of public profiles (real handles, no demo players). Throws on a database error. */
 export async function profileTotal(): Promise<number> {
