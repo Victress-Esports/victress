@@ -6,7 +6,7 @@ const CARDS: Record<string, { kicker: string; title: string; line: string }> = {
   pricing: { kicker: "VICTRESS PRICING", title: "Free to start.", line: "Pro, Team and Scout are coming soon." },
   teams: { kicker: "VICTRESS FOR TEAMS", title: "Run your club in one place.", line: "One invite link. One roster." },
   about: { kicker: "ABOUT VICTRESS", title: "Show the work.", line: "A profile you own, built on stats you enter." },
-  app: { kicker: "VICTRESS", title: "Claim your name.", line: "One link. Your whole story." },
+  app: { kicker: "VICTRESS", title: "Claim your name.", line: "Your account. Your own stats." },
   leaderboard: { kicker: "VICTRESS LEADERBOARDS", title: "Know where you stand.", line: "Self-reported stats, per game." },
 };
 

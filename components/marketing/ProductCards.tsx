@@ -8,14 +8,14 @@ export function ProductCards() {
   return (
     <ul className="mt-10 grid gap-5 md:grid-cols-3">
       {h.pillars.map((p) => {
-        const live = p.status === "live";
+        const dev = p.status === "dev";
         return (
           <Card as="li" key={p.id} className="flex flex-col">
             <h3 className="font-display text-2xl font-bold">{p.title}</h3>
             <span
-              className={`mt-3 inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold ${live ? "bg-crimson text-white" : "bg-surface-2 text-coral"}`}
+              className={`mt-3 inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold ${dev ? "bg-crimson text-white" : "bg-surface-2 text-coral"}`}
             >
-              {live ? h.statusLive : h.statusSoon}
+              {p.statusLabel}
             </span>
             <p className="mt-3 flex-1 text-mute">{p.line}</p>
             <p className="mt-2 text-sm text-mute">{p.note}</p>
