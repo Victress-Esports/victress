@@ -2,6 +2,8 @@
 
 Created 2026-11-07. Status: **draft, nothing here has been run on a Preview URL yet.** Production is not touched by any step. This plan closes the "separate Supabase project for Preview deployments" item in [pilot-readiness-checklist.md](pilot-readiness-checklist.md).
 
+> **WARNING: merge the `SUPABASE_URL` pull request (#24) first.** Production keeps working only because the live deployment was built before the `NEXT_PUBLIC_SUPABASE_*` variables were deleted from Vercel. Any production build from code before #24 (for example merging any other pull request into `main` first) runs without a Supabase URL and public key and breaks the sign in and product pages. Order: merge #24, redeploy, confirm, then everything else. Do not delete the old variables from Preview either until #24 is on `main`.
+
 ## 0. What staging is
 - Supabase project `victress-staging`, ref `cmvifuayvqhbfkeskoqi`, region ca-central-1, same organization as production (`pmamceqshyfptvjgimsf`). Created empty: 0 tables in `public`, 0 auth users, 0 migrations, no buckets.
 - Schema target: the production schema (nine applied migrations, including the `rls_auto_enable()` revoke) plus `20261107000300_dashboard_foundation.sql`, `20261107000310_upload_allowlist.sql` and `20261107000400_scrim_matches.sql`. Those three exist only on staging until the founder approves them for production and Supabase is on Pro.
