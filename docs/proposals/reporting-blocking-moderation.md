@@ -10,7 +10,7 @@ This builds on, and does not replace, three existing documents: [safety-operatio
 | Report button, report form, report storage | **None.** No code, no tables (`reports`, `blocks`, `moderation_actions` do not exist, on production or staging) |
 | Block, mute, hide a user | **None** |
 | Moderation tooling, admin screen, audit log | **None.** Interim tooling is only proposed (Supabase dashboard and SQL) |
-| Trust and Safety owner, deputy, hours, report channel | **Not assigned or established** (decision 5: awaiting appointment) |
+| Trust and Safety owner, deputy, hours, report channel | Owner: Matt Hill (recorded 2026-11-07). Deputy, hours and report channel **not yet established** (decision 5) |
 | Response targets | Approved provisionally as internal goals only, never public (decision 6); cannot yet be measured |
 | A way for a person to tell Victress about a problem | Only the general contact address `hello@victressesports.com`. The site does not promise a response time and should not (nobody is assigned to read it for safety) |
 | What reduces exposure by design | Profiles are private by default; every consent is off for new profiles; sharing links are hashed, revocable and off (`SHARING_ENABLED`); the directory and leaderboards are off (`DIRECTORY_ENABLED`); no messaging, no contact feature, no recruiter access exists |
@@ -66,8 +66,8 @@ Text and images a user chooses to make visible are the risk: display name, bio, 
 ## 6. Ownership
 | Role | State | Needed by |
 |---|---|---|
-| Trust and Safety Owner | **Not assigned. Decision needed** | Before any exposure feature or link sharing |
-| Deputy | **Not assigned** | Same |
+| Trust and Safety Owner | **Matt Hill (founder), recorded 2026-11-07.** Hours, report channel and tooling still to be defined | Before any exposure feature or link sharing |
+| Deputy | **To be named later (founder, 2026-11-07).** Still a requirement before launch | Same |
 | Reviewers | Not assigned (the owner at small scale) | Same |
 | Counsel | **Not engaged** (decision 10) | Before launch: mandatory reporting duties, minors, retention, community guidelines |
 | Engineering contact for holds, suspensions, evidence export | Not assigned | Before launch |
@@ -80,7 +80,7 @@ Options already on record (decision 5): the founder as interim owner with a name
 4. **Only then** flip `SHARING_ENABLED`, then `DIRECTORY_ENABLED`; later organization verification and recruiter contact, each behind its own gate.
 
 ## 8. Decisions needed
-1. Name the Trust and Safety Owner and Deputy (or choose the interim options in decision 5).
+1. Name the Deputy (the owner is recorded as Matt Hill, 2026-11-07), or choose the interim options in decision 5.
 2. Report channel: a dedicated address and an in app form; and whether anonymous visitors may report.
 3. Review days, hours and time zone; accept the provisional targets as internal only.
 4. Interim tooling and who gets staff access.

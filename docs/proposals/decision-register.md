@@ -132,7 +132,7 @@ Expand (additive columns, tables, functions, trigger change) then switch (applic
 ---
 
 ## 5. Trust and Safety Owner, deputy, coverage and report channel
-**Status: Awaiting appointment or operational readiness. Nothing is assigned.**
+**Status: Owner recorded; deputy, hours and report channel still to be established.** On 2026-11-07 the founder recorded Matt Hill as Trust and Safety Owner (deputy to be named later). No coverage schedule, time zone or report channel exists yet, so the readiness requirements in [safety operations](safety-operations.md) are still open.
 
 ### Founder direction (2026-11-06)
 Keep these as **required appointments before link sharing launches.** Do not assign, or imply that anyone has accepted, these roles.
