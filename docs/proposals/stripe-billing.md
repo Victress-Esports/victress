@@ -78,7 +78,7 @@ Row level security: players can **read their own** `billing_customers` and `subs
 ## 7. Founder tasks in Stripe and Vercel (not done by this proposal)
 - Confirm the sandbox endpoint uses API version `2026-10-28.endive`, snapshot payloads and exactly the six events.
 - Set `STRIPE_WEBHOOK_SECRET` (and later `STRIPE_SECRET_KEY` with a test key and `STRIPE_PRICE_PRO_MONTHLY` and `STRIPE_PRICE_TEAM_MONTHLY`) in Vercel for Production only, after the Supabase Pro upgrade.
-- Configure the sandbox customer portal (allow cancel, update payment method, show invoices; restrict plan switching to Pro monthly and annual).
+- Configure the sandbox customer portal (allow cancel, update payment method, show invoices; do not offer plan switching to annual billing).
 - Decide retry and grace settings, terms and refund text (placeholders until counsel reviews).
 
 ## 8. Open questions
