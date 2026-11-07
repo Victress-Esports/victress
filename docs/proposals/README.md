@@ -9,6 +9,7 @@ Governing document: [docs/strategy/victress-business-purpose.md](../strategy/vic
 |---|---|
 | [Privacy, identity and access architecture](privacy-safety-architecture.md) | Revision 2: consents and token architecture approved as design direction; the R3, R6, R9, R10 refinements and the legal policy values are not yet confirmed; sections 5.2, 5.3 and 8 predate decisions 1 and 5 (see Precedence); not authorized for implementation |
 | [Decision register](decision-register.md) | Updated with founder direction (2026-11-06); no approval authorizes implementation |
+| [Stripe sandbox billing](stripe-billing.md) | Proposal: checkout, billing portal and `/api/stripe/webhook` (six events including `invoice.paid`), tables, entitlements, safety rules and the PR plan; awaiting approval, nothing implemented |
 | [Pilot readiness checklist](pilot-readiness-checklist.md) | Operational gates before the first design partner signs up (Supabase Pro, a separate Preview project, invite code protection, `rls_auto_enable()`) |
 | [rls_auto_enable revoke](rls-auto-enable-revoke.md) | Proposal with a rolled back production dry run and the exact rollback; not applied |
 | [Team invite rate limiting](team-invite-rate-limiting.md) | Proposal: entropy of today's codes (48 bits), throttling options; not implemented |
