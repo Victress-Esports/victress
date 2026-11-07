@@ -55,32 +55,33 @@ export const copy = {
     productsLine:
       "Each one is labeled with what is available today and what is coming.",
     learnMore: "Learn more",
-    // The three pillars. `status` decides the chip: "live" is Available now, "soon" is Coming soon.
+    // The three pillars. `statusLabel` is the chip: Coming soon, In development or Planned. Nothing is "Available now" until it works for real users.
     pillars: [
       {
         id: "scrim",
         title: "Scrim Intelligence",
         status: "soon" as const,
+        statusLabel: "Coming soon",
         line: "Upload private scrim demo or replay files for automatic performance statistics.",
         note: "Not available yet.",
       },
       {
         id: "resume",
         title: "Player Resume",
-        status: "live" as const,
-        line: "A shareable player profile with self-reported stats.",
-        note: "Verified scrim stats are planned, not available yet.",
+        status: "dev" as const,
+        statusLabel: "In development",
+        line: "A player profile that shows your games, roles, ranks and stats. Today you can create an account and enter your own stats, labeled Self-reported.",
+        note: "A shareable Player Resume and verified scrim stats are not available yet.",
       },
       {
         id: "scout",
         title: "Scout Desk",
         status: "soon" as const,
+        statusLabel: "Planned",
         line: "Player discovery and evaluation for teams, coaches and collegiate programs.",
         note: "Not available yet.",
       },
     ],
-    statusLive: "Available now",
-    statusSoon: "Coming soon",
     games: {
       title: "Supported games",
       line: "Roles and ranks match each game.",
@@ -97,7 +98,7 @@ export const copy = {
     faq: [
       {
         q: "What is Victress?",
-        a: "An esports player development and recruitment platform. Today you can build a shareable player profile and manage a team roster. Scrim analysis and recruiting tools are planned.",
+        a: "An esports player development and recruitment platform. Today you can create an account, enter your own stats and manage a team roster. The Player Resume is in development. Scrim analysis and recruiting tools are planned.",
       },
       {
         q: "Which esports games does Victress support?",
@@ -109,7 +110,7 @@ export const copy = {
       },
       {
         q: "Can players create competitive profiles?",
-        a: "Yes. Create a profile, add your games, roles and ranks, and share one link. Search engines list it only if you turn that on.",
+        a: "You can create an account and add your games, roles and ranks. Profiles are private by default. Public profiles and sharing links are disabled during the initial pilot phase.",
       },
       {
         q: "Can teams manage their players?",
@@ -117,7 +118,7 @@ export const copy = {
       },
       {
         q: "How can recruiters discover players?",
-        a: "Scout Desk is coming soon and is not available yet. Join the waitlist. Players can share their profile link today.",
+        a: "Scout Desk is coming soon and is not available yet. Join the waitlist.",
       },
       {
         q: "Is Victress free to use?",
@@ -208,10 +209,11 @@ export const copy = {
       },
       resume: {
         today: [
-          "A shareable player profile with your games, roles and ranks.",
+          "A player account with your games, roles and ranks.",
           "Self-reported stats for six games, labeled Self-reported.",
         ],
         planned: [
+          "A shareable Player Resume, in development.",
           "Verified scrim stats shown with their source.",
           "Tournament placements and highlights.",
         ],
@@ -225,7 +227,7 @@ export const copy = {
     },
     provenanceTitle: "Every number shows where it came from.",
     provenance:
-      "Today every stat on a Player Resume is Self-reported, which means the player entered it. As automatic game data arrives, it will be labeled by source. Verification will mean we can show where evidence came from and that it is intact. It will not be presented as a judgment of how good a player is.",
+      "Today every stat on Victress is Self-reported, which means the player entered it. As automatic game data arrives, it will be labeled by source. Verification will mean we can show where evidence came from and that it is intact. It will not be presented as a judgment of how good a player is.",
     cta: "Become a Design Partner",
   },
 
@@ -239,7 +241,7 @@ export const copy = {
     ],
     areasTitle: "Three areas, three products.",
     today: {
-      resume: "Today: a shareable Player Resume with self-reported stats.",
+      resume: "Today: an account with self-reported stats. The Player Resume is in development.",
       scrim: "Today: not available yet.",
       scout: "Today: not available yet.",
     },
@@ -432,7 +434,7 @@ export const copy = {
       "Every stat shows where it came from. Self-reported means the player entered it. As automatic game data arrives, it will be labeled by source. Verification will mean we can show where the evidence came from and that it is intact. It will not be presented as a judgment of how good a player is.",
     nowTitle: "Available now",
     now: [
-      "A shareable player profile with your games, roles and ranks.",
+      "A player account with your games, roles and ranks.",
       "Self-reported stats for six games, labeled Self-reported.",
       "Team rosters with invite links.",
     ],
