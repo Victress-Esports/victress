@@ -18,15 +18,15 @@ export const seo = {
     },
     about: {
       title: "About Victress",
-      description: "Why Victress exists: infrastructure that turns competitive practice into evidence, recognition and opportunity, including for women in esports. See what is available now and what is planned.",
+      description: "Why Victress exists: infrastructure that turns competitive practice into evidence, recognition and opportunity. See what is available now and what is planned.",
     },
     platform: {
       title: "Victress platform: from practice to opportunity",
       description: "How Scrim Intelligence, Player Resume and Scout Desk work together. See what is available now and what is coming soon.",
     },
     womenInEsports: {
-      title: "Victress Women in Esports | Community initiative",
-      description: "A community initiative powered by Victress, in development, creating visibility, development and opportunity for women in competitive esports.",
+      title: "Victress Women in Esports | Shared value commitment",
+      description: "How Victress uses Player Resume, Scrim Intelligence and Scout Desk to address barriers women in competitive esports face. See what is available now.",
     },
     designPartner: {
       title: "Founding Design Partner pilot | Victress",
