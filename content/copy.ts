@@ -290,7 +290,7 @@ export const copy = {
     expected: [
       "Regular scrim or practice file uploads.",
       "A weekly 15 minute feedback check in with the team coach or captain.",
-      "Willingness to permit an approved case study on the findings.",
+      "Willingness to take part in a mutually approved case study on the findings. Nothing is published without written sign off from both Victress and the partner team.",
     ],
     forTitle: "Who it is for",
     for: [
