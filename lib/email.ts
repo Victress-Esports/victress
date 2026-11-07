@@ -45,6 +45,31 @@ export async function sendWelcome(to: string, handle: string) {
 const oneLine = (v: string) => v.replace(/[\r\n]+/g, " ").trim();
 
 /**
+ * Plain text acknowledgement to the person who submitted the contact or design partner form. Fixed wording: it repeats nothing
+ * the visitor typed, promises no reply time and no outcome. Best effort: the caller must not fail the form if this fails.
+ */
+export async function sendContactAcknowledgement(to: string, kind: "organization" | "player") {
+  const resend = client();
+  if (!resend) return;
+  const what =
+    kind === "organization"
+      ? "your Design Partner pilot application"
+      : "your early access request";
+  const extra =
+    kind === "organization"
+      ? "\n\nApplying does not guarantee a place in the pilot."
+      : "";
+  const { error } = await resend.emails.send({
+    from: `Victress <${from()}>`,
+    to,
+    replyTo: CONTACT_EMAIL,
+    subject: "We received your message",
+    text: `Thank you. We received ${what} at Victress.${extra}\n\nThis is an automatic confirmation. If you did not send it, you can ignore this email.\n\nVictress`,
+  });
+  if (error) throw new Error(error.message);
+}
+
+/**
  * Sends a Design Partner application or an early access request to the Victress inbox. The submitter's address is the
  * Reply-To, so replying goes to them. Plain text only (no HTML to inject into). Nothing is stored.
  * Throws when email is not configured or Resend refuses it, so the form never reports success it did not achieve.

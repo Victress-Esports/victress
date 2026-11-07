@@ -5,7 +5,9 @@ import Link from "next/link";
 import { JoinTeamButton } from "@/components/app/JoinTeamButton";
 import { Logo } from "@/components/brand/Logo";
 import { ButtonLink, buttonClass } from "@/components/ui/Button";
-import { supabasePublic } from "@/lib/supabase/public";
+import { headers } from "next/headers";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { rateLimit } from "@/lib/ratelimit";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export const metadata: Metadata = privateMetadata(seo.app.join.title, seo.app.join.description);
@@ -14,8 +16,21 @@ export default async function Join({ params }: { params: Promise<{ code: string 
   const { code } = await params;
   const safeCode = /^[a-z0-9]{6,32}$/i.test(code) ? code : "";
 
-  const { data } = safeCode ? await supabasePublic().rpc("team_invite_info", { p_code: safeCode }) : { data: null };
-  const info = data as { name: string; member_count: number } | null;
+  // The lookup is server only (migration 20261107000600): the service role resolves the code, behind a per IP limit,
+  // so guesses cannot be tested through the database's public API and cannot be tested here faster than the limit allows.
+  // A limited visitor sees the same page as for an unknown code, so nothing reveals whether a code exists.
+  let info: { name: string; member_count: number } | null = null;
+  let limited = false;
+  if (safeCode) {
+    const h = await headers();
+    const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
+    if (!rateLimit(`join:${ip}`, 20, 10 * 60_000)) {
+      limited = true;
+    } else {
+      const { data } = (await supabaseAdmin()?.rpc("team_invite_info", { p_code: safeCode })) ?? { data: null };
+      info = data as { name: string; member_count: number } | null;
+    }
+  }
 
   const sb = await supabaseServer();
   const {
@@ -48,6 +63,7 @@ export default async function Join({ params }: { params: Promise<{ code: string 
         <div>
           <h1 className="font-display text-4xl font-bold">This invite isn&apos;t valid.</h1>
           <p className="mt-3 text-mute">Ask your team owner for a new link.</p>
+          {limited && <p className="mt-2 text-sm text-mute">Too many attempts from this connection. Try again in a few minutes.</p>}
           <Link href="/" className={buttonClass("secondary", "mt-6")}>
             Go home
           </Link>

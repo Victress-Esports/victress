@@ -1,5 +1,7 @@
 # Rollback for the privacy CONTRACT migration (`20261107000200_privacy_contract.sql`)
 
+> **Note 2026-11-07 (evening):** production now has one real account (the founder's test account). This rollback was written and tested for an empty database. Before using it, take an export and decide what happens to that account's profile data; the SQL below is not data safe.
+
 **Do not run this unless the contract step has been applied and anonymous reads have to be restored.** It is a prepared rollback, not part of any migration. Nothing here has been applied. Running it needs its own explicit authorization.
 
 Production is on the Supabase Free plan, which has **no backups and no point in time recovery** (accepted by the founder for the empty database only, 2026-11-07; see `pilot-readiness-checklist.md`). The contract step was dry run on production inside a transaction that was rolled back, and this rollback is tested on a throwaway local Postgres (`supabase/tests/local/run-contract-rollback.sh`).

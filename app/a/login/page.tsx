@@ -34,9 +34,9 @@ export default async function Login({
       <Logo />
       <div>
         <h1 className="font-display text-4xl font-bold leading-tight">
-          {claim ? `Claim ${claim}.` : "Welcome back."}
+          {claim ? `Claim ${claim}.` : "Sign in or create your account."}
         </h1>
-        <p className="mt-3 text-mute">{claim ? `victress.gg/${claim} is one tap away.` : "Sign in to your profile."}</p>
+        <p className="mt-3 text-mute">{claim ? `Sign in or create your account to claim ${claim}.` : "New here? Use the same options. We create your free account the first time."}</p>
       </div>
       {sp.error ? (
         <p role="alert" className="rounded-xl border border-line bg-surface px-4 py-3 text-sm text-coral">

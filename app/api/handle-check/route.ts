@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { checkHandle } from "@/lib/handles";
 import { clientIp, rateLimit } from "@/lib/ratelimit";
 import { handleAvailable } from "@/lib/privacy";
+import { supabaseAdminConfigured } from "@/lib/supabase-admin";
 
 export async function GET(req: Request) {
   if (!rateLimit(`handle:${clientIp(req)}`, 30, 60_000)) {
@@ -12,7 +13,7 @@ export async function GET(req: Request) {
   const { verdict, handle } = checkHandle(raw);
   if (verdict !== "ok") return NextResponse.json({ status: verdict, handle });
 
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  if (!supabaseAdminConfigured()) {
     // Local dev without Supabase configured: rules-only check.
     if (process.env.NODE_ENV !== "production") return NextResponse.json({ status: "available", handle });
     return NextResponse.json({ status: "error" }, { status: 503 });

@@ -46,7 +46,7 @@ export function LoginForm({ claim, next }: { claim: string; next: string }) {
     return (
       <div role="status" className="rounded-2xl border border-line bg-surface p-6">
         <p className="font-display text-2xl font-bold">Check your inbox.</p>
-        <p className="mt-2 text-mute">We sent a sign-in link to {email}.</p>
+        <p className="mt-2 text-mute">We sent a link to {email}. Open it to sign in. If you are new, it creates your free account.</p>
       </div>
     );
   }
@@ -61,7 +61,7 @@ export function LoginForm({ claim, next }: { claim: string; next: string }) {
       </button>
       {oauthError ? (
         <p role="alert" className="text-sm text-coral">
-          Couldn&apos;t start sign-in. Try again.
+          Couldn&apos;t start sign in. Try again.
         </p>
       ) : null}
 

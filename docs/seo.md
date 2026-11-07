@@ -41,6 +41,7 @@ To run the audit locally without touching a database:
 ```bash
 node scripts/mock-supabase.mjs 4010 &
 export NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:4010 NEXT_PUBLIC_SUPABASE_ANON_KEY=mock SUPABASE_SERVICE_ROLE_KEY=mock-service
+# (Local mock scripts use the NEXT_PUBLIC_ pair. On Vercel, Production reads SUPABASE_* and Preview reads STAGING_SUPABASE_*; see README.)
 export DIRECTORY_ENABLED=true SHARING_ENABLED=true   # public profiles are off by default; the audit checks them, so turn them on here
 npm run build && npx next start -p 3200 &
 npm run seo:audit -- 3200
@@ -129,4 +130,8 @@ To click around by hand, open `http://app.localhost:4010/dev/auth` and pick a pe
 
 `node scripts/seo-audit.mjs live` runs the same audit against the real production sites over https (read only GET requests, no accounts). Checks that need the mock's sample profiles are skipped, boards with fewer than 10 players are expected to be noindex, and the www redirects are checked against the real www hosts. In a sandbox that reaches the internet through a proxy: `NODE_USE_ENV_PROXY=1 NODE_EXTRA_CA_CERTS=<proxy ca bundle> node scripts/seo-audit.mjs live`. The audit prints how many checks ran and how many failed.
 
-The home page title and description, and the shape of `/llms.txt` (a "Why Victress exists" section first, Player Resume stated as available now, nothing referring to internal documents), are asserted by the audit.
+The home page title and description, and the shape of `/llms.txt` (it opens with the plain description, then a "Why Victress exists" section, Player Resume stated as in development, nothing referring to internal documents), are asserted by the audit.
+
+**Founder rule (2026-11-07): titles and meta descriptions are short plain industry phrases that say what Victress is, never taglines.** Titles read `<what the page is> | Victress` and stay under 60 characters; descriptions are one or two plain sentences under 160 characters that say who Victress serves and label anything unbuilt as coming soon. "Turn practice into progress" stays in the hero, the footer, the share card image, the emails and the Organization `slogan` in the structured data, and is checked to be absent from every title, meta description, `og:title`, `og:description`, `twitter:title` and `twitter:description` (the audit fails otherwise).
+
+**Second founder rule (2026-11-07): titles and descriptions are indexed, so they describe only what is live.** No "coming soon", no "planned" and no unbuilt product names (Scrim Intelligence, Scout Desk, scrim analysis) in any title, meta description, `og:` or `twitter:` tag or JSON-LD `description`. Those labels stay on the pages themselves, next to the unbuilt features. The audit fails on any of them.

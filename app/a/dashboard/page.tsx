@@ -78,7 +78,7 @@ export default async function Dashboard() {
             </li>
           ))}
         </ul>
-        <p className="mt-3 text-sm text-mute">Features that make your data more visible open only after the privacy foundation is live and approved.</p>
+        <p className="mt-3 text-sm text-mute">Your profile is private. Public profiles, sharing links and leaderboards are not open yet.</p>
       </section>
 
       {next ? (
@@ -94,20 +94,20 @@ export default async function Dashboard() {
         <ModuleCard
           href="/dashboard/resume"
           title="Player Resume"
-          line="Games, stats, tournaments and highlights, with each number labeled by source."
-          chip={<StatusChip tone="on">Available now</StatusChip>}
+          line="Your games, roles, ranks and stats, with each number labeled by source. Tournaments and highlights are in development."
+          chip={<StatusChip>In development</StatusChip>}
         />
         <ModuleCard
           href="/dashboard/scrims"
           title="Scrim Intelligence"
-          line="Log your practice matches and store private practice files. Automated analysis is coming soon."
-          chip={<StatusChip>{uploads ? (approvedPartner === true ? "Uploads open" : "Uploads: approved partners only") : "Uploads not open yet"}</StatusChip>}
+          line="Match logs, private practice files and automated analysis are in development. Not available yet."
+          chip={<StatusChip>{uploads ? (approvedPartner === true ? "Uploads open" : "Uploads: approved partners only") : "In development"}</StatusChip>}
         />
         <ModuleCard
           href="/dashboard/privacy"
           title="Privacy and sharing"
-          line="Choose who sees your profile and what they see. Private by default."
-          chip={<StatusChip tone="on">Available now</StatusChip>}
+          line="Your profile is private. Public profiles and sharing links are not open yet."
+          chip={<StatusChip>Coming soon</StatusChip>}
         />
         <ModuleCard
           href="/dashboard/scout"
@@ -133,7 +133,7 @@ export default async function Dashboard() {
             <dt className="font-semibold">Public player identity</dt>
             <dd className="mt-1 text-sm text-mute">
               Your name <span className="text-white">{profile.handle}</span>.{" "}
-              {listed ? "Listed publicly, with only the fields you chose." : "Private. Visible only through a link you create."}{" "}
+              {listed ? "Listed publicly, with only the fields you chose." : "Private. Public profiles and sharing links are not open yet."}{" "}
               <Link href="/dashboard/privacy" className="inline-block py-1 underline">
                 Change
               </Link>

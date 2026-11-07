@@ -47,7 +47,7 @@ export async function changeHandleAction(raw: string): Promise<Result & { status
 
   const { data, error } = await sb.rpc("claim_handle", { p_handle: handle });
   if (error || !data) return fail();
-  if (data === "ok") return { ok: true, status: "ok", message: `Your link is now victress.gg/${handle}.` };
+  if (data === "ok") return { ok: true, status: "ok", message: `Your name is now ${handle}.` };
   if (data === "taken") return { ok: false, status: "taken", message: "That name is taken. Try another." };
   if (data === "cooldown") {
     const { data: at } = await sb.rpc("handle_change_available_at");
