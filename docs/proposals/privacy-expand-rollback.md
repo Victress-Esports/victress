@@ -1,5 +1,7 @@
 # Rollback for the privacy EXPAND migration (`20261107000100_privacy_expand.sql`)
 
+> **Note 2026-11-07 (evening):** production now has one real account (the founder's test account). This rollback was written and tested for an empty database. Before using it, take an export and decide what happens to that account's profile data; the SQL below is not data safe.
+
 **Do not run this unless the expand step has been applied and has to be undone.** It is a prepared rollback, not part of any migration, and nothing here has been applied. Running it needs its own explicit authorization.
 
 Context: production is on the Supabase Free plan, which has **no backups and no point in time recovery** (founder accepted this risk on 2026-11-07; see `pilot-readiness-checklist.md`). The expand migration was dry run on production inside a transaction that was rolled back, and this rollback is tested on a throwaway local Postgres (`supabase/tests/local/run-rollback.sh`), so these two are the safety net.
