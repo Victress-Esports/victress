@@ -19,7 +19,6 @@ export default async function NotFound() {
       <div className="flex min-h-dvh flex-col">
         <Nav />
         <main id="main" className="mx-auto flex w-full max-w-6xl flex-1 flex-col items-start justify-center gap-4 px-4 py-24 sm:px-6">
-          <p className="tnum font-display text-7xl font-bold text-crimson">404</p>
           <h1 className="font-display text-4xl font-bold">Page not found.</h1>
           <p className="text-mute">That page doesn&apos;t exist. Head back to the start.</p>
           <div className="mt-2 flex flex-wrap gap-3">
@@ -38,7 +37,6 @@ export default async function NotFound() {
 
   return (
     <main id="main" className="mx-auto flex min-h-dvh max-w-md flex-col items-start justify-center gap-4 px-4">
-      <p className="tnum font-display text-7xl font-bold text-crimson">404</p>
       <h1 className="font-display text-3xl font-bold">No player or page here.</h1>
       <p className="text-mute">Check the link, or claim the name yourself.</p>
       <div className="mt-2 flex flex-wrap gap-3">

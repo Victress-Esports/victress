@@ -216,7 +216,7 @@ const pages = [
       "Turn practice into progress.",
       "Performance intelligence and player development infrastructure for competitive esports.", "Explore the Platform", "Become a Design Partner", "Three products, one pathway.",
       "Scrim Intelligence", "Player Resume", "Scout Desk", "Available now", "Get started", "Log in",
-      "Women in Esports", "A shared value commitment", "Victress is called Victress for a purpose.", "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment.",
+      "Women in Esports", "Victress is called Victress for a purpose.", "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment.",
       "VALORANT", "Counter-Strike 2", "Rocket League", "League of Legends", "Apex Legends", "Overwatch 2",
       "What is Victress?", "How can recruiters discover players?", "Self-reported", "Coming soon", "Sample",
     ],
@@ -234,7 +234,7 @@ const pages = [
   { host: MARKETING, path: "/partnerships", index: true, types: ["BreadcrumbList"], contains: ["mailto:hello@victressesports.com", "Collegiate esports programs", "Tournament organizers"] },
   { host: MARKETING, path: "/contact", index: true, types: ["BreadcrumbList"], contains: ["mailto:hello@victressesports.com", "Teams and organizations", "Individual players", "Join Early Access", "Apply for Design Partner"] },
   { host: MARKETING, path: "/platform", index: true, types: ["BreadcrumbList"], contains: ["Practice", "Performance Evidence", "Development", "Recognition", "Opportunity", "Scrim Intelligence", "Player Resume", "Scout Desk", "Available today", "Planned", "Every number shows where it came from.", "Self-reported"] },
-  { host: MARKETING, path: "/women-in-esports", index: true, types: ["BreadcrumbList"], contains: ["Victress Women in Esports", "Victress is called Victress for a purpose.", "None of them is live yet.", "In development", "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment."] },
+  { host: MARKETING, path: "/women-in-esports", index: true, types: ["BreadcrumbList"], contains: ["Women in Esports", "Victress is called Victress for a purpose.", "None of them is live yet.", "In development", "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment."] },
   { host: MARKETING, path: "/design-partner", index: true, types: ["BreadcrumbList"], contains: ["Founding Design Partner pilot", "4 to 6 week", "What partners receive", "What we ask", "Applying does not guarantee a place.", "Active women", "Game Changers teams", "Collegiate programs"] },
   mk(MARKETING, "/privacy", true, ["BreadcrumbList"]),
   { host: MARKETING, path: "/terms", index: true, types: ["BreadcrumbList"], contains: ["at least 13 years old"] },
@@ -293,6 +293,15 @@ const expectStatus = async (host, path, status, note = "") => {
   ok(r.status === status, `${host}${path} returned ${r.status}, expected ${status}`);
   return r;
 };
+// Naming decision: the initiative is "Women in Esports", never "Victress Women in Esports", in page text, titles and llms.txt.
+{
+  for (const path of ["/", "/women-in-esports", "/about", "/platform", "/design-partner", "/llms.txt"]) {
+    const r = await get(MARKETING, path);
+    ok(!/Victress Women in Esports/i.test(r.body), `${path} must not say "Victress Women in Esports"`);
+  }
+  const wp = (await get(MARKETING, "/women-in-esports")).body;
+  ok(/<h1[^>]*>\s*Women in Esports\.\s*<\/h1>/.test(wp), "/women-in-esports: the page headline is exactly \"Women in Esports.\" with nothing above it");
+}
 const nf1 = await expectStatus(MARKETING, "/no-such-page", 404, "(marketing 404)");
 ok(/Page not found/.test(nf1.body) && /<nav/.test(nf1.body) && /noindex/.test(nf1.body), "marketing 404 should have its own layout and noindex");
 const nf2 = await expectStatus(APP, "/no-such-page-at-all/deeper", 404, "(app 404)");
