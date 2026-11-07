@@ -64,3 +64,5 @@ Not applied: `20261107000300_dashboard_foundation.sql` and anything after it (`.
 Additive, owner only, not applied to production. Adds `tournament_entries`, `highlights`, `scrim_uploads` and the private `scrim-uploads` bucket (own folder only). Apply only after the contract step and with its own authorization and profile count check. Tested with `supabase/tests/local/run-dashboard.sh`.
 
 `SCRIM_UPLOADS_ENABLED` stays off until the privacy foundation is live and approved. Open before turning it on: counsel review of demo files that contain other people's names, voice and chat (the uploader asks the player to confirm they took part and will not share the file); retention and deletion policy for stored files; virus and content handling; the project level upload size limit. Files are stored only. No parser has been validated, so no stats are produced from them.
+
+See also [pilot compliance review](../compliance/pilot-review.md) for the demo file, case study and flag gating review prepared for counsel.
