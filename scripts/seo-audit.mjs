@@ -264,8 +264,9 @@ const pages = [
   { host: MARKETING, path: "/platform", index: true, types: ["BreadcrumbList"], contains: ["Practice", "Performance Evidence", "Development", "Recognition", "Opportunity", "Scrim Intelligence", "Player Resume", "Scout Desk", "Coming soon"] },
   { host: MARKETING, path: "/women-in-esports", index: true, types: ["BreadcrumbList"], contains: ["Women in Esports", "Victress is called Victress for a purpose.", "Delivered through", "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment."] },
   { host: MARKETING, path: "/design-partner", index: true, types: ["BreadcrumbList"], contains: ["Founding Design Partner pilot", "4 to 6 week", "What partners receive", "What we ask", "Applying does not guarantee a place.", "Active women", "Game Changers teams", "Collegiate programs"] },
-  mk(MARKETING, "/privacy", true, ["BreadcrumbList"]),
-  { host: MARKETING, path: "/terms", index: true, types: ["BreadcrumbList"], contains: ["at least 13 years old"] },
+  { host: MARKETING, path: "/privacy", index: true, types: ["BreadcrumbList"], contains: ["What we collect", "Who we share it with", "We do not sell your data", "private by default", "hello@victressesports.com", "at least 13"] },
+  { host: MARKETING, path: "/refunds", index: true, types: ["BreadcrumbList"], contains: ["Cancel any time", "14 days", "7 day grace period", "$7.99 per month", "$75 per year", "$49 per month", "$249 per month", "per roster", "hello@victressesports.com"] },
+  { host: MARKETING, path: "/terms", index: true, types: ["BreadcrumbList"], contains: ["at least 13 years old", "parent or guardian", "State of Utah", "Verification", "Stripe", "hello@victressesports.com", "Report"] },
   mk(APP, "/", true),
   ...(LIVE
     ? []
@@ -289,7 +290,7 @@ if (!LIVE) {
   ok(!/"(email|rank|role|stats)"/.test(JSON.stringify(ld)), "private/unmarked fields leaked into JSON-LD");
 }
 
-const mPaths = ["/", "/platform", "/women-in-esports", "/design-partner", "/pricing", "/teams", "/partnerships", "/about", "/contact", "/privacy", "/terms"];
+const mPaths = ["/", "/platform", "/women-in-esports", "/design-partner", "/pricing", "/teams", "/partnerships", "/about", "/contact", "/privacy", "/terms", "/refunds"];
 const aPrivate = ["/dashboard", "/dashboard/profile", "/dashboard/team", "/onboarding", "/login", "/auth/callback", "/auth/signout", "/join/abc123", "/api/waitlist", "/api/handle-check"];
 await auditSite(MARKETING, APP, mPaths, ["/api/waitlist", "/api/handle-check"]);
 const appUrls = await auditSite(
@@ -435,7 +436,7 @@ console.log("\n######## STATUS WORDING, SELF-ENTERED STATS AND THE HOME HERO ###
 {
   // Founder decisions, 2026-11-07. (1) No status language anywhere: pages say what Victress is and does in plain present tense; an
   // unbuilt item carries one plain "Coming soon" label. (2) Victress does not publish stats players enter themselves.
-  const FORBIDDEN = [/in development/i, /under development/i, /being built/i, /\bbeta\b/i, /\bearly\b/i, /pilot stage/i, /pilot phase/i, /initial pilot/i, /\bplanned\b/i, /work in progress/i, /not available yet/i, /not open yet/i, /not built/i, /in testing/i, /available now/i];
+  const FORBIDDEN = [/in development/i, /under development/i, /being built/i, /\bbeta\b/i, /\bearly\b/i, /pilot stage/i, /pilot phase/i, /initial pilot/i, /\bplanned\b/i, /work in progress/i, /not available yet/i, /not open yet/i, /not built/i, /in testing/i, /available now/i, /legal review/i, /\bcounsel\b/i, /pending/i, /draft text/i];
   const STATS = [/self[- ]reported/i, /your own stats/i, /enter your (own )?stats/i, /add (your )?stats/i, /stats you (enter|made)/i, /every number shows where it came from/i, /entered by players/i];
   // content/pricing.ts holds founder approved verbatim plan text that still says "Track your stats, share your progress" and "share it with teams".
   // It is reported below as a known conflict and not edited without approval.

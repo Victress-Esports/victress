@@ -41,11 +41,15 @@ export const seo = {
     },
     privacy: {
       title: "Privacy Policy | Victress",
-      description: "How Victress handles your email and the profile details you choose to share. Draft text, pending legal review.",
+      description: "What Victress collects, why, who sees it and how you control it. Profiles are private by default and we do not sell your data.",
+    },
+    refunds: {
+      title: "Cancellation and Refunds | Victress",
+      description: "How to cancel a paid plan, when refunds apply, and what happens if a payment fails.",
     },
     terms: {
       title: "Terms of Use | Victress",
-      description: "The rules for using Victress: you must be 13 or older. Draft text, pending legal review.",
+      description: "The rules for using Victress: who can use it, acceptable use, reporting abuse, payments and how accounts end.",
     },
   },
   app: {
