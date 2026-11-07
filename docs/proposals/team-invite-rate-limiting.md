@@ -1,6 +1,6 @@
 # Proposal: rate limiting and entropy for team invite codes
 
-Status: **PROPOSAL, nothing implemented.** Facts below were read from the repository and from production (read only) on 2026-11-07. Production has 0 teams.
+Status: **PROPOSAL. Option 1 (longer codes) is written as migration `20261107000500_longer_invite_codes.sql` with tests and a rolled back production dry run; it is NOT applied. Options 2 to 6 are not implemented.** Facts below were read from the repository and from production (read only) on 2026-11-07. Production has 0 teams.
 
 ## Current state
 - **Code generation.** `teams.invite_code` defaults to `substr(replace(gen_random_uuid()::text, '-', ''), 1, 12)`, and `regenerate_invite_code()` uses the same expression. A version 4 UUID's first 12 hex digits are random, so a code is **12 hex characters = 48 bits** (about 2.8 x 10^14 possibilities). It is unique (`teams_invite_code_key`) and lower case.
@@ -21,7 +21,32 @@ A guess that hits learns a team name and size (anon) or, if signed in, **joins t
 
 At pilot scale this is not a practical attack; at the scale the product is built for, 48 bits with no throttle is too thin, and the gap is cheap to close now and harder later.
 
-## Options (nothing here is implemented)
+## Option 1 as written (not applied)
+- **Format:** 26 characters of lower case base 32 (`a-z`, `2-7`): URL safe, no padding, **130 bits** taken from 144 random bits (three UUID prefixes of 12 hex characters, each fully random; `gen_random_uuid()` uses the server's strong random source). Lower case keeps `team_invite_info` and `join_team` working unchanged (they lower case their input and do not depend on length); the join page already accepts 6 to 32 letters and digits.
+- **Changes:** new `public.new_invite_code()` (no one but the owner role can call it); `teams.invite_code` default uses it; `regenerate_invite_code()` uses it; a `teams_invite_code_strength` check (26 or more characters, `a-z2-7`) is added only if every existing code already satisfies it (true in production, which has 0 teams).
+- **Existing codes are not changed.** A team with a legacy 12 character code keeps it, and it keeps working, until the owner regenerates it. If teams exist when the migration runs, the constraint is skipped with a notice and the decision to regenerate their codes (which invalidates shared links) is separate.
+- **Tests:** `supabase/tests/local/run-invite-codes.sh` (format, uniqueness, even symbol frequencies, privileges, create/regenerate/info/join flows, the constraint, the privacy suite on top, and a legacy-team scenario) and a production dry run in a rolled back transaction (all passed; production unchanged afterwards).
+- **Rollback (restores the old generator; codes already issued stay valid):**
+```sql
+begin;
+alter table public.teams drop constraint if exists teams_invite_code_strength;
+alter table public.teams alter column invite_code set default substr(replace(gen_random_uuid()::text, '-', ''), 1, 12);
+create or replace function public.regenerate_invite_code()
+returns text language plpgsql security definer set search_path = ''
+as $$
+declare
+  code text := substr(replace(gen_random_uuid()::text, '-', ''), 1, 12);
+begin
+  update public.teams set invite_code = code where owner_id = auth.uid();
+  if not found then return null; end if;
+  return code;
+end;
+$$;
+drop function public.new_invite_code();
+commit;
+```
+
+## Options (only option 1 has code)
 1. **More entropy for new codes (cheapest, do first).** 16 base 32 characters is 80 bits; 20 is 100 bits. With 0 teams today, changing the default and `regenerate_invite_code()` needs no data migration. Links get longer (invite links are pasted, not typed); keep lower case letters and digits, avoid look alike characters, and widen the join page's accepted length.
 2. **Attempt throttling inside `join_team` (closes the signed in path).** Record failed attempts per user (`auth.uid()`) in a small table and return `rate_limited` after N failures in a window (for example 10 in 10 minutes). Requires an additive migration and a table readable only by the function. Sign ups are free, so this slows one account, not a farm of accounts; combine with option 1.
 3. **Take `team_invite_info` off the public API (closes the anon path).** Revoke execute from anon and signed in users and call it from the join page on the server with the service role, behind an app level and edge limit. The page keeps working; direct REST guessing stops. This is the same pattern already used for the profile reads. (Changes who can call the function, so it needs its own migration, dry run and rollback, like the privacy steps.)
