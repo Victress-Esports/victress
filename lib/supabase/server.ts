@@ -2,13 +2,15 @@ import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { Database } from "@/types/database";
+import { supabaseEnv } from "./env";
 
 /** Supabase client bound to the signed-in user's cookies (RLS applies). Server components, actions, route handlers. */
 export async function supabaseServer() {
   const store = await cookies();
+  const { url, anonKey } = supabaseEnv();
   return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url,
+    anonKey,
     {
       cookies: {
         getAll: () => store.getAll(),
