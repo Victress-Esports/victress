@@ -44,7 +44,7 @@ begin
   reset role;
 
   perform set_config('request.jwt.claims', json_build_object('sub', ub, 'role', 'authenticated')::text, true);
-  set local role authenticated;
+  set local role service_role; -- the lookup is server only since 20261107000600
   select public.team_invite_info(c1) into j;
   r := array_append(r, (case when j ->> 'name' = 'Long Code Team' and (j ->> 'member_count')::int = 1 then 'PASS team_invite_info resolves the new code (name and member count only)' else 'FAIL team_invite_info: ' || coalesce(j::text, 'null') end)::text);
   select public.team_invite_info(upper(c1)) into j;
@@ -53,6 +53,8 @@ begin
   r := array_append(r, (case when j is null then 'PASS a wrong 26 character code returns null' else 'FAIL wrong code returned data' end)::text);
   select public.team_invite_info(repeat('a', 12)) into j;
   r := array_append(r, (case when j is null then 'PASS a short code returns null' else 'FAIL short code returned data' end)::text);
+  reset role;
+  set local role authenticated;
   select public.join_team('abcdefghijklmnopqrstuvwxyz') into v;
   r := array_append(r, (case when v = 'invalid' then 'PASS join_team with a wrong code is invalid' else 'FAIL join_team wrong code: ' || v end)::text);
   select public.join_team(upper(c1)) into v;
