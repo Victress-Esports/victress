@@ -1,6 +1,6 @@
 # Proposal: rate limiting and entropy for team invite codes
 
-Status: **PROPOSAL. Option 1 (longer codes) is written as migration `20261107000500_longer_invite_codes.sql` with tests and a rolled back production dry run; it is NOT applied. Options 2 to 6 are not implemented.** Facts below were read from the repository and from production (read only) on 2026-11-07. Production has 0 teams.
+Status: **Option 1 (longer codes) APPLIED to production on 2026-11-07** as migration `longer_invite_codes`, version `20261107060917` (repository file `20261107000500_longer_invite_codes.sql`; the file header still says "NOT APPLIED" because it was applied byte for byte as committed). Recount before: 0 profiles, 0 auth users, 0 teams. Options 2 to 6 are proposals only, not implemented. Facts below were read from the repository and from production (read only) on 2026-11-07. Production has 0 teams.
 
 ## Current state
 - **Code generation.** `teams.invite_code` defaults to `substr(replace(gen_random_uuid()::text, '-', ''), 1, 12)`, and `regenerate_invite_code()` uses the same expression. A version 4 UUID's first 12 hex digits are random, so a code is **12 hex characters = 48 bits** (about 2.8 x 10^14 possibilities). It is unique (`teams_invite_code_key`) and lower case.
@@ -21,7 +21,10 @@ A guess that hits learns a team name and size (anon) or, if signed in, **joins t
 
 At pilot scale this is not a practical attack; at the scale the product is built for, 48 bits with no throttle is too thin, and the gap is cheap to close now and harder later.
 
-## Option 1 as written (not applied)
+## Option 1: applied 2026-11-07
+Verified read only after applying, and it matched the rolled back dry run: `new_invite_code()` exists with ACL `{postgres=X/postgres}` (anon, authenticated and service_role cannot execute it; the owner can); `teams.invite_code` default is `new_invite_code()`; `teams_invite_code_strength` exists and is validated; `regenerate_invite_code()` uses the new generator and kept its ACL; a sample from the generator was 26 characters in the right alphabet; no team was created on production (0 teams, 0 profiles, 0 auth users). Anonymous API check with the public key: `rpc/team_invite_info` returns `null` for a bad legacy shape code, a bad 26 character code and an empty code; `rpc/new_invite_code` and `rpc/regenerate_invite_code` return 401 permission denied. The documented rollback below is not applied.
+
+### What was written
 - **Format:** 26 characters of lower case base 32 (`a-z`, `2-7`): URL safe, no padding, **130 bits** taken from 144 random bits (three UUID prefixes of 12 hex characters, each fully random; `gen_random_uuid()` uses the server's strong random source). Lower case keeps `team_invite_info` and `join_team` working unchanged (they lower case their input and do not depend on length); the join page already accepts 6 to 32 letters and digits.
 - **Changes:** new `public.new_invite_code()` (no one but the owner role can call it); `teams.invite_code` default uses it; `regenerate_invite_code()` uses it; a `teams_invite_code_strength` check (26 or more characters, `a-z2-7`) is added only if every existing code already satisfies it (true in production, which has 0 teams).
 - **Existing codes are not changed.** A team with a legacy 12 character code keeps it, and it keeps working, until the owner regenerates it. If teams exist when the migration runs, the constraint is skipped with a notice and the decision to regenerate their codes (which invalidates shared links) is separate.

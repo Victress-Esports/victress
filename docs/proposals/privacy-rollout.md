@@ -44,3 +44,18 @@ Production recorded the expand step as version **`20261107052543`** (name `priva
 - The Supabase CLI (`migration list`, `db push`, `db pull`) and the dashboard's GitHub integration compare by version. They will report every repository file as unapplied and every production version as missing locally, and `db push` would try to re run files whose objects already exist.
 - Do not enable automatic deploys from `main` or run `supabase db push` until the history is reconciled with `supabase migration repair` (marking the production versions reverted and the repository versions applied), or the repository files are renamed to the production versions. That edits production migration metadata and is a separate decision; **nothing was changed**.
 - Until then, apply migrations by the same route as before (the migration tool or SQL editor), each with its own authorization. The contract step will again be stamped with the time it is applied.
+
+### Production migration versions (as of 2026-11-07)
+| Repository file | Production version | Production name |
+|---|---|---|
+| `20261106000100_waitlist.sql` | `20261106013302` | `waitlist` |
+| `20261106000200_core_schema.sql` | `20261106013408` | `core_schema` |
+| `20261106000300_m3_games_leaderboards_teams.sql` | `20261106035218` | `m3_games_leaderboards_teams` |
+| `20261106000400_seo_profile_updated_at.sql` | `20261106043315` | `seo_profile_updated_at` |
+| `20261106000500_profile_search_visibility.sql` | `20261106045048` | `profile_search_visibility` |
+| `20261107000100_privacy_expand.sql` | `20261107052543` | `privacy_expand` |
+| `20261107000200_privacy_contract.sql` | `20261107054445` | `privacy_contract` |
+| (statement from `docs/proposals/rls-auto-enable-revoke.md`, no repository migration file) | `20261107055545` | `revoke_rls_auto_enable_public_execute` |
+| `20261107000500_longer_invite_codes.sql` | `20261107060917` | `longer_invite_codes` |
+
+Not applied: `20261107000300_dashboard_foundation.sql` and anything after it (`..000310`, `..000400`). Content matches; only the version numbers differ (production stamps the time of application). The `rls_auto_enable` revoke exists only as a statement in its proposal, not as a repository migration file. See the bookkeeping note above before using any tool that compares versions.
