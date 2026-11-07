@@ -7,7 +7,7 @@
 // Point the app at it with NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:<port> and any anon key.
 import { createHash } from "node:crypto";
 import http from "node:http";
-import { PERSONAS, handleUserRequest, sessionCookie } from "./mock-auth.mjs";
+import { PERSONAS, handleServiceRequest, handleUserRequest, sessionCookie } from "./mock-auth.mjs";
 
 const PORT = Number(process.argv[2]) || 4010;
 const N = Number(process.env.MOCK_PROFILES) || 12;
@@ -108,6 +108,7 @@ http
           res.writeHead(302, { "set-cookie": `${c.name}=; Path=/; Max-Age=0`, location: "/dev/auth" });
           return res.end();
         }
+        if (handleServiceRequest(req, res, url, args)) return;
         if (handleUserRequest(req, res, url, args, raw)) return;
       }
       const key = req.headers.apikey || "";

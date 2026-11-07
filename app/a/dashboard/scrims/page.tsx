@@ -11,7 +11,10 @@ export const metadata: Metadata = privateMetadata("Scrim Intelligence | Victress
 
 export default async function ScrimsPage() {
   const { sb, user, games } = await loadMe();
-  const enabled = scrimUploadsEnabled();
+  const flagOn = scrimUploadsEnabled();
+  // Only approved design partners can upload. The database enforces this too; this only decides what to show.
+  const { data: approved } = flagOn ? await sb.rpc("upload_allowed") : { data: false };
+  const enabled = flagOn && approved === true;
   const { data: uploads } = enabled
     ? await sb.from("scrim_uploads").select("id, game, original_name, size_bytes, created_at").eq("profile_id", user.id).order("created_at", { ascending: false })
     : { data: [] };
@@ -48,7 +51,9 @@ export default async function ScrimsPage() {
           <ScrimUploader userId={user.id} games={games.map((g) => g.game)} rows={(uploads ?? []) as UploadRow[]} />
         ) : (
           <p className="rounded-xl border border-line bg-surface-2 px-4 py-3 text-sm text-mute">
-            Uploads are not open yet. They open for design partners once the privacy foundation is live. Nothing is collected until then.
+            {flagOn
+              ? "Uploads are open to approved design partners only. Your account is not on the list."
+              : "Uploads are not open yet. They open for design partners once the privacy foundation is live. Nothing is collected until then."}
           </p>
         )}
       </Section>
