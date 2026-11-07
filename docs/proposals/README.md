@@ -9,6 +9,9 @@ Governing document: [docs/strategy/victress-business-purpose.md](../strategy/vic
 |---|---|
 | [Privacy, identity and access architecture](privacy-safety-architecture.md) | Revision 2: consents and token architecture approved as design direction; the R3, R6, R9, R10 refinements and the legal policy values are not yet confirmed; sections 5.2, 5.3 and 8 predate decisions 1 and 5 (see Precedence); not authorized for implementation |
 | [Decision register](decision-register.md) | Updated with founder direction (2026-11-06); no approval authorizes implementation |
+| [Pilot readiness checklist](pilot-readiness-checklist.md) | Operational gates before the first design partner signs up (Supabase Pro, a separate Preview project, invite code protection, `rls_auto_enable()`) |
+| [rls_auto_enable revoke](rls-auto-enable-revoke.md) | Proposal with a rolled back production dry run and the exact rollback; not applied |
+| [Team invite rate limiting](team-invite-rate-limiting.md) | Proposal: entropy of today's codes (48 bits), throttling options; not implemented |
 | [Readiness review](readiness-review.md) | New: contradictions, token and authorization gaps, migration safety, evidence and legal needs |
 | [Safety operations](safety-operations.md) | Operating requirements; owner, deputy, coverage and report channel not established; targets approved provisionally as internal goals; section 1 on link sharing predates decision 5 (see Precedence) |
 | [Organization verification](organization-verification.md) | Proposal; awaiting counsel; individual scouts excluded; no Scout access to be sold or enabled |
