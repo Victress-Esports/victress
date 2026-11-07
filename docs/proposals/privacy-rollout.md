@@ -18,3 +18,29 @@ Migrations: `20261107000100_privacy_expand.sql` (adds, breaks nothing) and `2026
 
 ## Still open
 Path token versus fragment and log scrubbing (R3), avatar delivery with signed URLs and the private avatar bucket (R6), edge rate limiting, a scoped server credential instead of service role, sign in open or closed state in production.
+
+## Status on 2026-11-07
+- **Expand applied to production** (founder authorization, 0 profiles and 0 auth users at the time). The rollback is `privacy-expand-rollback.md` (tested locally, not applied).
+- **Switch deployed**: PR #5 is merged to `main`; the application reads through the server only functions. Flags `SHARING_ENABLED` and `DIRECTORY_ENABLED` and `SCRIM_UPLOADS_ENABLED` and `NEXT_PUBLIC_BILLING_ENABLED` must be unset or false in Vercel (not verifiable from the repository).
+- **Contract prepared, NOT applied.** Dry run on production inside a rolled back transaction: the view, the four public read policies and the four old functions were removed, the four owner/member policies appeared, anon lost all access to `profiles`, `player_games`, `stat_entries` and `teams`, the anonymous invite lookup (`team_invite_info`, security definer) still worked, the server only functions still worked for `service_role`, and with two throwaway users a signed in user could claim a handle, create a team, read their own games and stats and the roster, while seeing nothing of the other user. Afterwards a read only check showed everything back. Rollback: `privacy-contract-rollback.md` (recreates the exact production definitions; tested by `supabase/tests/local/run-contract-rollback.sh`). Applying it still needs its own explicit authorization and a fresh profile and auth user count.
+
+### Read paths contract can affect (all on `main`)
+| Path | Reads through | Affected by contract |
+|---|---|---|
+| Public profile page and social card (`/{handle}`, `/api/og/profile`) | `directory_profile()` via the service role | No |
+| Sharing link page (`/r/{token}`) | `shared_profile()` via the service role | No |
+| Leaderboards (`/leaderboard/*`) | `board_entries()`, `board_player_count()` via the service role | No |
+| Sitemap | `sitemap_directory_count()`, `sitemap_directory_profiles()`, `board_player_count()` via the service role | No |
+| Handle check (`/api/handle-check`) | `handle_available()` via the service role | No |
+| Team invite page (`/join/{code}`) | `team_invite_info()`, security definer, the only anon key call in the app | No (verified in the dry run) |
+| Dashboard, onboarding, auth callback | the signed in user's own session, own rows only (owner policies) | No (verified with two test users) |
+| Team page | `team_roster()` through the user's session | No |
+| Waitlist | service role insert | No |
+| Browser client | sign in and the public `avatars` bucket only | No |
+Nothing in the application references `public_profiles`, `leaderboard`, `leaderboard_player_count`, `sitemap_profiles` or `sitemap_profile_count` any more, and no database function or policy refers to the view. The remaining exposure after contract is anyone calling the database's REST API directly with the public key: that is exactly what contract closes.
+
+### Migration version bookkeeping
+Production recorded the expand step as version **`20261107052543`** (name `privacy_expand`), because the tool used to apply it stamps the current time. The repository file is **`20261107000100_privacy_expand.sql`**. The earlier five migrations show the same offset (for example `waitlist` is `20261106013302` in production and `20261106000100` in the repository), so the repository and production have never matched on version numbers, only on content. Consequences for later tooling:
+- The Supabase CLI (`migration list`, `db push`, `db pull`) and the dashboard's GitHub integration compare by version. They will report every repository file as unapplied and every production version as missing locally, and `db push` would try to re run files whose objects already exist.
+- Do not enable automatic deploys from `main` or run `supabase db push` until the history is reconciled with `supabase migration repair` (marking the production versions reverted and the repository versions applied), or the repository files are renamed to the production versions. That edits production migration metadata and is a separate decision; **nothing was changed**.
+- Until then, apply migrations by the same route as before (the migration tool or SQL editor), each with its own authorization. The contract step will again be stamped with the time it is applied.
