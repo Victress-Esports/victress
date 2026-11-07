@@ -11,10 +11,17 @@ export const copy = {
 
   nav: {
     links: [
+      { href: "/platform", label: "Platform" },
+      { href: "/women-in-esports", label: "Women in Esports" },
+      { href: "/design-partner", label: "Design Partner" },
       { href: "/pricing", label: "Pricing" },
+    ],
+    // Also listed in the phone menu (and, with the footer links, at the bottom of every page).
+    more: [
       { href: "/teams", label: "For teams" },
-      { href: "/partnerships", label: "Partnerships" },
       { href: "/about", label: "About" },
+      { href: "/partnerships", label: "Partnerships" },
+      { href: "/contact", label: "Contact" },
     ],
     cta: "Get started",
     login: "Log in",
@@ -39,11 +46,15 @@ export const copy = {
   home: {
     hero: {
       title: "Turn practice into progress.",
-      // One factual sentence, not a second slogan.
-      sentence: "An esports player development and recruitment platform.",
-      cta: "Get started",
-      login: "Log in",
+      sentence:
+        "Performance intelligence and player development infrastructure for competitive esports.",
+      primary: "Explore the Platform",
+      secondary: "Become a Design Partner",
     },
+    productsTitle: "Three products, one pathway.",
+    productsLine:
+      "Each one is labeled with what is available today and what is coming.",
+    learnMore: "Learn more",
     // The three pillars. `status` decides the chip: "live" is Available now, "soon" is Coming soon.
     pillars: [
       {
@@ -70,7 +81,10 @@ export const copy = {
     ],
     statusLive: "Available now",
     statusSoon: "Coming soon",
-    games: { title: "Supported games", line: "Roles and ranks match each game." },
+    games: {
+      title: "Supported games",
+      line: "Roles and ranks match each game.",
+    },
     teams: {
       title: "Manage your roster.",
       line: "Start a team, invite players with a link and see everyone's game and rank.",
@@ -85,7 +99,10 @@ export const copy = {
         q: "What is Victress?",
         a: "An esports player development and recruitment platform. Today you can build a shareable player profile and manage a team roster. Scrim analysis and recruiting tools are planned.",
       },
-      { q: "Which esports games does Victress support?", a: "VALORANT, Counter-Strike 2, Rocket League, League of Legends, Apex Legends and Overwatch 2." },
+      {
+        q: "Which esports games does Victress support?",
+        a: "VALORANT, Counter-Strike 2, Rocket League, League of Legends, Apex Legends and Overwatch 2.",
+      },
       {
         q: "How does Victress track player performance?",
         a: "You enter your stats and Victress keeps your history, labeled Self-reported. Automatic stats from scrim files are not available yet.",
@@ -102,10 +119,14 @@ export const copy = {
         q: "How can recruiters discover players?",
         a: "Scout Desk is coming soon and is not available yet. Join the waitlist. Players can share their profile link today.",
       },
-      { q: "Is Victress free to use?", a: "Yes. Rookie is free forever. Pro, Team and Scout are coming soon." },
+      {
+        q: "Is Victress free to use?",
+        a: "Yes. Rookie is free forever. Pro, Team and Scout are coming soon.",
+      },
     ],
     soonCta: "Join the waitlist",
     final: { title: "Get started.", cta: "Get started", login: "Log in" },
+    sharedValueLink: "About Victress Women in Esports",
   },
 
   // Victress Women in Esports: a community initiative powered by Victress. It is a secondary, social-impact commitment:
@@ -116,7 +137,8 @@ export const copy = {
     title: "Women in Esports",
     eyebrow: "Community initiative in development",
     line: "A community initiative powered by Victress.",
-    message: "Creating visibility, developing talent, and expanding opportunities for women in competitive esports.",
+    message:
+      "Creating visibility, developing talent, and expanding opportunities for women in competitive esports.",
     areas: [
       {
         title: "Visibility",
@@ -140,6 +162,182 @@ export const copy = {
     subject: "Victress Women in Esports",
   },
 
+  // /platform: how the three products fit together. Statuses come from home.pillars and must stay true.
+  platform: {
+    title: "The Victress platform.",
+    line: "Three connected products take a player from practice to opportunity.",
+    pathwayTitle: "From practice to opportunity.",
+    steps: [
+      {
+        title: "Practice",
+        line: "Private scrims and team training.",
+        product: "The work players already do",
+      },
+      {
+        title: "Performance Evidence",
+        line: "What happened, clearly sourced.",
+        product: "Scrim Intelligence",
+      },
+      {
+        title: "Development",
+        line: "Strengths and trends, understood.",
+        product: "Scrim Intelligence and Player Resume",
+      },
+      {
+        title: "Recognition",
+        line: "A credible record of what a player can do.",
+        product: "Player Resume",
+      },
+      {
+        title: "Opportunity",
+        line: "Connections with teams, coaches, collegiate programs and recruiters.",
+        product: "Scout Desk",
+      },
+    ],
+    todayTitle: "Available today",
+    plannedTitle: "Planned",
+    nothingToday: "Nothing yet. This product is in development.",
+    products: {
+      scrim: {
+        today: [] as string[],
+        planned: [
+          "Automatic statistics from uploaded scrim demo or replay files.",
+          "Match history and development trends.",
+          "Comparisons between players and across a team.",
+        ],
+      },
+      resume: {
+        today: [
+          "A shareable player profile with your games, roles and ranks.",
+          "Self-reported stats for six games, labeled Self-reported.",
+        ],
+        planned: [
+          "Verified scrim stats shown with their source.",
+          "Tournament placements and highlights.",
+        ],
+      },
+      scout: {
+        today: [] as string[],
+        planned: [
+          "Player discovery and evaluation for teams, coaches and collegiate programs.",
+        ],
+      },
+    },
+    provenanceTitle: "Every number shows where it came from.",
+    provenance:
+      "Today every stat on a Player Resume is Self-reported, which means the player entered it. As automatic game data arrives, it will be labeled by source. Verification will mean we can show where evidence came from and that it is intact. It will not be presented as a judgment of how good a player is.",
+    cta: "Become a Design Partner",
+  },
+
+  // /women-in-esports. Everything about privacy and safety is a commitment in development, never a live feature.
+  womenPage: {
+    title: "Victress Women in Esports.",
+    whyTitle: "Why this matters.",
+    why: [
+      "Women who compete in esports face barriers that include harassment, limited access to competitive networks, informal gatekeeping and difficulty getting their achievements recognized.",
+      "Victress is built to improve how competitive talent is documented, developed, evaluated and connected to opportunity. This initiative applies that work to those barriers. It is not a separate product. It uses the same three Victress products.",
+    ],
+    areasTitle: "Three areas, three products.",
+    today: {
+      resume: "Today: a shareable Player Resume with self-reported stats.",
+      scrim: "Today: not available yet.",
+      scout: "Today: not available yet.",
+    },
+    commitmentsTitle: "What we are building toward.",
+    commitmentsLine:
+      "These are commitments in design. None of them is live yet.",
+    inDevelopment: "In development",
+    commitments: [
+      {
+        title: "Data integrity",
+        line: "Every stat will show its source. Verified will mean the evidence is intact, not that a player is good or bad.",
+      },
+      {
+        title: "Contextual evaluation",
+        line: "Performance will be shown in context, such as role and team, so numbers inform decisions instead of replacing them.",
+      },
+      {
+        title: "Privacy controls",
+        line: "Players will decide who sees their profile and when. Contact details will be shared only with the player's consent.",
+      },
+      {
+        title: "Safety",
+        line: "Reporting, blocking and review will be in place before features that expose players to strangers launch.",
+      },
+    ],
+    pilotTitle: "A first step.",
+    pilot:
+      "The Founding Design Partner pilot is a 4 to 6 week program open to women's competitive rosters, Game Changers teams and collegiate programs.",
+    pilotCta: "See the pilot",
+    contactCta: "Contact us",
+  },
+
+  // /design-partner. The program terms below are the founder's, used as given.
+  designPartner: {
+    title: "Founding Design Partner pilot.",
+    line: "A 4 to 6 week pilot for teams that help shape Victress.",
+    status:
+      "Scrim Intelligence and file uploads are in development. Priority access applies to Phase 1 features as they become ready, and the pilot is shaped around what is available. Applying does not guarantee a place.",
+    receiveTitle: "What partners receive",
+    receive: [
+      "Free, priority access to Phase 1 Scrim Intelligence and Player Resume features during the 4 to 6 week pilot.",
+      "Structured performance analytics.",
+      "Direct input into product development.",
+    ],
+    expectedTitle: "What we ask",
+    expected: [
+      "Regular scrim or practice file uploads.",
+      "A weekly 15 minute feedback check in with the team coach or captain.",
+      "Willingness to permit an approved case study on the findings.",
+    ],
+    forTitle: "Who it is for",
+    for: [
+      "Active women's competitive esports rosters.",
+      "Game Changers teams.",
+      "Collegiate programs running regular practice schedules.",
+    ],
+    applyTitle: "Apply",
+  },
+
+  // /contact: two paths. Both forms email hello@victressesports.com.
+  contactPage: {
+    title: "Contact.",
+    line: "Choose the option that fits.",
+    orgTitle: "Teams and organizations",
+    orgLine: "Apply for the Founding Design Partner pilot.",
+    orgSubmit: "Apply for Design Partner",
+    playerTitle: "Individual players",
+    playerLine:
+      "Join early access. We will email you when access opens to players.",
+    playerSubmit: "Join Early Access",
+    emailLine: "Prefer email? Write to",
+  },
+
+  forms: {
+    name: "Your name",
+    email: "Email address",
+    organization: "Team or organization",
+    role: "Your role",
+    roles: ["Coach", "Captain", "Manager", "Other"],
+    teamType: "What best describes you?",
+    teamTypes: [
+      "Women's competitive esports roster",
+      "Game Changers team",
+      "Collegiate program",
+      "Other",
+    ],
+    game: "Main game",
+    games: "Other",
+    message: "Anything else we should know (optional)",
+    notice: "We use these details to reply to you.",
+    privacy: "Privacy Policy",
+    sending: "Sending…",
+    done: "Thank you. We have your message and will reply by email.",
+    error:
+      "Something went wrong. Try again, or email hello@victressesports.com.",
+    invalid: "Check the highlighted details and try again.",
+  },
+
   pricing: {
     title: "Simple pricing.",
     line: "Start free.",
@@ -152,10 +350,19 @@ export const copy = {
     faqTitle: "Questions",
     faq: [
       { q: "Is Victress free?", a: "Yes. Rookie is free forever." },
-      { q: "Which games can I add?", a: "VALORANT, CS2, Rocket League, League of Legends, Apex Legends and Overwatch 2." },
-      { q: "Where do my stats come from?", a: "You enter them. They're labeled Self-reported." },
+      {
+        q: "Which games can I add?",
+        a: "VALORANT, CS2, Rocket League, League of Legends, Apex Legends and Overwatch 2.",
+      },
+      {
+        q: "Where do my stats come from?",
+        a: "You enter them. They're labeled Self-reported.",
+      },
       { q: "When do paid plans start?", a: "Not yet. Join the waitlist." },
-      { q: "Can my team use Victress?", a: "Yes. You can start a team and invite players on the free plan today. The paid Team plan is coming soon." },
+      {
+        q: "Can my team use Victress?",
+        a: "Yes. You can start a team and invite players on the free plan today. The paid Team plan is coming soon.",
+      },
     ],
   },
 
@@ -165,18 +372,39 @@ export const copy = {
     cta: "Start your team",
     // `soon` items are not built yet and are shown as Coming soon.
     benefits: [
-      { title: "One roster.", line: "Invite players with a link.", soon: false },
-      { title: "One dashboard.", line: "See everyone's game and rank.", soon: false },
-      { title: "Shared scrim review.", line: "Review scrim performance together once scrim analysis is available.", soon: true },
-      { title: "Team standings.", line: "See how your team compares with others.", soon: true },
-      { title: "Team portfolio.", line: "A shareable page for your team.", soon: true },
+      {
+        title: "One roster.",
+        line: "Invite players with a link.",
+        soon: false,
+      },
+      {
+        title: "One dashboard.",
+        line: "See everyone's game and rank.",
+        soon: false,
+      },
+      {
+        title: "Shared scrim review.",
+        line: "Review scrim performance together once scrim analysis is available.",
+        soon: true,
+      },
+      {
+        title: "Team standings.",
+        line: "See how your team compares with others.",
+        soon: true,
+      },
+      {
+        title: "Team portfolio.",
+        line: "A shareable page for your team.",
+        soon: true,
+      },
     ],
     soonBadge: "Coming soon",
   },
 
   about: {
     title: "What Victress is.",
-    intro: "Victress is an esports player development and recruitment platform.",
+    intro:
+      "Victress is an esports player development and recruitment platform.",
     story:
       "Competitive players practice in private scrims, but that work is hard to capture and hard to show. Victress is being built to connect practice, performance, recognition and opportunity.",
     nowTitle: "Available now",
@@ -198,20 +426,22 @@ export const copy = {
     title: "Partnerships.",
     line: "Victress is open to conversations with groups that run or develop competitive esports.",
     groups: [
-      { title: "Collegiate esports programs", line: "Roster management and player development for your program." },
-      { title: "Competitive teams", line: "Roster management and, once available, shared scrim review." },
-      { title: "Tournament organizers", line: "Ways to connect competition results to player profiles." },
+      {
+        title: "Collegiate esports programs",
+        line: "Roster management and player development for your program.",
+      },
+      {
+        title: "Competitive teams",
+        line: "Roster management and, once available, shared scrim review.",
+      },
+      {
+        title: "Tournament organizers",
+        line: "Ways to connect competition results to player profiles.",
+      },
     ],
     note: "Nothing on this page is a commitment. Terms are discussed case by case.",
     cta: "Email us",
     subject: "Victress partnership",
-  },
-
-  contact: {
-    title: "Contact.",
-    line: "Email us and we'll reply.",
-    cta: "Email us",
-    subject: "Victress",
   },
 
   waitlist: {
@@ -228,17 +458,22 @@ export const copy = {
 
   footer: {
     links: [
+      { href: "/teams", label: "For teams" },
+      { href: "/about", label: "About" },
+      { href: "/partnerships", label: "Partnerships" },
       { href: "/contact", label: "Contact" },
       { href: "/privacy", label: "Privacy" },
       { href: "/terms", label: "Terms" },
     ],
     rights: "Victress LLC. All rights reserved.",
-    trademarks: "Game names are trademarks of their owners. Victress is not affiliated with or endorsed by them.",
+    trademarks:
+      "Game names are trademarks of their owners. Victress is not affiliated with or endorsed by them.",
   },
 
   auth: {
     // Shown under the sign-in options, which is also how people sign up.
-    ageNotice: "You must be 13 or older to use Victress. By continuing you agree to the",
+    ageNotice:
+      "You must be 13 or older to use Victress. By continuing you agree to the",
     terms: "Terms",
     and: "and",
     privacy: "Privacy Policy",

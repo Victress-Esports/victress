@@ -32,7 +32,7 @@ export const xmlResponse = (body: string, status = 200) =>
 export const PAGE_SIZE = Math.max(1, Number(process.env.SITEMAP_PAGE_SIZE) || 5000);
 
 /** Every public marketing page. Add new pages here. */
-export const MARKETING_PATHS = ["/", "/pricing", "/teams", "/partnerships", "/about", "/contact", "/privacy", "/terms"];
+export const MARKETING_PATHS = ["/", "/platform", "/women-in-esports", "/design-partner", "/pricing", "/teams", "/partnerships", "/about", "/contact", "/privacy", "/terms"];
 
 export const marketingEntries = (): UrlEntry[] =>
   MARKETING_PATHS.map((p) => ({ loc: p === "/" ? MARKETING_URL : `${MARKETING_URL}${p}` }));

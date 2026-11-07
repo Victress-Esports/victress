@@ -31,6 +31,7 @@ const config: NextConfig = {
   async headers() {
     return [
       "/api/waitlist",
+      "/api/contact",
       "/api/handle-check",
       "/auth/:path*",
       "/dashboard/:path*",

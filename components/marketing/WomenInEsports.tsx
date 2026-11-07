@@ -72,6 +72,13 @@ export function WomenInEsports() {
         >
           {e.cta}
         </ButtonLink>
+        <ButtonLink
+          href="/women-in-esports"
+          variant="ghost"
+          className="mt-6 ml-2"
+        >
+          {copy.home.sharedValueLink}
+        </ButtonLink>
       </div>
     </section>
   );

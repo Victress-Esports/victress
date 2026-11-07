@@ -23,6 +23,9 @@ const body = () => `# Victress
 
 ## Pages
 - [Home](${MARKETING_URL}): the product at a glance, with a questions section.
+- [Platform](${MARKETING_URL}/platform): how Scrim Intelligence, Player Resume and Scout Desk fit together, with what is available today and what is planned.
+- [Victress Women in Esports](${MARKETING_URL}/women-in-esports): a community initiative powered by Victress, in development. It is not currently offering funding, coaching, scholarships or recruitment.
+- [Founding Design Partner pilot](${MARKETING_URL}/design-partner): a 4 to 6 week pilot for women's competitive rosters, Game Changers teams and collegiate programs. Applying does not guarantee a place.
 - [Pricing](${MARKETING_URL}/pricing): plans and pricing questions.
 - [For teams](${MARKETING_URL}/teams): running a club roster.
 - [About](${MARKETING_URL}/about): what Victress is, what is available now and what is planned.

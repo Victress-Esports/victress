@@ -24,7 +24,7 @@ export function Nav() {
           <ButtonLink href={appUrl("/login")} className="min-h-11 px-4 text-sm">
             {copy.nav.cta}
           </ButtonLink>
-          <MobileMenu links={copy.nav.links} login={copy.nav.login} loginHref={appUrl("/login")} openLabel={copy.nav.menuOpen} closeLabel={copy.nav.menuClose} />
+          <MobileMenu links={[...copy.nav.links, ...copy.nav.more]} login={copy.nav.login} loginHref={appUrl("/login")} openLabel={copy.nav.menuOpen} closeLabel={copy.nav.menuClose} />
         </div>
       </div>
     </header>

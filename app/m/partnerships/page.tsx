@@ -7,7 +7,11 @@ import { seo } from "@/content/seo";
 import { marketingCrumbs } from "@/lib/jsonld";
 import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = pageMetadata({ ...seo.marketing.partnerships, path: "/partnerships", image: "home" });
+export const metadata: Metadata = pageMetadata({
+  ...seo.marketing.partnerships,
+  path: "/partnerships",
+  image: "home",
+});
 
 export default function Partnerships() {
   const p = copy.partnerships;
@@ -25,7 +29,20 @@ export default function Partnerships() {
         ))}
       </ul>
       <p className="mt-8 text-sm text-mute">{p.note}</p>
-      <ButtonLink href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(p.subject)}`} className="mt-8">
+      <p className="mt-6 text-mute">
+        <a
+          href="/design-partner"
+          className="inline-block py-1 font-semibold text-white underline underline-offset-2"
+        >
+          The Founding Design Partner pilot
+        </a>{" "}
+        is open to women&apos;s rosters, Game Changers teams and collegiate
+        programs.
+      </p>
+      <ButtonLink
+        href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(p.subject)}`}
+        className="mt-8"
+      >
         {p.cta}
       </ButtonLink>
       <p className="mt-3 text-sm text-mute">{CONTACT_EMAIL}</p>

@@ -6,7 +6,6 @@ import { SampleTag } from "@/components/marketing/SampleTag";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { GAME_LIST, type GameId } from "@/content/games";
-import { appUrl } from "@/lib/urls";
 
 const chip =
   "inline-flex min-h-9 items-center rounded-full border border-line px-3 text-[13px] font-semibold text-white transition-colors hover:border-white focus-visible:border-white aria-pressed:border-crimson aria-pressed:bg-crimson";
@@ -15,7 +14,7 @@ const chip =
  * Hero: title, one factual sentence, the two sign-in links and a sample profile card.
  * The card is a labeled Sample. The chips switch its game and rank so a visitor can see how a profile reads.
  */
-export function HeroClaim({ title, sentence, cta, login }: { title: string; sentence: string; cta: string; login: string }) {
+export function HeroClaim({ title, sentence, primary, secondary }: { title: string; sentence: string; primary: string; secondary: string }) {
   const [gameId, setGameId] = useState<GameId>("VALORANT");
   const [rank, setRank] = useState<string>("Diamond");
   const game = GAME_LIST.find((g) => g.id === gameId)!;
@@ -29,9 +28,9 @@ export function HeroClaim({ title, sentence, cta, login }: { title: string; sent
           <h1 className="font-display text-4xl font-bold leading-[1.05] min-[400px]:text-5xl sm:text-6xl lg:text-7xl">{title}</h1>
           <p className="mt-5 max-w-md text-balance text-lg text-mute sm:text-xl">{sentence}</p>
           <div className="mt-10 flex flex-wrap gap-3">
-            <ButtonLink href={appUrl("/login")}>{cta}</ButtonLink>
-            <ButtonLink href={appUrl("/login")} variant="secondary">
-              {login}
+            <ButtonLink href="/platform">{primary}</ButtonLink>
+            <ButtonLink href="/design-partner" variant="secondary">
+              {secondary}
             </ButtonLink>
           </div>
         </div>

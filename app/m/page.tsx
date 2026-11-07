@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
-import { WingsBackdrop } from "@/components/brand/WingsBackdrop";
 import { FaqList } from "@/components/marketing/FaqList";
 import { HeroClaim } from "@/components/marketing/HeroClaim";
-import { ScoutSample, ScrimSample } from "@/components/marketing/PillarVisuals";
-import { ProfileMoment } from "@/components/marketing/ProfileMoment";
+import { ProductCards } from "@/components/marketing/ProductCards";
 import { TeamRoster } from "@/components/marketing/TeamRoster";
-import { WaitlistButton } from "@/components/marketing/WaitlistButton";
 import { WomenInEsports } from "@/components/marketing/WomenInEsports";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { ButtonLink } from "@/components/ui/Button";
@@ -23,14 +20,6 @@ export const metadata: Metadata = pageMetadata({
   image: "home",
 });
 
-// One small visual per pillar. Every one is labeled Sample; the two unbuilt pillars are also labeled Coming soon.
-const visuals = {
-  scrim: ScrimSample,
-  resume: ProfileMoment,
-  scout: ScoutSample,
-};
-const waitlistInterest = { scrim: "scrims", scout: "scout" } as const;
-
 export default function Home() {
   const h = copy.home;
   return (
@@ -41,69 +30,25 @@ export default function Home() {
       <HeroClaim
         title={h.hero.title}
         sentence={h.hero.sentence}
-        cta={h.hero.cta}
-        login={h.hero.login}
+        primary={h.hero.primary}
+        secondary={h.hero.secondary}
       />
 
-      {h.pillars.map((p, i) => {
-        const Visual = visuals[p.id as keyof typeof visuals];
-        const live = p.status === "live";
-        return (
-          <section
-            key={p.id}
-            aria-labelledby={`pillar-${p.id}`}
-            className="relative overflow-hidden border-t border-line"
+      <section
+        aria-labelledby="products-title"
+        className="border-t border-line"
+      >
+        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
+          <h2
+            id="products-title"
+            className="font-display text-4xl font-bold leading-tight sm:text-5xl"
           >
-            {/* The original wings, cropped and faint, on the two outer pillars. Never behind the product sample. */}
-            {i !== 1 ? (
-              <WingsBackdrop
-                flip={i === 2}
-                className={`top-1/2 hidden h-[520px] w-auto -translate-y-1/2 lg:block ${i === 2 ? "-right-56" : "-left-56"}`}
-              />
-            ) : null}
-            <div className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
-              <div
-                className={`reveal grid items-center gap-12 lg:grid-cols-2 ${i % 2 ? "lg:[&>*:first-child]:order-2" : ""}`}
-              >
-                <div>
-                  <span
-                    className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${live ? "bg-crimson text-white" : "bg-surface-2 text-coral"}`}
-                  >
-                    {live ? h.statusLive : h.statusSoon}
-                  </span>
-                  <h2
-                    id={`pillar-${p.id}`}
-                    className="mt-4 font-display text-4xl font-bold leading-tight sm:text-5xl"
-                  >
-                    {p.title}
-                  </h2>
-                  <p className="mt-4 max-w-md text-lg text-mute">{p.line}</p>
-                  <p className="mt-2 max-w-md text-sm text-mute">{p.note}</p>
-                  <div className="mt-8">
-                    {live ? (
-                      <ButtonLink href={appUrl("/login")}>
-                        {h.hero.cta}
-                      </ButtonLink>
-                    ) : (
-                      <WaitlistButton
-                        interest={
-                          waitlistInterest[
-                            p.id as keyof typeof waitlistInterest
-                          ]
-                        }
-                        label={h.soonCta}
-                      />
-                    )}
-                  </div>
-                </div>
-                <div className="flex justify-center">
-                  <Visual />
-                </div>
-              </div>
-            </div>
-          </section>
-        );
-      })}
+            {h.productsTitle}
+          </h2>
+          <p className="mt-4 max-w-xl text-lg text-mute">{h.productsLine}</p>
+          <ProductCards />
+        </div>
+      </section>
 
       <section aria-labelledby="games-title" className="border-t border-line">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">

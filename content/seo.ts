@@ -20,13 +20,25 @@ export const seo = {
       title: "About Victress",
       description: "Victress is an esports player development and recruitment platform. See what is available now and what is planned.",
     },
+    platform: {
+      title: "Victress platform: from practice to opportunity",
+      description: "How Scrim Intelligence, Player Resume and Scout Desk work together. See what is available now and what is coming soon.",
+    },
+    womenInEsports: {
+      title: "Victress Women in Esports | Community initiative",
+      description: "A community initiative powered by Victress, in development, creating visibility, development and opportunity for women in competitive esports.",
+    },
+    designPartner: {
+      title: "Founding Design Partner pilot | Victress",
+      description: "A 4 to 6 week pilot for women's rosters, Game Changers teams and collegiate programs. See what partners receive and what we ask.",
+    },
     partnerships: {
       title: "Partnerships | Victress",
       description: "Partnership conversations for collegiate esports programs, competitive teams and tournament organizers.",
     },
     contact: {
       title: "Contact | Victress",
-      description: "Email the Victress team. Questions, partnerships and data requests.",
+      description: "Contact Victress: apply to the design partner pilot, join early access as a player, or email the team.",
     },
     privacy: {
       title: "Privacy | Victress",

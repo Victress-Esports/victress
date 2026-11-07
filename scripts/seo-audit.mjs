@@ -84,6 +84,12 @@ async function auditPage({ host, path, index, types = [], og = true, hidden = fa
   else ok(/noindex/i.test(robotsMeta + xrt), "private page is NOT noindex");
 
   for (const old of ["Perform. Compete. Rise", "Turn performance into progress", "Your stats. Your profile. Your competitive edge", "Founding clubs", "founding clubs", "privacy-friendly analytics", "Elevate", "Vistrielle"]) ok(!html.includes(old), `retired tagline found on page: "${old}"`);
+  // Brand rule: no hyphens or em dashes in visible marketing copy (game names and the "Self-reported" label are the exceptions).
+  if (host === MARKETING) {
+    const visible = html.replace(/<(script|style)[\s\S]*?<\/\1>/g, " ").replace(/<[^>]+>/g, " ").replace(/&[a-z#0-9]+;/gi, " ");
+    const hyphenated = (visible.match(/[A-Za-z0-9]+[-\u2013\u2014][A-Za-z0-9]+|\u2014|\u2013/g) ?? []).filter((w) => !/^(Self-reported|Counter-Strike)$/i.test(w));
+    ok(hyphenated.length === 0, `hyphen or dash in visible copy: ${[...new Set(hyphenated)].slice(0, 6).join(", ")}`);
+  }
   for (const text of contains) ok(html.includes(text), `page does not contain: "${text}"`);
   for (const text of notContains) ok(!html.includes(text), `page should not contain: "${text}"`);
   if (exact) {
@@ -208,7 +214,7 @@ const pages = [
     // Official messaging pair, and everything a crawler needs to understand the product, present in the server-rendered HTML.
     contains: [
       "Turn practice into progress.",
-      "An esports player development and recruitment platform.",
+      "Performance intelligence and player development infrastructure for competitive esports.", "Explore the Platform", "Become a Design Partner", "Three products, one pathway.",
       "Scrim Intelligence", "Player Resume", "Scout Desk", "Available now", "Get started", "Log in",
       "Women in Esports", "A community initiative powered by Victress.", "Community initiative in development", "Victress Women in Esports is in development and is not currently offering funding, coaching, scholarships or recruitment",
       "VALORANT", "Counter-Strike 2", "Rocket League", "League of Legends", "Apex Legends", "Overwatch 2",
@@ -226,7 +232,10 @@ const pages = [
   mk(MARKETING, "/teams", true, ["BreadcrumbList"]),
   mk(MARKETING, "/about", true, ["BreadcrumbList"]),
   { host: MARKETING, path: "/partnerships", index: true, types: ["BreadcrumbList"], contains: ["mailto:hello@victressesports.com", "Collegiate esports programs", "Tournament organizers"] },
-  { host: MARKETING, path: "/contact", index: true, types: ["BreadcrumbList"], contains: ["mailto:hello@victressesports.com"] },
+  { host: MARKETING, path: "/contact", index: true, types: ["BreadcrumbList"], contains: ["mailto:hello@victressesports.com", "Teams and organizations", "Individual players", "Join Early Access", "Apply for Design Partner"] },
+  { host: MARKETING, path: "/platform", index: true, types: ["BreadcrumbList"], contains: ["Practice", "Performance Evidence", "Development", "Recognition", "Opportunity", "Scrim Intelligence", "Player Resume", "Scout Desk", "Available today", "Planned", "Every number shows where it came from.", "Self-reported"] },
+  { host: MARKETING, path: "/women-in-esports", index: true, types: ["BreadcrumbList"], contains: ["Victress Women in Esports", "A community initiative powered by Victress.", "None of them is live yet.", "In development", "is in development and is not currently offering funding, coaching, scholarships or recruitment"] },
+  { host: MARKETING, path: "/design-partner", index: true, types: ["BreadcrumbList"], contains: ["Founding Design Partner pilot", "4 to 6 week", "What partners receive", "What we ask", "Applying does not guarantee a place.", "Active women", "Game Changers teams", "Collegiate programs"] },
   mk(MARKETING, "/privacy", true, ["BreadcrumbList"]),
   { host: MARKETING, path: "/terms", index: true, types: ["BreadcrumbList"], contains: ["at least 13 years old"] },
   mk(APP, "/", true),
@@ -250,7 +259,7 @@ console.log("\n######## PROFILE JSON-LD: only public fields ########");
   ok(!/"(email|rank|role|stats)"/.test(JSON.stringify(ld)), "private/unmarked fields leaked into JSON-LD");
 }
 
-const mPaths = ["/", "/pricing", "/teams", "/partnerships", "/about", "/contact", "/privacy", "/terms"];
+const mPaths = ["/", "/platform", "/women-in-esports", "/design-partner", "/pricing", "/teams", "/partnerships", "/about", "/contact", "/privacy", "/terms"];
 const aPrivate = ["/dashboard", "/dashboard/profile", "/dashboard/stats", "/dashboard/team", "/onboarding", "/login", "/auth/callback", "/auth/signout", "/join/abc123", "/api/waitlist", "/api/handle-check"];
 await auditSite(MARKETING, APP, mPaths, ["/api/waitlist", "/api/handle-check"]);
 const appUrls = await auditSite(
