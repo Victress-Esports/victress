@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { sendContactMessage } from "@/lib/email";
+import { sendContactAcknowledgement, sendContactMessage } from "@/lib/email";
 import { clientIp, rateLimit } from "@/lib/ratelimit";
 
 const text = (max: number) => z.string().trim().max(max);
@@ -69,5 +69,9 @@ export async function POST(req: Request) {
       { status: 502 },
     );
   }
+  // Acknowledge the submitter. Best effort: the message already reached the team, so a failure here is logged, not shown.
+  await sendContactAcknowledgement(d.email, d.kind).catch((e) =>
+    console.error("contact acknowledgement failed", e instanceof Error ? e.message : e),
+  );
   return NextResponse.json({ ok: true });
 }
