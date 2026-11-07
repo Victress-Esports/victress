@@ -1,16 +1,22 @@
 // SEO audit against a running server. Sends each request with a production Host header so both domains are checked.
-//   node scripts/seo-audit.mjs [port]          (default 3200)
+//   node scripts/seo-audit.mjs [port]          (default 3200)   against a local server, using the mock Supabase
+//   node scripts/seo-audit.mjs live            against the real production sites over https (read only GET requests; checks that
+//                                              need the mock's sample profiles are skipped)
 // Checks: titles and descriptions (length, unique), canonical, Open Graph, Twitter, robots/noindex, headings, images,
 // JSON-LD, status codes, redirects, and that robots.txt and sitemap.xml agree with each other.
 import http from "node:http";
+import https from "node:https";
 
+const LIVE = process.argv[2] === "live";
 const PORT = Number(process.argv[2]) || 3200;
 const MARKETING = "victressesports.com";
 const APP = "victress.gg";
 
 function get(host, path, headers = {}) {
   return new Promise((resolve, reject) => {
-    const req = http.request({ host: "127.0.0.1", port: PORT, path, headers: { host, ...headers } }, (res) => {
+    const transport = LIVE ? https : http;
+    const target = LIVE ? { host, port: 443, path, headers } : { host: "127.0.0.1", port: PORT, path, headers: { host, ...headers } };
+    const req = transport.request(target, (res) => {
       const chunks = [];
       res.on("data", (c) => chunks.push(c));
       res.on("end", () => resolve({ status: res.statusCode, headers: res.headers, buf: Buffer.concat(chunks), body: Buffer.concat(chunks).toString("utf8") }));
@@ -22,11 +28,12 @@ function get(host, path, headers = {}) {
 }
 
 let failures = 0;
+let checks = 0;
 const fail = (msg) => {
   failures++;
   console.log("   FAIL", msg);
 };
-const ok = (cond, msg) => (cond ? true : (fail(msg), false));
+const ok = (cond, msg) => (checks++, cond ? true : (fail(msg), false));
 
 const meta = (html, attr, key) => {
   const m = html.match(new RegExp(`<meta[^>]*${attr}="${key}"[^>]*>`, "i"));
@@ -222,9 +229,8 @@ const pages = [
     ],
     // Approved homepage values. The wings are the logo (nav and footer) and a faint cropped backdrop; the full-size art file itself must not be a hero visual.
     exact: {
-      title: "Victress | Esports Player Profiles & Performance",
-      description:
-        "Build your esports player profile, track performance, and showcase your competitive progress. Made for players, teams, and collegiate programs.",
+      title: "Turn practice into progress. | Victress",
+      description: "Player Resume is available now. Scrim Intelligence and Scout Desk are coming soon. Turn practice into progress with Victress.",
     },
     notContains: ["wings-480", "wings-720", "/brand/wings.webp", "Claim your name"],
   },
@@ -239,18 +245,23 @@ const pages = [
   mk(MARKETING, "/privacy", true, ["BreadcrumbList"]),
   { host: MARKETING, path: "/terms", index: true, types: ["BreadcrumbList"], contains: ["at least 13 years old"] },
   mk(APP, "/", true),
-  mk(APP, "/leaderboard/valorant", true, ["BreadcrumbList"]),
+  // A board is indexable only once it has 10 real players: on the live site (no players yet) every board is noindex.
+  mk(APP, "/leaderboard/valorant", !LIVE, ["BreadcrumbList"]),
   mk(APP, "/leaderboard/rocket-league", false, ["BreadcrumbList"]),
-  mk(APP, "/mock_ace", true, ["ProfilePage", "Person"]), // opted in to search
-  mk(APP, "/dashboard_fan", true, ["ProfilePage"]), // opted in to search
-  { host: APP, path: "/mock_player_12", index: false, hidden: true }, // default: not opted in, still viewable (200)
-  { host: APP, path: "/demo_mock", index: false, hidden: true }, // demo players are never indexed
+  ...(LIVE
+    ? []
+    : [
+        mk(APP, "/mock_ace", true, ["ProfilePage", "Person"]), // opted in to search
+        mk(APP, "/dashboard_fan", true, ["ProfilePage"]), // opted in to search
+        { host: APP, path: "/mock_player_12", index: false, hidden: true }, // default: not opted in, still viewable (200)
+        { host: APP, path: "/demo_mock", index: false, hidden: true }, // demo players are never indexed
+      ]),
   { host: APP, path: "/login", index: false, contains: ["You must be 13 or older", "Terms", "Privacy Policy"] },
 ];
 for (const p of pages) await auditPage(p);
 
-console.log("\n######## PROFILE JSON-LD: only public fields ########");
-{
+if (!LIVE) {
+  console.log("\n######## PROFILE JSON-LD: only public fields ########");
   const html = (await get(APP, "/mock_ace")).body;
   const ld = JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
   console.log(JSON.stringify(ld, null, 2));
@@ -265,16 +276,18 @@ await auditSite(MARKETING, APP, mPaths, ["/api/waitlist", "/api/handle-check"]);
 const appUrls = await auditSite(
   APP,
   MARKETING,
-  ["/", "/mock_ace", "/dashboard_fan", "/mock_player_03", "/mock_player_04", "/mock_player_05", "/leaderboard/valorant", "/leaderboard/cs2"],
+  LIVE ? ["/"] : ["/", "/mock_ace", "/dashboard_fan", "/mock_player_03", "/mock_player_04", "/mock_player_05", "/leaderboard/valorant", "/leaderboard/cs2"],
   aPrivate,
 );
 ok(!appUrls.some((u) => /demo_mock|leaderboard\/rocket-league/.test(u.loc)), "demo profile or closed board listed in sitemap");
+if (!LIVE) {
 // Opt-in only: profiles that never switched the toggle on must not be in the sitemap, even though they are viewable.
 ok(!appUrls.some((u) => /mock_player_(0[6-9]|1[0-2])$/.test(u.loc)), "a profile that has not opted in to search is listed in the sitemap");
 ok(appUrls.filter((u) => /\/(mock_|dashboard_fan)/.test(u.loc)).length === 5, `expected exactly 5 opted-in profiles in the sitemap, found ${appUrls.filter((u) => /\/(mock_|dashboard_fan)/.test(u.loc)).length}`);
 {
   const r = await get(APP, "/mock_player_12");
   ok(r.status === 200, `opted-out profile must still be viewable by link, got ${r.status}`);
+}
 }
 ok(!appUrls.some((u) => /\/(p[0-9a-f]{12})$/.test(u.loc)), "placeholder handle listed in sitemap");
 
@@ -311,11 +324,11 @@ await expectStatus(APP, "/admin", 404, "(reserved handle)");
 await expectStatus(APP, "/ab", 404, "(too short)");
 await expectStatus(APP, "/pdeadbeef0001", 404, "(placeholder pattern)");
 await expectStatus(APP, "/leaderboard/fortnite", 404, "(unknown game board)");
-await expectStatus(APP, "/mock_ace", 200, "(a taken handle is a profile page, so 200)");
+if (!LIVE) await expectStatus(APP, "/mock_ace", 200, "(a taken handle is a profile page, so 200)");
 await expectStatus(MARKETING, "/m/pricing", 404, "(internal prefix)");
 await expectStatus(APP, "/a/login", 404, "(internal prefix)");
 await expectStatus(MARKETING, "/__site/app", 404, "(preview hop is dead on production)");
-for (const [h, p] of [[`www.${MARKETING}`, "/pricing?x=1"], [`www.${APP}`, "/mock_ace"], [`www.${MARKETING}`, "/sitemap.xml"], [`www.${APP}`, "/robots.txt"], [`www.${APP}`, "/"]]) {
+for (const [h, p] of [[`www.${MARKETING}`, "/pricing?x=1"], [`www.${APP}`, LIVE ? "/leaderboard/valorant" : "/mock_ace"], [`www.${MARKETING}`, "/sitemap.xml"], [`www.${APP}`, "/robots.txt"], [`www.${APP}`, "/"]]) {
   const r = await get(h, p);
   const want = `https://${h.replace("www.", "")}${p}`;
   console.log(`   ${h}${p}  -> ${r.status}  location ${r.headers.location}`);
@@ -375,6 +388,15 @@ console.log("\n######## HOME FAQ, PRODUCT SCHEMA, llms.txt ########");
   ok(llms.status === 200 && /text\/plain/.test(llms.headers["content-type"] ?? ""), "llms.txt should be 200 text/plain");
   ok(/Coming soon/.test(llms.body) && /Self-reported/.test(llms.body) && /not indexed by search engines unless/.test(llms.body), "llms.txt must separate planned from live features and state the profile privacy rule");
   ok(!/Perform\. Compete|performance into progress|Your stats\. Your profile|ounding club|privacy-friendly analytics/.test(llms.body), "llms.txt contains a retired slogan or an unapproved claim");
+  // Structure: Women in Esports has its own "Why Victress exists" section, Player Resume is stated as available now, no internal references.
+  const section = (name) => llms.body.split(/^## /m).find((s) => s.startsWith(name + "\n")) ?? "";
+  const headings = [...llms.body.matchAll(/^## (.+)$/gm)].map((m) => m[1]);
+  console.log(`   /llms.txt sections: ${headings.join(" | ")}`);
+  ok(headings[0] === "Why Victress exists", `llms.txt: "Why Victress exists" should be the first section, got "${headings[0]}"`);
+  ok(/Women in Esports/.test(section("Why Victress exists")) && !/Victress Women in Esports/.test(llms.body), "llms.txt: the Why Victress exists section must contain Women in Esports (never Victress Women in Esports)");
+  ok(!/Women in Esports/.test(section("Coming soon (not available yet)")), "llms.txt: Women in Esports must not be listed under Coming soon");
+  ok(/Player Resume \(available now\)/.test(section("What works today")), "llms.txt: What works today must state Player Resume as available now");
+  ok(!/strategy section|docs\/strategy/i.test(llms.body), "llms.txt must not refer to the internal strategy document");
   ok((await get(APP, "/llms.txt")).status === 404, "llms.txt should not be served on the application domain");
   const robots = parseRobots((await get(MARKETING, "/robots.txt")).body);
   ok(!robots.blocked("/llms.txt"), "robots.txt blocks /llms.txt");
@@ -393,5 +415,6 @@ for (const [h, p] of [[APP, "/pricing"], [APP, "/teams"], [APP, "/about"], [APP,
   ok(!/victress\.gg/.test(meta(home, "property", "og:url") ?? ""), "marketing home og:url points at victress.gg");
 }
 
-console.log(`\n${failures === 0 ? "ALL SEO CHECKS PASSED" : failures + " CHECK(S) FAILED"}`);
+console.log(`\n${checks} checks run, ${failures} failed${LIVE ? " (live production)" : ""}`);
+console.log(failures === 0 ? "ALL SEO CHECKS PASSED" : failures + " CHECK(S) FAILED");
 process.exit(failures === 0 ? 0 : 1);
