@@ -58,10 +58,13 @@ Production recorded the expand step as version **`20261107052543`** (name `priva
 | (statement from `docs/proposals/rls-auto-enable-revoke.md`, no repository migration file) | `20261107055545` | `revoke_rls_auto_enable_public_execute` |
 | `20261107000500_longer_invite_codes.sql` | `20261107060917` | `longer_invite_codes` |
 | `20261107000620_waitlist_service_role_grants.sql` | `20261107204332` | `waitlist_service_role_grants` |
+| `20261107000300_dashboard_foundation.sql` + `20261107000310_upload_allowlist.sql` (one transaction) | `20261107212657` | `dashboard_foundation_with_allowlist` |
+| `20261107000400_scrim_matches.sql` | (stamped at apply time; see `list_migrations`) | `scrim_matches` |
+| `20261107000600_invite_info_service_grant.sql` | (stamped at apply time; see `list_migrations`) | `invite_info_service_grant` |
 
 Applied out of repository order on 2026-11-07 (founder approved, one call, read only verification after): `20261107000620_waitlist_service_role_grants.sql`. It sits after the unapplied dashboard files in repository order but is independent of them (it touches only `public.waitlist`). The offset between a repository file number and its production version is therefore not constant: production stamps the time of application.
 
-Not applied: `20261107000300_dashboard_foundation.sql` and `..000310`, `..000400`. Content matches; only the version numbers differ (production stamps the time of application). The `rls_auto_enable` revoke exists only as a statement in its proposal, not as a repository migration file. See the bookkeeping note above before using any tool that compares versions.
+Applied 2026-11-07 after rolled back production dry runs (founder approval): `..000300` and `..000310` together, `..000400`, `..000600`. Not applied: `..000610` (waits for the invite lookup code, PR #25, to be deployed). Content matches; only the version numbers differ (production stamps the time of application). The `rls_auto_enable` revoke exists only as a statement in its proposal, not as a repository migration file. See the bookkeeping note above before using any tool that compares versions.
 
 ## Dashboard foundation (migrations `20261107000300_dashboard_foundation.sql` and `20261107000310_upload_allowlist.sql`)
 
