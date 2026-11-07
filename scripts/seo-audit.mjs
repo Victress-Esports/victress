@@ -230,7 +230,7 @@ const pages = [
     // Approved homepage values. The wings are the logo (nav and footer) and a faint cropped backdrop; the full-size art file itself must not be a hero visual.
     exact: {
       title: "Turn practice into progress. | Victress",
-      description: "Player Resume is available now. Scrim Intelligence and Scout Desk are coming soon. Turn practice into progress with Victress.",
+      description: "Players enter their own stats and teams manage rosters today. Player Resume is in development. Scrim Intelligence and Scout Desk are coming soon.",
     },
     notContains: ["wings-480", "wings-720", "/brand/wings.webp", "Claim your name"],
   },
@@ -386,7 +386,7 @@ console.log("\n######## HOME FAQ, PRODUCT SCHEMA, llms.txt ########");
   const llms = await get(MARKETING, "/llms.txt");
   console.log(`   /llms.txt -> ${llms.status} ${llms.headers["content-type"]}, ${llms.body.length} chars`);
   ok(llms.status === 200 && /text\/plain/.test(llms.headers["content-type"] ?? ""), "llms.txt should be 200 text/plain");
-  ok(/Coming soon/.test(llms.body) && /Self-reported/.test(llms.body) && /not indexed by search engines unless/.test(llms.body), "llms.txt must separate planned from live features and state the profile privacy rule");
+  ok(/Coming soon/.test(llms.body) && /Self-reported/.test(llms.body) && /private by default and are not indexed by search engines/.test(llms.body), "llms.txt must separate planned from live features and state the profile privacy rule");
   ok(!/Perform\. Compete|performance into progress|Your stats\. Your profile|ounding club|privacy-friendly analytics/.test(llms.body), "llms.txt contains a retired slogan or an unapproved claim");
   // Structure: Women in Esports has its own "Why Victress exists" section, Player Resume is stated as available now, no internal references.
   const section = (name) => llms.body.split(/^## /m).find((s) => s.startsWith(name + "\n")) ?? "";
@@ -395,7 +395,8 @@ console.log("\n######## HOME FAQ, PRODUCT SCHEMA, llms.txt ########");
   ok(headings[0] === "Why Victress exists", `llms.txt: "Why Victress exists" should be the first section, got "${headings[0]}"`);
   ok(/Women in Esports/.test(section("Why Victress exists")) && !/Victress Women in Esports/.test(llms.body), "llms.txt: the Why Victress exists section must contain Women in Esports (never Victress Women in Esports)");
   ok(!/Women in Esports/.test(section("Coming soon (not available yet)")), "llms.txt: Women in Esports must not be listed under Coming soon");
-  ok(/Player Resume \(available now\)/.test(section("What works today")), "llms.txt: What works today must state Player Resume as available now");
+  ok(!/Player Resume \(available now\)/.test(llms.body) && /Player Resume \(in development\)/.test(llms.body), "llms.txt: Player Resume must be stated as in development, not available now");
+  ok(/Profiles are private by default; public directory and sharing links are disabled during the initial pilot phase\./.test(section("What works today")) && !/shareable by link|shareable profile/i.test(llms.body.replace(/Player Resume \(in development\): a shareable player profile/,"")), "llms.txt: What works today must say profiles are private by default and sharing is disabled, and not claim sharing by link");
   ok(!/strategy section|docs\/strategy/i.test(llms.body), "llms.txt must not refer to the internal strategy document");
   ok((await get(APP, "/llms.txt")).status === 404, "llms.txt should not be served on the application domain");
   const robots = parseRobots((await get(MARKETING, "/robots.txt")).body);

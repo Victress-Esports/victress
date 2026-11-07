@@ -5,7 +5,7 @@ export const seo = {
   marketing: {
     home: {
       title: "Turn practice into progress. | Victress",
-      description: "Player Resume is available now. Scrim Intelligence and Scout Desk are coming soon. Turn practice into progress with Victress.",
+      description: "Players enter their own stats and teams manage rosters today. Player Resume is in development. Scrim Intelligence and Scout Desk are coming soon.",
     },
     pricing: {
       title: "Victress pricing: free to start",
