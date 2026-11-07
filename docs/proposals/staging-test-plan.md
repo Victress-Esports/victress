@@ -2,7 +2,7 @@
 
 Created 2026-11-07. Status: **draft, nothing here has been run on a Preview URL yet.** Production is not touched by any step. This plan closes the "separate Supabase project for Preview deployments" item in [pilot-readiness-checklist.md](pilot-readiness-checklist.md).
 
-> **WARNING: merge the `SUPABASE_URL` pull request (#24) first.** Production keeps working only because the live deployment was built before the `NEXT_PUBLIC_SUPABASE_*` variables were deleted from Vercel. Any production build from code before #24 (for example merging any other pull request into `main` first) runs without a Supabase URL and public key and breaks the sign in and product pages. Order: merge #24, redeploy, confirm, then everything else. Do not delete the old variables from Preview either until #24 is on `main`.
+> **Merge order note (historical):** #24 had to merge first. Production keeps working only because the live deployment was built before the `NEXT_PUBLIC_SUPABASE_*` variables were deleted from Vercel. Any production build from code before #24 (for example merging any other pull request into `main` first) runs without a Supabase URL and public key and breaks the sign in and product pages. Order: merge #24, redeploy, confirm, then everything else. Do not delete the old variables from Preview either until #24 is on `main`.
 
 ## 0. What staging is
 - Supabase project `victress-staging`, ref `cmvifuayvqhbfkeskoqi`, region ca-central-1, same organization as production (`pmamceqshyfptvjgimsf`). Created empty: 0 tables in `public`, 0 auth users, 0 migrations, no buckets.
@@ -22,9 +22,9 @@ Set each in Vercel, project Settings, Environment Variables, environment **Previ
 
 | Name | Preview value comes from | Notes |
 |---|---|---|
-| `SUPABASE_URL` | staging project API URL | Public by design. Must be the staging URL, never the production URL |
-| `SUPABASE_ANON_KEY` | staging publishable (anon) key | Public by design |
-| `SUPABASE_SERVICE_ROLE_KEY` | staging service role key | Server only. Mark Sensitive. Never the production key |
+| `STAGING_SUPABASE_URL` | staging project API URL | Public by design. Must be the staging URL; the build refuses the production project |
+| `STAGING_SUPABASE_ANON_KEY` | staging publishable (anon) key | Public by design |
+| `STAGING_SUPABASE_SERVICE_ROLE_KEY` | staging service role key | Server only. Mark Sensitive. Never the production key |
 | `NEXT_PUBLIC_VERCEL_ENV` | Vercel system variable | Needs "Automatically expose System Environment Variables" turned on; see section 4 |
 | `NEXT_PUBLIC_VERCEL_URL` | Vercel system variable | Same setting |
 | `NEXT_PUBLIC_BILLING_ENABLED` | `false` | Stays false |
@@ -36,9 +36,9 @@ Set each in Vercel, project Settings, Environment Variables, environment **Previ
 | `LEADERBOARD_INCLUDE_DEMO` | optional, `false` | |
 | `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_MARKETING_URL` | leave unset on Preview | Preview overrides them (section 4) |
 
-Vercel does not accept `NEXT_PUBLIC_` names for these, so the variables are `SUPABASE_URL` and `SUPABASE_ANON_KEY`; `next.config.ts` maps them to the `NEXT_PUBLIC_` names the code reads (PR claude/supabase-env-names). The URL and anon key are public by design and ship to the browser. The service role key is server only: it is never mapped and must never appear in a client bundle. The build fails if the URL or anon key is missing. Production and Preview are scoped separately.
+Vercel does not accept `NEXT_PUBLIC_` names, nor the same name in two environments, so Preview has its own names: `STAGING_SUPABASE_URL`, `STAGING_SUPABASE_ANON_KEY` and `STAGING_SUPABASE_SERVICE_ROLE_KEY`, set for the **Preview** environment only. Production keeps `SUPABASE_URL`, `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY`. When `VERCEL_ENV` is `preview` the app reads only the `STAGING_` names and **never falls back to the production values**; the build fails with a clear message if they are missing or if they point at the production project (`lib/supabase/resolve-env.ts`, PR #24, merged). `next.config.ts` maps only the URL and anon key (public by design) to the names the code reads; the service role key is read at runtime on the server only and is never mapped or built into any file (`npm run test:env`). Production and Preview are scoped separately.
 
-Do not copy the Production values for Supabase into Preview. Verify afterwards that a Preview deployment reads staging: sign in on the Preview and confirm the new user appears in the staging Auth users list and not in production.
+Never put the production values in the `STAGING_` names. Verify afterwards that a Preview deployment reads staging: sign in on the Preview and confirm the new user appears in the staging Auth users list and not in production.
 
 ## 3. Redirect URLs
 Staging project, Authentication, URL Configuration:
