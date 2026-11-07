@@ -1,18 +1,17 @@
 import type { Metadata } from "next";
 
 /** Keys for the generic social cards served by /api/og (an allow-list, so nobody can print arbitrary text on our image). */
-export type OgKey = "home" | "pricing" | "teams" | "about" | "app" | "leaderboard";
+export type OgKey = "home" | "pricing" | "teams" | "about" | "app";
 
 export const ogImage = (key: OgKey) => `/api/og?page=${key}`;
 
 /** Describes what each social card shows (the text on app/api/og/route.tsx). */
 const OG_ALT: Record<OgKey, string> = {
   home: "Victress. Turn practice into progress. An esports player development and recruitment platform.",
-  pricing: "Victress pricing. Free to start. Pro, Team and Scout are coming soon.",
+  pricing: "Victress pricing. Free to start. Plans for esports players, teams and coaches.",
   teams: "Victress for teams. Run your club in one place. One invite link. One roster.",
-  about: "About Victress. Show the work. A profile you own, built on stats you enter.",
-  app: "Victress. Claim your name. One link. Your whole story.",
-  leaderboard: "Victress leaderboards. Know where you stand. Self-reported stats, per game.",
+  about: "About Victress. Show the work. A profile you own.",
+  app: "Victress. Claim your name. Your account. Your name.",
 };
 
 interface PageMeta {

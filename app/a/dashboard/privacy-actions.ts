@@ -32,8 +32,8 @@ export async function savePrivacyAction(input: z.input<typeof settingsSchema>): 
   const { data: cur } = await sb.from("profiles").select("directory_listed, show_on_leaderboards").eq("id", user.id).single();
   if (!cur) return fail();
 
-  const wantsExposure = (s.directory_listed && !cur.directory_listed) || (s.show_on_leaderboards && !cur.show_on_leaderboards);
-  if (wantsExposure && !directoryEnabled()) return fail("Public profiles and leaderboards are not available yet. Your profile stays private.");
+  const wantsExposure = s.directory_listed && !cur.directory_listed;
+  if (wantsExposure && !directoryEnabled()) return fail("Public profiles are not open. Your profile stays private.");
 
   const directory = s.directory_listed;
   const { error } = await sb
@@ -41,7 +41,7 @@ export async function savePrivacyAction(input: z.input<typeof settingsSchema>): 
     .update({
       directory_listed: directory,
       search_indexable: directory && s.search_indexable,
-      show_on_leaderboards: s.show_on_leaderboards,
+      show_on_leaderboards: false, // leaderboards are built on stats players enter, which Victress does not publish
       public_fields: cleanFields(s.public_fields),
     })
     .eq("id", user.id);

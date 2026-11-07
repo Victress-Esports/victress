@@ -1,16 +1,14 @@
 import type { Metadata } from "next";
 import { ComingSoonNote } from "@/components/app/ComingSoonNote";
 import { MatchLog, type MatchRow } from "@/components/app/MatchLog";
-import { ProvenanceTag } from "@/components/app/ProvenanceTag";
 import { ScrimUploader, type UploadRow } from "@/components/app/ScrimUploader";
 import { Section } from "@/components/ui/form";
-import { PROVENANCE, PROVENANCE_ORDER } from "@/content/provenance";
 import { scrimUploadsEnabled } from "@/lib/dashboard";
 import { isMissingTable } from "@/lib/db-errors";
 import { loadMe } from "@/lib/me";
 import { privateMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = privateMetadata("Scrim Intelligence | Victress", "Match log, practice file storage and automated analysis are coming soon.");
+export const metadata: Metadata = privateMetadata("Scrims | Victress", "Your practice match log and private practice files.");
 
 export default async function ScrimsPage() {
   const { sb, user, games } = await loadMe();
@@ -33,31 +31,15 @@ export default async function ScrimsPage() {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
       <div>
-        <h1 className="font-display text-4xl font-bold">Scrim Intelligence</h1>
-        <p className="mt-2 text-mute">Turn private practice into performance information. This is the foundation: your own match log and private file storage first, analysis later.</p>
+        <h1 className="font-display text-4xl font-bold">Scrims</h1>
+        <p className="mt-2 text-mute">Your practice, in one private place.</p>
       </div>
 
       <Section title="Automated analysis" line="Coming soon">
-        <p className="text-mute">
-          Victress does not analyze files yet and shows no automated stats. Analysis will switch on only after a parser has been validated against real
-          demos. Until then, nothing on this page is measured by Victress: the match log below is what you enter yourself.
-        </p>
+        <p className="text-mute">Scrim Intelligence turns private practice files into performance information.</p>
       </Section>
 
-      <Section title="Where every number comes from" line="Three sources, never mixed up.">
-        <ul className="flex flex-col gap-3">
-          {PROVENANCE_ORDER.map((k) => (
-            <li key={k} className="flex flex-wrap items-center gap-3">
-              <ProvenanceTag source={k} />
-              <span className="text-mute">{PROVENANCE[k].line}</span>
-              <span className="text-sm text-coral">{PROVENANCE[k].available ? "Available now" : "Coming soon"}</span>
-            </li>
-          ))}
-        </ul>
-        <p className="mt-4 text-sm text-mute">Verification will mean we can show where evidence came from and that it is intact. It never judges how good a player is.</p>
-      </Section>
-
-      <Section title="Match log" line={matchLogMissing ? "Coming soon" : "Record your practice matches. Private to you, and entered by you, so every entry is Self-reported."}>
+      <Section title="Match log" line={matchLogMissing ? "Coming soon" : "Record your practice matches. Private to you."}>
         {matchLogMissing ? <ComingSoonNote what="The match log" /> : <MatchLog rows={(matches ?? []) as MatchRow[]} games={games.map((g) => g.game)} />}
       </Section>
 

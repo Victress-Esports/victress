@@ -1,18 +1,12 @@
 import type { Metadata } from "next";
-import { FaqList } from "@/components/marketing/FaqList";
+import Link from "next/link";
 import { HeroClaim } from "@/components/marketing/HeroClaim";
-import { ProductCards } from "@/components/marketing/ProductCards";
-import { TeamRoster } from "@/components/marketing/TeamRoster";
-import { WomenInEsports } from "@/components/marketing/WomenInEsports";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { ButtonLink } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { copy } from "@/content/copy";
-import { GAME_LIST } from "@/content/games";
 import { seo } from "@/content/seo";
-import { faqPage, organizationAndWebsite } from "@/lib/jsonld";
+import { organizationAndWebsite } from "@/lib/jsonld";
 import { pageMetadata } from "@/lib/seo";
-import { appUrl } from "@/lib/urls";
 
 export const metadata: Metadata = pageMetadata({
   ...seo.marketing.home,
@@ -20,107 +14,92 @@ export const metadata: Metadata = pageMetadata({
   image: "home",
 });
 
+const section = "border-t border-line";
+const inner = "mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28";
+const h2 = "font-display text-3xl font-bold leading-tight sm:text-5xl";
+
+/** One idea per section, in this order: the three products, how it works, the design partner pilot, one closing button. */
 export default function Home() {
   const h = copy.home;
+  const d = copy.designPartner;
+  const soonTag = "inline-flex rounded-full bg-surface-2 px-3 py-1 text-xs font-semibold text-coral";
   return (
     <>
       <JsonLd data={organizationAndWebsite()} />
-      <JsonLd data={faqPage(h.faq)} />
 
-      <HeroClaim
-        title={h.hero.title}
-        sentence={h.hero.sentence}
-        primary={h.hero.primary}
-        secondary={h.hero.secondary}
-      />
+      <HeroClaim title={h.hero.title} sentence={h.hero.sentence} primary={h.hero.primary} note={h.hero.note} />
 
-      <section
-        aria-labelledby="products-title"
-        className="border-t border-line"
-      >
-        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
-          <h2
-            id="products-title"
-            className="font-display text-4xl font-bold leading-tight sm:text-5xl"
-          >
+      <section aria-labelledby="products-title" className={section}>
+        <div className={inner}>
+          <h2 id="products-title" className={h2}>
             {h.productsTitle}
           </h2>
-          <p className="mt-4 max-w-xl text-lg text-mute">{h.productsLine}</p>
-          <ProductCards />
-        </div>
-      </section>
-
-      <section aria-labelledby="games-title" className="border-t border-line">
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-          <h2
-            id="games-title"
-            className="font-display text-2xl font-bold sm:text-3xl"
-          >
-            {h.games.title}
-          </h2>
-          <p className="mt-2 text-mute">{h.games.line}</p>
-          <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-lg font-semibold">
-            {GAME_LIST.map((g) => (
-              <li key={g.id}>{g.name}</li>
+          <ul className="mt-10 grid gap-8 md:grid-cols-3">
+            {h.pillars.map((p) => (
+              <li key={p.id}>
+                <div className="flex flex-wrap items-center gap-3">
+                  <h3 className="font-display text-2xl font-bold">{p.title}</h3>
+                  {p.soon ? <span className={soonTag}>{h.soonLabel}</span> : null}
+                </div>
+                <p className="mt-3 text-lg text-mute">{p.line}</p>
+                <Link href={`/platform#${p.id}`} className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold underline underline-offset-4 hover:text-coral">
+                  {h.learnMore}
+                  <span className="sr-only">: {p.title}</span>
+                </Link>
+              </li>
             ))}
           </ul>
         </div>
       </section>
 
-      <section aria-labelledby="teams-title" className="border-t border-line">
-        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
-          <Card className="reveal grid items-center gap-12 lg:grid-cols-2 sm:p-12">
-            <div>
-              <h2
-                id="teams-title"
-                className="font-display text-4xl font-bold leading-tight sm:text-5xl"
-              >
-                {h.teams.title}
-              </h2>
-              <p className="mt-4 max-w-md text-lg text-mute">{h.teams.line}</p>
-              <p className="mt-2 max-w-md text-sm text-mute">{h.teams.soon}</p>
-              <ButtonLink
-                href={appUrl("/login?next=/dashboard/team")}
-                className="mt-8"
-              >
-                {h.teams.cta}
-              </ButtonLink>
-            </div>
-            <div className="flex justify-center">
-              <TeamRoster />
-            </div>
-          </Card>
-        </div>
-      </section>
-
-      <WomenInEsports />
-
-      <section
-        aria-labelledby="faq-title"
-        className="mx-auto max-w-3xl px-4 pb-20 sm:px-6 sm:pb-28"
-      >
-        <h2
-          id="faq-title"
-          className="font-display text-3xl font-bold sm:text-4xl"
-        >
-          {h.faqTitle}
-        </h2>
-        <div className="mt-8">
-          <FaqList items={h.faq} />
-        </div>
-      </section>
-
-      <section className="border-t border-line">
-        <div className="mx-auto flex max-w-6xl flex-col items-center px-4 py-24 text-center sm:px-6">
-          <h2 className="font-display text-5xl font-bold sm:text-6xl">
-            {h.final.title}
+      <section aria-labelledby="how-title" className={section}>
+        <div className={inner}>
+          <h2 id="how-title" className={h2}>
+            {h.howTitle}
           </h2>
-          <div className="mt-10 flex flex-wrap justify-center gap-3">
-            <ButtonLink href={appUrl("/login")}>{h.final.cta}</ButtonLink>
-            <ButtonLink href={appUrl("/login")} variant="secondary">
-              {h.final.login}
-            </ButtonLink>
+          <ol className="mt-10 grid gap-8 md:grid-cols-3">
+            {h.steps.map((s, i) => (
+              <li key={s.title}>
+                <p className="tnum text-sm font-semibold text-signal">{i + 1}</p>
+                <h3 className="mt-2 font-display text-2xl font-bold">{s.title}</h3>
+                <p className="mt-2 text-lg text-mute">{s.line}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      <section aria-labelledby="pilot-title" className={section}>
+        <div className={inner}>
+          <h2 id="pilot-title" className={h2}>
+            {h.pilotTitle}
+          </h2>
+          <div className="mt-10 grid gap-10 md:grid-cols-3">
+            {[
+              { title: d.forTitle, items: d.for },
+              { title: d.expectedTitle, items: d.expected },
+              { title: d.receiveTitle, items: d.receive },
+            ].map((col) => (
+              <div key={col.title}>
+                <h3 className="font-display text-xl font-bold">{col.title}</h3>
+                <ul className="mt-3 space-y-2 text-mute">
+                  {col.items.map((t) => (
+                    <li key={t}>{t}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
+          <p className="mt-10 max-w-2xl text-sm text-mute">{d.status} {copy.womenInEsports.note}</p>
+        </div>
+      </section>
+
+      <section aria-labelledby="closing-title" className={section}>
+        <div className={`${inner} text-center`}>
+          <h2 id="closing-title" className="sr-only">
+            {h.closing.cta}
+          </h2>
+          <ButtonLink href="/design-partner">{h.closing.cta}</ButtonLink>
         </div>
       </section>
     </>

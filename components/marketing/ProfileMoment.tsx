@@ -1,15 +1,10 @@
-"use client";
-
-import { CountUp } from "@/components/marketing/CountUp";
 import { AppFrame } from "@/components/marketing/AppFrame";
-import { useInView } from "@/components/marketing/useInView";
 
-/** Product moment 1: a profile card. The stat numbers count up when it scrolls into view. */
+/** Product moment 1: a sample profile card (games, role and rank only; Victress does not publish stats players enter). */
 export function ProfileMoment() {
-  const [ref, seen] = useInView<HTMLElement>(0.4);
   return (
     <AppFrame route="victress.gg/yourname" label="Sample profile frame">
-      <article ref={ref} aria-label="Sample player profile">
+      <article aria-label="Sample player profile">
         <header className="flex items-center gap-4">
           <div
             aria-hidden
@@ -31,21 +26,6 @@ export function ProfileMoment() {
           ))}
         </div>
 
-        <dl className="mt-6 grid grid-cols-3 gap-3">
-          {[
-            { k: "K/D", to: 1.35, d: 2 },
-            { k: "Win rate", to: 58, d: 0, s: "%" },
-            { k: "ACS", to: 251, d: 0 },
-          ].map((m) => (
-            <div key={m.k} className="rounded-2xl bg-surface-2 px-3 py-4">
-              <dt className="text-xs text-mute">{m.k}</dt>
-              <dd className="mt-1 text-3xl font-bold">
-                <CountUp to={m.to} decimals={m.d} suffix={m.s} active={seen} />
-              </dd>
-            </div>
-          ))}
-        </dl>
-        <p className="mt-4 text-xs text-mute">Self-reported</p>
       </article>
     </AppFrame>
   );

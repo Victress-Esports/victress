@@ -71,7 +71,6 @@ export function GamePicker() {
             ))}
           </div>
         </div>
-        <p className="mt-6 text-xs text-mute">Stats are self-reported.</p>
       </article>
     </div>
   );

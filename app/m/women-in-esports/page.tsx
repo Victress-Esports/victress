@@ -74,12 +74,9 @@ export default function WomenInEsportsPage() {
                   <p className="mt-6 border-t border-line pt-4 text-sm text-mute">
                     {e.connectedTo}{" "}
                     <span className="font-semibold text-white">{p.title}</span>
-                    <span className="mt-1 block text-xs">
-                      ({p.statusLabel})
-                    </span>
-                    <span className="mt-3 block text-white">
-                      {w.today[a.pillar]}
-                    </span>
+                    {p.soon ? (
+                      <span className="ml-2 rounded-full bg-surface-2 px-2.5 py-0.5 text-xs font-semibold text-signal">{copy.home.soonLabel}</span>
+                    ) : null}
                   </p>
                 </li>
               );
@@ -99,7 +96,6 @@ export default function WomenInEsportsPage() {
           >
             {w.commitmentsTitle}
           </h2>
-          <p className="mt-3 max-w-xl text-mute">{w.commitmentsLine}</p>
           <ul className="mt-10 grid gap-5 md:grid-cols-2">
             {w.commitments.map((c) => (
               <li
@@ -109,9 +105,6 @@ export default function WomenInEsportsPage() {
                 <h3 className="font-display text-xl font-bold">
                   {c.title}
                 </h3>
-                <span className="mt-3 inline-flex rounded-full bg-surface-2 px-3 py-1 text-xs font-semibold text-coral">
-                  {w.inDevelopment}
-                </span>
                 <p className="mt-2 text-mute">{c.line}</p>
               </li>
             ))}

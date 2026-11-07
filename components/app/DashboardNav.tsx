@@ -8,10 +8,8 @@ const LINKS = [
   { href: "/dashboard/profile", label: "Profile" },
   { href: "/dashboard/resume", label: "Resume" },
   { href: "/dashboard/scrims", label: "Scrims" },
-  { href: "/dashboard/stats", label: "Stats" },
   { href: "/dashboard/team", label: "Team" },
   { href: "/dashboard/privacy", label: "Privacy" },
-  { href: "/leaderboard", label: "Leaderboards" },
 ];
 
 export function DashboardNav() {
