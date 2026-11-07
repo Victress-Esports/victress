@@ -1,15 +1,18 @@
 import type { NextConfig } from "next";
 import { PHASE_PRODUCTION_BUILD } from "next/constants";
 import { APP_HOST, MARKETING_HOST } from "./lib/hosts";
+import { resolveSupabaseEnv } from "./lib/supabase/resolve-env";
 
 const NOINDEX = [{ key: "X-Robots-Tag", value: "noindex, nofollow" }];
 
-// Vercel will not accept NEXT_PUBLIC_ names for these two, so they are set as SUPABASE_URL and SUPABASE_ANON_KEY and
-// mapped here to the names the code reads. Both values are public by design (they ship to the browser).
-// Locally, tests and the mock sign in scripts keep using the NEXT_PUBLIC_ names through the fallback.
-// SUPABASE_SERVICE_ROLE_KEY is deliberately NOT mapped: it must never be inlined into any bundle.
-const SUPABASE_URL = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// Vercel will not accept NEXT_PUBLIC_ names, nor the same name in two environments. Production reads SUPABASE_URL and
+// SUPABASE_ANON_KEY; Preview reads STAGING_SUPABASE_URL and STAGING_SUPABASE_ANON_KEY and never falls back to production
+// (lib/supabase/resolve-env.ts has the rules). Whichever pair applies is mapped here to the names the code reads. Both values are
+// public by design (they ship to the browser). The service role key is deliberately NOT mapped: it is read at runtime on the
+// server only and must never be inlined into any built file.
+const supabase = resolveSupabaseEnv(process.env);
+const SUPABASE_URL = supabase.url;
+const SUPABASE_ANON_KEY = supabase.anonKey;
 
 const config: NextConfig = {
   poweredByHeader: false,
@@ -70,16 +73,8 @@ const config: NextConfig = {
 // Set SKIP_SUPABASE_ENV_CHECK=1 only for a marketing-only local build.
 export default function nextConfig(phase: string): NextConfig {
   if (phase === PHASE_PRODUCTION_BUILD && process.env.SKIP_SUPABASE_ENV_CHECK !== "1") {
-    const missing = [
-      !SUPABASE_URL && "SUPABASE_URL",
-      !SUPABASE_ANON_KEY && "SUPABASE_ANON_KEY",
-    ].filter(Boolean);
-    if (missing.length > 0) {
-      throw new Error(
-        `Build stopped: ${missing.join(" and ")} ${missing.length > 1 ? "are" : "is"} not set. ` +
-          "Add them in Vercel, Settings, Environment Variables (Production and Preview separately), then redeploy. " +
-          "Locally, NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY also work.",
-      );
+    if (supabase.errors.length > 0) {
+      throw new Error(`Build stopped: ${supabase.errors.join(" ")}`);
     }
   }
   return config;
