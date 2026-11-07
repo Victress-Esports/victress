@@ -1,6 +1,12 @@
 # Proposal: waitlist grants (the live waitlist form cannot save)
 
-Status: **PREPARED, NOT APPLIED** to production or staging. Needs the founder's approval before any apply. Supabase Pro is not a prerequisite for this one (it changes privileges on an empty table), but applying to production is still a production change: each production step needs its own authorization.
+Status: **APPLIED to production on 2026-11-07** (founder authorization, one `apply_migration` call; production version `20261107204332`, name `waitlist_service_role_grants`; repository file `20261107000620_waitlist_service_role_grants.sql`). **Not applied to staging** (staging was only dry run). Recount before and after: 0 waitlist rows, 0 auth users, 0 profiles, 0 teams. Merge order: this PR (#26) waits until #24 is merged and confirmed, because merging anything to `main` before #24 starts a production build from code that reads the deleted `NEXT_PUBLIC_SUPABASE_*` variables.
+
+### Applied result (read only verification)
+- Grants: service_role insert=true select=false; anon and authenticated have no privilege of any kind on `public.waitlist` (insert, select, truncate, references, trigger, maintain all false). Row level security still on.
+- A rolled back transaction (one call, ended in a raised error, nothing kept): PASS service_role insert works, PASS anon insert denied, PASS authenticated insert denied.
+- Anonymous API with the public key: `GET /rest/v1/waitlist` 401, `POST /rest/v1/waitlist` 401.
+- No real row was inserted. The form on victressesports.com still needs one real test submission by the founder, with their own email, followed by a decision about deleting that row.
 
 ## Finding (read only, 2026-11-07)
 - Production (`pmamceqshyfptvjgimsf`): `has_table_privilege('service_role', 'public.waitlist', 'insert')` is **false**. Table grants on `public.waitlist`: anon, authenticated and service_role each have only `REFERENCES, TRIGGER, TRUNCATE` (plus `MAINTAIN` on Postgres 17). 0 rows in the table.
