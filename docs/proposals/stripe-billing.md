@@ -1,8 +1,13 @@
 # Proposal: Stripe sandbox billing (checkout, billing portal, webhook)
 
-Status: **PROPOSAL for founder approval. Nothing is implemented, no Stripe setting is changed, no migration is applied.** Scope is the Stripe **sandbox (test mode)** only. `NEXT_PUBLIC_BILLING_ENABLED` stays `false`; no plan or price changes; the existing test mode product and price IDs in [../stripe.md](../stripe.md) are reused and nothing new is created in Stripe.
+Status: **PROPOSAL; business decisions recorded 2026-11-07 (section 0). Nothing is implemented, no Stripe setting is changed, no migration is applied.** Scope is the Stripe **sandbox (test mode)** only. `NEXT_PUBLIC_BILLING_ENABLED` stays `false`; no plan or price changes; the existing test mode product and price IDs in [../stripe.md](../stripe.md) are reused and nothing new is created in Stripe.
 
 Inputs already decided: webhook endpoint `https://victress.gg/api/stripe/webhook`, **snapshot** payloads, API version **`2026-10-28.endive`**, six events (`checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_failed`; **`invoice.paid`, not `invoice.payment_succeeded`**), signing secret in Vercel as `STRIPE_WEBHOOK_SECRET`. Plans and prices are as in `content/pricing.ts`: Rookie free; Pro $7.99 per month or $75 per year; Team $49 per month; Scout $249 per month.
+
+## 0. Business decisions (founder, 2026-11-07)
+- **Grace period: 7 days.** After a payment fails, the paid plan stays for 7 days; after that the account drops to Rookie until the payment succeeds.
+- **Annual plans: disabled for launch.** Monthly plans only. Pro annual (`STRIPE_PRICE_PRO_ANNUAL`, $75 per year) stays defined in Stripe and in `content/pricing.ts` but is not offered at checkout and not mapped by the webhook until a later approval.
+- **Infrastructure requirement: Supabase Pro before any billing enablement.** The project must be upgraded to the Pro plan (backups) before `NEXT_PUBLIC_BILLING_ENABLED` can be switched on or the billing migration applied to production.
 
 ## 1. What gets built (three parts, in this order)
 
@@ -10,7 +15,7 @@ Inputs already decided: webhook endpoint `https://victress.gg/api/stripe/webhook
 | Table | Purpose | Notes |
 |---|---|---|
 | `billing_customers` | one row per player account that has a Stripe customer | `profile_id` (pk, references `profiles` on delete cascade), `stripe_customer_id` (unique), `created_at`. No card data, ever. |
-| `subscriptions` | the current state of a subscription, as last reported by Stripe | `stripe_subscription_id` (pk), `profile_id`, `plan` (`pro`, `team` or `scout`, derived from the price id), `billing_interval` (`month` or `year`), `status` (Stripe's value), `current_period_end`, `cancel_at_period_end`, `stripe_price_id`, `last_paid_at`, `last_event_created` (for ordering), `updated_at`. |
+| `subscriptions` | the current state of a subscription, as last reported by Stripe | `stripe_subscription_id` (pk), `profile_id`, `plan` (`pro`, `team` or `scout`, derived from the price id), `billing_interval` (`month` for launch; `year` is reserved for later), `status` (Stripe's value), `current_period_end`, `cancel_at_period_end`, `stripe_price_id`, `last_paid_at`, `last_event_created` (for ordering), `updated_at`. |
 | `stripe_events` | idempotency and audit | `event_id` (pk), `type`, `livemode`, `received_at`, `processed_at`, `outcome` (`applied`, `ignored`, `failed`). No payload bodies stored. |
 
 Row level security: players can **read their own** `billing_customers` and `subscriptions` rows; **nobody but `service_role` can write** any of the three; `stripe_events` is `service_role` only. Same pattern, dry run and rollback as the privacy steps. Applying it to production needs its own authorization, a fresh recount and awareness that the Free plan has no backups.
@@ -36,7 +41,7 @@ Row level security: players can **read their own** `billing_customers` and `subs
 
 ### C. Checkout, billing portal and `/settings/billing`
 - `/settings/billing` (signed in, victress.gg): shows the current plan from the database, an upgrade button per paid plan and a "Manage billing" button for accounts that have a customer.
-- **Checkout:** a server action creates a Checkout Session in `subscription` mode. The price comes only from a server side allow list built from `STRIPE_PRICE_PRO_MONTHLY`, `STRIPE_PRICE_PRO_ANNUAL`, `STRIPE_PRICE_TEAM_MONTHLY` (the client sends a plan name, never a price id). `client_reference_id` is the player's profile id; the existing Stripe customer is reused or created. Success and cancel URLs are on `victress.gg/settings/billing`. Hosted checkout, so no card field is ever on our pages.
+- **Checkout:** a server action creates a Checkout Session in `subscription` mode. The price comes only from a server side allow list built from `STRIPE_PRICE_PRO_MONTHLY` and `STRIPE_PRICE_TEAM_MONTHLY` (annual Pro is disabled for launch, section 0) (the client sends a plan name, never a price id). `client_reference_id` is the player's profile id; the existing Stripe customer is reused or created. Success and cancel URLs are on `victress.gg/settings/billing`. Hosted checkout, so no card field is ever on our pages.
 - **Billing portal:** a server action creates a portal session for the account's own customer id and redirects. Cancel, payment method updates and invoice history are configured in the Stripe sandbox portal settings (a founder task, listed below).
 - Both actions refuse (server side, not only hidden in the interface) unless `NEXT_PUBLIC_BILLING_ENABLED` is exactly `"true"`, the user is signed in, and the sandbox safety guard in section 4 passes.
 - **Scout plan is not sold.** Checkout refuses the Scout price: decision 7 says Scout access is not sold or enabled until verification capacity and policy exist, and recruiter discovery stays disabled pending legal review. The Team plan does not include Scout Desk.
@@ -45,9 +50,9 @@ Row level security: players can **read their own** `billing_customers` and `subs
 `lib/entitlements.ts` already returns Rookie for everyone and is the single place that reads plan data. It will read the signed in user's own `subscriptions` row (through row level security, never from anything the user can edit) and map: `active` or `trialing` to the plan; `past_due` per section 3; `canceled` or none to Rookie. Plan to capability follows [entitlements.md](entitlements.md); the hub's plan chip and the Scout Desk lock then reflect real data.
 
 ## 3. Behaviour decisions to approve
-- **Failed payments:** proposal is to keep the plan for a short grace period after `past_due` (for example 3 days, a number to be set by the founder), then drop to Rookie until paid. Stripe's own retry schedule is configured in the sandbox settings.
+- **Failed payments:** decided (section 0): keep the plan for **7 days** after the payment first fails, then Rookie until paid. The date is computed from the first `invoice.payment_failed` for the billing period (stored on the subscription row). Stripe's own retry schedule is configured in the sandbox settings.
 - **Cancellation:** access continues to the end of the paid period (`cancel_at_period_end`), then Rookie.
-- **Plan changes between Pro monthly and annual:** via the portal; proration follows the portal configuration.
+- **Plan changes:** annual Pro is disabled for launch, so there is no monthly to annual switch; the portal is configured not to offer it.
 - **Trials, coupons, tax:** none proposed. Whether Stripe Tax is needed is a question for counsel and the accountant before any live payment.
 - **Receipts and invoices:** Stripe's hosted receipts only.
 
@@ -72,9 +77,9 @@ Row level security: players can **read their own** `billing_customers` and `subs
 
 ## 7. Founder tasks in Stripe and Vercel (not done by this proposal)
 - Confirm the sandbox endpoint uses API version `2026-10-28.endive`, snapshot payloads and exactly the six events.
-- Set `STRIPE_WEBHOOK_SECRET` (and later `STRIPE_SECRET_KEY` with a test key and the `STRIPE_PRICE_*` variables) in Vercel for Production only.
+- Set `STRIPE_WEBHOOK_SECRET` (and later `STRIPE_SECRET_KEY` with a test key and `STRIPE_PRICE_PRO_MONTHLY` and `STRIPE_PRICE_TEAM_MONTHLY`) in Vercel for Production only, after the Supabase Pro upgrade.
 - Configure the sandbox customer portal (allow cancel, update payment method, show invoices; restrict plan switching to Pro monthly and annual).
 - Decide retry and grace settings, terms and refund text (placeholders until counsel reviews).
 
 ## 8. Open questions
-Grace period length; whether annual Pro is offered at launch; what text the checkout and portal show about cancellation and refunds (needs counsel; terms and privacy are placeholders); whether any purchase can proceed before Supabase is on Pro (recommendation: no, see the readiness checklist); when Scout becomes sellable (verification capacity and policy, decision 7).
+Decided: grace period (7 days), annual Pro (off for launch), Supabase Pro first. Still open: what text the checkout and portal show about cancellation and refunds (needs counsel; terms and privacy are placeholders); when Scout becomes sellable (verification capacity and policy, decision 7).
