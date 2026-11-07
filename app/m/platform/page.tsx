@@ -81,17 +81,17 @@ export default function Platform() {
                 className={`grid items-center gap-12 lg:grid-cols-2 ${i % 2 ? "lg:[&>*:first-child]:order-2" : ""}`}
               >
                 <div>
-                  <span
-                    className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${live ? "bg-crimson text-white" : "bg-surface-2 text-coral"}`}
-                  >
-                    {live ? h.statusLive : h.statusSoon}
-                  </span>
                   <h2
                     id={`${pillar.id}-title`}
-                    className="mt-4 font-display text-4xl font-bold leading-tight sm:text-5xl"
+                    className="font-display text-4xl font-bold leading-tight sm:text-5xl"
                   >
                     {pillar.title}
                   </h2>
+                  <span
+                    className={`mt-4 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${live ? "bg-crimson text-white" : "bg-surface-2 text-coral"}`}
+                  >
+                    {live ? h.statusLive : h.statusSoon}
+                  </span>
                   <p className="mt-4 max-w-md text-lg text-mute">
                     {pillar.line}
                   </p>

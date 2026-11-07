@@ -136,7 +136,6 @@ export const copy = {
   womenInEsports: {
     brand: "Victress",
     title: "Women in Esports",
-    eyebrow: "A shared value commitment",
     line: "Victress is called Victress for a purpose.",
     message:
       "Women who compete face extra barriers to being seen, developing and getting opportunities. We address them through the same infrastructure we build for every player.",

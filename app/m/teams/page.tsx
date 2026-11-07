@@ -33,8 +33,8 @@ export default function Teams() {
       <ul className="mt-20 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {t.benefits.map((b) => (
           <Card as="li" key={b.title} className="reveal">
-            {b.soon ? <span className="rounded-full bg-surface-2 px-3 py-1 text-xs font-semibold text-coral">{t.soonBadge}</span> : null}
-            <h2 className={`font-display text-2xl font-bold ${b.soon ? "mt-3" : ""}`}>{b.title}</h2>
+            <h2 className="font-display text-2xl font-bold">{b.title}</h2>
+            {b.soon ? <span className="mt-3 inline-flex rounded-full bg-surface-2 px-3 py-1 text-xs font-semibold text-coral">{t.soonBadge}</span> : null}
             {b.line ? <p className="mt-2 text-mute">{b.line}</p> : null}
           </Card>
         ))}

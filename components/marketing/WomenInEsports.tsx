@@ -21,18 +21,13 @@ export function WomenInEsports() {
         className="-right-40 -top-6 hidden w-[760px] max-w-none sm:block"
       />
       <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
-        <span className="inline-flex rounded-full bg-surface-2 px-3 py-1 text-xs font-semibold text-signal">
-          {e.eyebrow}
-        </span>
-        {/* Accessible name is the full written reference: "Victress Women in Esports". */}
+        {/* Nothing sits above the headline. The accessible name stays the full written reference: "Victress Women in Esports". */}
         <h2
           id="women-in-esports-title"
-          className="mt-4 font-display font-bold leading-tight"
+          className="font-display text-3xl font-bold leading-tight sm:text-4xl"
         >
-          <span className="block text-sm uppercase tracking-[0.18em] text-mute">
-            {e.brand}
-          </span>{" "}
-          <span className="mt-1 block text-3xl sm:text-4xl">{e.title}</span>
+          <span className="sr-only">{e.brand} </span>
+          {e.title}
         </h2>
         <p className="mt-3 text-mute">{e.line}</p>
         <p className="mt-2 max-w-2xl text-lg">{e.message}</p>

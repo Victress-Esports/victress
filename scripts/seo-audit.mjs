@@ -216,7 +216,7 @@ const pages = [
       "Turn practice into progress.",
       "Performance intelligence and player development infrastructure for competitive esports.", "Explore the Platform", "Become a Design Partner", "Three products, one pathway.",
       "Scrim Intelligence", "Player Resume", "Scout Desk", "Available now", "Get started", "Log in",
-      "Women in Esports", "A shared value commitment", "Victress is called Victress for a purpose.", "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment.",
+      "Women in Esports", "Victress is called Victress for a purpose.", "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment.",
       "VALORANT", "Counter-Strike 2", "Rocket League", "League of Legends", "Apex Legends", "Overwatch 2",
       "What is Victress?", "How can recruiters discover players?", "Self-reported", "Coming soon", "Sample",
     ],
