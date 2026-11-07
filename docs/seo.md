@@ -109,3 +109,18 @@ Public profiles are **not indexed by default**. Players turn on **Show my profil
 ## Minimum age
 
 The sign-in screen (which is also the signup screen) says "You must be 13 or older to use Victress" and links to the Terms and Privacy Policy. The terms draft starts with the same requirement. This is a notice only: there is no age gate or verification. Have counsel confirm the wording, and whether a checkbox is wanted, before launch.
+
+## Signed in pages in a real browser (local stand-in)
+
+`scripts/mock-auth.mjs` simulates sign in on the mock Supabase server. It is test tooling that lives outside the app: no mock auth code is in `app/`, `lib/` or `components/`, so it cannot be in a production bundle, and it only runs with `MOCK_AUTH=1` on 127.0.0.1. Personas: Rookie player, Team member, Recruiter or scout (still the Rookie plan, because no entitlement source exists), and a new user who is not onboarded.
+
+```bash
+export NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:4010 NEXT_PUBLIC_SUPABASE_ANON_KEY=mock SUPABASE_SERVICE_ROLE_KEY=mock-service
+npm run build        # NEXT_PUBLIC values are baked in at build time: do not deploy this build
+MOCK_AUTH=1 MOCK_APP_ORIGIN=http://app.localhost:3301 node scripts/mock-supabase.mjs 4010 &
+npx next start -p 3301 &
+SCRIM_UPLOADS_ENABLED=true npx next start -p 3302 &
+node scripts/signed-in-test.mjs 3301 3302 4010
+```
+
+To click around by hand, open `http://app.localhost:4010/dev/auth` and pick a persona. Rebuild without these variables before any real deploy.
