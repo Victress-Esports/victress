@@ -70,8 +70,9 @@ begin
   begin perform public.handle_available('free_name'); r := array_append(r, ('FAIL anon handle_available')::text); exception when insufficient_privilege then r := array_append(r, ('PASS anon cannot call handle_available')::text); end;
   begin perform public.team_roster(); r := array_append(r, ('FAIL anon team_roster')::text); exception when insufficient_privilege then r := array_append(r, ('PASS anon cannot call team_roster')::text); end;
   begin perform public.profile_payload(ua, allf); r := array_append(r, ('FAIL anon profile_payload')::text); exception when insufficient_privilege then r := array_append(r, ('PASS anon cannot call profile_payload')::text); end;
-  -- the join page still works for anonymous visitors (a join code is already a capability)
-  begin perform public.team_invite_info(code); r := array_append(r, ('PASS anon can still read team_invite_info')::text); exception when others then r := array_append(r, ('FAIL anon team_invite_info broke: ' || sqlerrm)::text); end;
+  -- the join page resolves invite codes on the server (service role) since 20261107000610; anon cannot call it directly
+  -- (before 20261107000610 anon can still call it; after it, only the service role can. supabase/tests/invite_info_server_only.sql asserts the latter.)
+  begin perform public.team_invite_info(code); r := array_append(r, ('PASS anon can call team_invite_info (before 20261107000610)')::text); exception when insufficient_privilege then r := array_append(r, ('PASS anon cannot call team_invite_info (server only, after 20261107000600)')::text); when others then r := array_append(r, ('FAIL anon team_invite_info broke: ' || sqlerrm)::text); end;
   reset role;
 
   -- ---- 3. Signed in users cannot call server only functions either (token resolution stays server side)

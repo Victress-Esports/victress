@@ -80,6 +80,27 @@ async function auditPage({ host, path, index, types = [], og = true, hidden = fa
   ok(title.length > 0 && title.length < 60, `title length ${title.length} (must be 1-59)`);
   ok(desc.length > 0 && desc.length < 160, `description length ${desc.length} (must be 1-159)`);
   ok((title.match(/\| Victress/g) ?? []).length <= 1, "title repeats '| Victress'");
+  // Founder rule: titles and descriptions are plain industry phrases that say what the page is. They are never the tagline.
+  {
+    const tagline = /turn practice into progress/i;
+    // Founder rule (2026-11-07): titles and descriptions are indexed, so they describe only what is live. No "coming soon", no
+    // "planned", no unbuilt product names. Those labels stay on the pages themselves, next to the unbuilt features.
+    const unbuilt = /coming soon|\bplanned\b|scout desk|scrim intelligence|scrim analysis/i;
+    const social = ["og:title", "og:description", "twitter:title", "twitter:description"].map((k) => [k, meta(html, k.startsWith("og") ? "property" : "name", k) ?? ""]);
+    ok(!tagline.test(title), `title contains the tagline: ${title}`);
+    ok(!tagline.test(desc), "meta description contains the tagline");
+    for (const [k, v] of social) ok(!tagline.test(v), `${k} contains the tagline`);
+    ok(!unbuilt.test(title), `title mentions coming soon, planned or an unbuilt product: ${title}`);
+    ok(!unbuilt.test(desc), `meta description mentions coming soon, planned or an unbuilt product: ${desc}`);
+    for (const [k, v] of social) ok(!unbuilt.test(v), `${k} mentions coming soon, planned or an unbuilt product: ${v}`);
+    // JSON-LD "description" fields (the slogan is the one place the tagline is kept on purpose; FAQ answers are page content).
+    const walk = (o, out = []) => { if (Array.isArray(o)) o.forEach((x) => walk(x, out)); else if (o && typeof o === "object") for (const [k, v] of Object.entries(o)) { if (k === "description" && typeof v === "string") out.push(v); else walk(v, out); } return out; };
+    for (const blk of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
+      let ldj = null; try { ldj = JSON.parse(blk[1]); } catch {}
+      if (ldj) for (const d of walk(ldj)) { ok(!tagline.test(d) && !unbuilt.test(d), `JSON-LD description mentions the tagline, coming soon, planned or an unbuilt product: ${d.slice(0, 80)}`); }
+    }
+    if (host === MARKETING && index) ok(/ \| Victress$/.test(title), `marketing title is not "<what the page is> | Victress": ${title}`);
+  }
   if (seen.title.has(title)) fail(`title duplicates ${seen.title.get(title)}`);
   else seen.title.set(title, label);
   if (seen.desc.has(desc)) fail(`description duplicates ${seen.desc.get(desc)}`);
@@ -222,17 +243,17 @@ const pages = [
     contains: [
       "Turn practice into progress.",
       "Performance intelligence and player development infrastructure for competitive esports.", "Explore the Platform", "Become a Design Partner", "Three products, one pathway.",
-      "Scrim Intelligence", "Player Resume", "Scout Desk", "Available now", "Get started", "Log in",
+      "Scrim Intelligence", "Player Resume", "Scout Desk", "In development", "Get started", "Log in",
       "Women in Esports", "Victress is called Victress for a purpose.", "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment.",
       "VALORANT", "Counter-Strike 2", "Rocket League", "League of Legends", "Apex Legends", "Overwatch 2",
       "What is Victress?", "How can recruiters discover players?", "Self-reported", "Coming soon", "Sample",
     ],
     // Approved homepage values. The wings are the logo (nav and footer) and a faint cropped backdrop; the full-size art file itself must not be a hero visual.
     exact: {
-      title: "Turn practice into progress. | Victress",
-      description: "Players enter their own stats and teams manage rosters today. Player Resume is in development. Scrim Intelligence and Scout Desk are coming soon.",
+      title: "Esports Player Development and Recruitment | Victress",
+      description: "Esports player development and recruitment for players, teams, coaches and collegiate programs. Create an account with source labeled stats and manage rosters.",
     },
-    notContains: ["wings-480", "wings-720", "/brand/wings.webp", "Claim your name"],
+    notContains: ["wings-480", "wings-720", "/brand/wings.webp", "Claim your name", "Available now", "shareable player profile", "share one link"],
   },
   mk(MARKETING, "/pricing", true, ["FAQPage", "BreadcrumbList"]),
   mk(MARKETING, "/teams", true, ["BreadcrumbList"]),
@@ -386,6 +407,7 @@ console.log("\n######## HOME FAQ, PRODUCT SCHEMA, llms.txt ########");
   const llms = await get(MARKETING, "/llms.txt");
   console.log(`   /llms.txt -> ${llms.status} ${llms.headers["content-type"]}, ${llms.body.length} chars`);
   ok(llms.status === 200 && /text\/plain/.test(llms.headers["content-type"] ?? ""), "llms.txt should be 200 text/plain");
+  ok(!/turn practice into progress/i.test(llms.body.slice(0, 600)) && /esports player development and recruitment platform/i.test(llms.body.slice(0, 300)), "llms.txt must open with the plain description, not the tagline");
   ok(/Coming soon/.test(llms.body) && /Self-reported/.test(llms.body) && /private by default and are not indexed by search engines/.test(llms.body), "llms.txt must separate planned from live features and state the profile privacy rule");
   ok(!/Perform\. Compete|performance into progress|Your stats\. Your profile|ounding club|privacy-friendly analytics/.test(llms.body), "llms.txt contains a retired slogan or an unapproved claim");
   // Structure: Women in Esports has its own "Why Victress exists" section, Player Resume is stated as available now, no internal references.

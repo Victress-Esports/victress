@@ -4,57 +4,57 @@
 export const seo = {
   marketing: {
     home: {
-      title: "Turn practice into progress. | Victress",
-      description: "Players enter their own stats and teams manage rosters today. Player Resume is in development. Scrim Intelligence and Scout Desk are coming soon.",
+      title: "Esports Player Development and Recruitment | Victress",
+      description: "Esports player development and recruitment for players, teams, coaches and collegiate programs. Create an account with source labeled stats and manage rosters.",
     },
     pricing: {
-      title: "Victress pricing: free to start",
-      description: "Rookie is free forever. Pro, Team and Scout are coming soon. Join the waitlist and we'll email you once when they open.",
+      title: "Pricing and Plans | Victress",
+      description: "Victress plans for esports players, teams and coaches. Rookie is free to use. See what each plan includes.",
     },
     teams: {
-      title: "Victress for teams: run your club in one place",
-      description: "Start a team, share one invite link, and see your whole roster in one place. Shared scrim review is coming soon.",
+      title: "Team Rosters for Esports Clubs | Victress",
+      description: "Start an esports team, invite players with a link and see your whole roster in one place.",
     },
     about: {
-      title: "About Victress",
-      description: "Why Victress exists: infrastructure that turns competitive practice into evidence, recognition and opportunity. See what is available now and what is planned.",
+      title: "About Our Esports Platform | Victress",
+      description: "What Victress is and who it serves: esports players, teams, coaches and collegiate programs. See what works today.",
     },
     platform: {
-      title: "Victress platform: from practice to opportunity",
-      description: "How Scrim Intelligence, Player Resume and Scout Desk work together. See what is available now and what is coming soon.",
+      title: "Esports Platform Products | Victress",
+      description: "How Victress helps esports players and teams: player accounts, stats labeled by source and team rosters, in one place.",
     },
     womenInEsports: {
       title: "Women in Esports | Victress",
-      description: "How Victress uses Player Resume, Scrim Intelligence and Scout Desk to address barriers women in competitive esports face. See what is available now.",
+      description: "Women in Esports is an intentional shared value commitment within Victress, delivered through the same products that serve every player and team.",
     },
     designPartner: {
-      title: "Founding Design Partner pilot | Victress",
-      description: "A 4 to 6 week pilot for women's rosters, Game Changers teams and collegiate programs. See what partners receive and what we ask.",
+      title: "Design Partner Pilot for Esports Teams | Victress",
+      description: "A 4 to 6 week pilot for women's rosters, Game Changers teams and collegiate programs. See what partners receive and what we ask. Places are not guaranteed.",
     },
     partnerships: {
-      title: "Partnerships | Victress",
+      title: "Esports Partnerships | Victress",
       description: "Partnership conversations for collegiate esports programs, competitive teams and tournament organizers.",
     },
     contact: {
-      title: "Contact | Victress",
-      description: "Contact Victress: apply to the design partner pilot, join early access as a player, or email the team.",
+      title: "Contact the Team | Victress",
+      description: "Contact Victress: apply to the design partner pilot, request early access as a player, or email the team.",
     },
     privacy: {
-      title: "Privacy | Victress",
+      title: "Privacy Policy | Victress",
       description: "How Victress handles your email and the profile details you choose to share. Draft text, pending legal review.",
     },
     terms: {
-      title: "Terms | Victress",
+      title: "Terms of Use | Victress",
       description: "The rules for using Victress: you must be 13 or older, and self-reported stats are labeled and not verified. Draft text, pending legal review.",
     },
   },
   app: {
     home: {
-      title: "Claim your name | Victress",
-      description: "Pick your name on victress.gg, add your game, and share one player profile anywhere.",
+      title: "Create an Esports Player Account | Victress",
+      description: "Create a Victress account, pick your name, add your games and enter your own stats. Profiles are private by default.",
     },
     login: {
-      title: "Sign in | Victress",
+      title: "Sign In | Victress",
       description: "Sign in with Discord, Google or an email link. No passwords.",
     },
     onboarding: {
@@ -91,7 +91,7 @@ export const seo = {
 /** Leaderboard pages are built per game. */
 export const leaderboardSeo = (gameName: string) => ({
   title: `${gameName} leaderboard | Victress`,
-  description: `See how ${gameName} players on Victress compare. Stats are entered by players and labeled Self-reported.`,
+  description: `${gameName} leaderboard on Victress. Stats are entered by players and labeled Self-reported.`,
 });
 
 /** Public profile pages. Never longer than the limits, whatever the player typed. */
