@@ -19,6 +19,10 @@ Governing document: [docs/strategy/victress-business-purpose.md](../strategy/vic
 | [Minors and recruiter access](minors-and-recruiter-access.md) | Restriction maintained, questions for counsel |
 | [Plan entitlement matrix](entitlements.md) | Revision 2.2: one team per Team subscription and "up to 10 members" approved as direction; coach permissions a separate, unbuilt concept; prices unchanged |
 | [About page draft](about-page-draft.md) | Draft only; deferred for the founder's separate language review; nothing published |
+| [Scrim Intelligence](scrim-intelligence.md) | Proposal: pipeline, candidate games ranked (provisional, mostly unverified), the real files the founder must supply, consent for uploaded demos, failure handling, validation plan. **No game approved, parsing not proven** |
+| [Reporting, blocking and moderation](reporting-blocking-moderation.md) | Proposal: what exists (nothing), the minimum before each exposure feature, tables, ownership, decisions. Nothing implemented; owner not assigned |
+| [Dashboard migrations production plan](dashboard-migrations-production-plan.md) | Proposal (PR #27): order, dry runs, tested rollback, Pro recommendation, pausing sign ups |
+| [Status of every feature](../status.md) | Built, merged, on production, gated by, blocked by |
 | Age enforcement design | Waits on counsel (see minors); not written |
 | AI crawler policy | Not written in the repo; options are in `docs/compliance-audit.md` |
 | `rls_auto_enable()` change | Not written; the function must not be modified until separately approved |
