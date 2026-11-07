@@ -1,4 +1,4 @@
--- Run after all migrations including 20261107000600_invite_info_server_only.sql. Reports through a raised error so nothing is kept.
+-- Run after all migrations including 20261107000600 and 20261107000610. Reports through a raised error so nothing is kept.
 do $t$
 declare
   r text[] := '{}';

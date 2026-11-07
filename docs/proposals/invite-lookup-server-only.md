@@ -8,16 +8,18 @@ Part of [team-invite-rate-limiting.md](team-invite-rate-limiting.md): this is op
 `public.team_invite_info(code)` is callable by anyone with the public key, through `/rest/v1/rpc/team_invite_info`. It answers a code with the team name and size, so an attacker can test guesses at any speed and the application never sees them. Codes are now 130 bits for new teams (applied 2026-11-07), which makes guessing impractical, but the pilot readiness list still requires a throttle and a server side lookup, and production teams created before that change (none today) would still have 48 bit codes.
 
 ## What changes
-1. Migration `20261107000600_invite_info_server_only.sql`:
-```sql
-revoke execute on function public.team_invite_info(text) from public, anon, authenticated;
-grant execute on function public.team_invite_info(text) to service_role;
-```
+1. Two migrations, in this order:
+   - `20261107000600_invite_info_service_grant.sql` (additive): `grant execute on function public.team_invite_info(text) to service_role;`. Needed because on current Supabase defaults the service role does **not** get execute on functions created by migrations; this was verified on the staging project (`has_function_privilege` was false and a probe call as `service_role` returned permission denied). The two privileges are not interchangeable: the old page needs anon execute, the new page needs service_role execute.
+   - `20261107000610_invite_info_revoke_public.sql` (permission change): `revoke execute on function public.team_invite_info(text) from public, anon, authenticated;`.
 2. `app/a/join/[code]/page.tsx` calls it with the service role client (`lib/supabase-admin.ts`), after an in memory limit of 20 lookups per IP per 10 minutes (`lib/ratelimit.ts`). A limited visitor sees the same page as for an invalid code, plus a "try again later" line; nothing reveals whether a code exists. **The limit is stored in memory (a `Map` in `lib/ratelimit.ts`), per server instance. It does not hold across serverless instances**: each warm instance keeps its own counts, a cold start resets them, and N instances allow roughly N times the limit. It is a speed bump, not a guarantee. See "Database backed counter (proposed)" below.
 3. `join_team` is unchanged: it needs a signed in user.
 
 ## Deployment order (important)
-The new page code works **before** the migration (the service role can already call the function) and **after** it. The old page code breaks **after** the migration (the anon call is denied, so every invite link would look invalid). Therefore: deploy the code first, then apply the migration.
+1. Apply `000600` (additive grant). The current page keeps working: it uses the anonymous path, which is unchanged.
+2. Deploy the new join page (service role path). It works because of step 1.
+3. Confirm an invite link still shows the team name.
+4. Apply `000610` (revoke). The old page would break here, which is why the code goes first.
+Applying `000610` alone, or deploying the page before `000600`, makes every invite link look invalid (permission denied is swallowed into the invalid invite page).
 
 ## What this does and does not close
 - **Closes:** the anonymous path. After the migration, `POST /rest/v1/rpc/team_invite_info` with the public key is denied, so codes cannot be tested through the lookup function.
@@ -56,8 +58,8 @@ Costs and decisions: one extra database round trip per join page view; the table
 ## Dry run (one call, ends in a rollback), to run on staging first
 ```sql
 begin;
-revoke execute on function public.team_invite_info(text) from public, anon, authenticated;
-grant execute on function public.team_invite_info(text) to service_role;
+grant execute on function public.team_invite_info(text) to service_role;   -- 000600
+revoke execute on function public.team_invite_info(text) from public, anon, authenticated;   -- 000610
 do $verify$
 declare r text[] := '{}';
 begin
@@ -74,9 +76,9 @@ Expected: `anon=false authenticated=false service_role=true`.
 ## Rollback
 ```sql
 -- ROLLBACK
-grant execute on function public.team_invite_info(text) to anon, authenticated, service_role;
+grant execute on function public.team_invite_info(text) to anon, authenticated;
 ```
-Restores the previous behavior exactly. Tested on a throwaway Postgres 16 by `supabase/tests/local/run-invite-info.sh`.
+Restores the anonymous and signed in access (the service role grant from 000600 can stay). Tested on a throwaway Postgres 16 by `supabase/tests/local/run-invite-info.sh`.
 
 ## Anonymous API check after applying
 `POST /rest/v1/rpc/team_invite_info` with the public key and `{"p_code":"x"}` must return 401 or 403 (before the change it returns 200 `null`). The join page for a valid code must still show the team name.
