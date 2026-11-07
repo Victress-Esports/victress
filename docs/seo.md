@@ -124,3 +124,9 @@ node scripts/signed-in-test.mjs 3301 3302 4010
 ```
 
 To click around by hand, open `http://app.localhost:4010/dev/auth` and pick a persona. Rebuild without these variables before any real deploy.
+
+## Auditing the live sites
+
+`node scripts/seo-audit.mjs live` runs the same audit against the real production sites over https (read only GET requests, no accounts). Checks that need the mock's sample profiles are skipped, boards with fewer than 10 players are expected to be noindex, and the www redirects are checked against the real www hosts. In a sandbox that reaches the internet through a proxy: `NODE_USE_ENV_PROXY=1 NODE_EXTRA_CA_CERTS=<proxy ca bundle> node scripts/seo-audit.mjs live`. The audit prints how many checks ran and how many failed.
+
+The home page title and description, and the shape of `/llms.txt` (a "Why Victress exists" section first, Player Resume stated as available now, nothing referring to internal documents), are asserted by the audit.

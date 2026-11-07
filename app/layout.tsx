@@ -10,7 +10,7 @@ export const viewport: Viewport = { themeColor: "#171717", colorScheme: "dark" }
 
 export const metadata: Metadata = {
   applicationName: "Victress",
-  title: { default: "Victress | Esports Player Profiles & Performance", template: "%s | Victress" },
+  title: { default: "Turn practice into progress. | Victress", template: "%s | Victress" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
