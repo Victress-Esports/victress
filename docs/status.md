@@ -1,6 +1,6 @@
 # Status: what is built, merged and live
 
-As of 2026-11-07 (night). PRs #24, #22, #23, #26, #27, #28, #31 and #25 are merged; #29 (this page) and #30 follow. #11 (analytics) stays held. Checked against `main` (`8dbf628`), the open pull requests, and the production database `pmamceqshyfptvjgimsf` (read only: schema, privileges, row counts) plus the live sites (read only GETs and the anonymous API). Staging is `victress-staging` (`cmvifuayvqhbfkeskoqi`).
+As of 2026-11-07 (night). PRs #24, #22, #23, #26, #27, #28, #31 and #25 are merged; #29 (this page) and #30 follow. #11 (analytics) stays held. Checked against `main` (after #25), the open pull requests, and the production database `pmamceqshyfptvjgimsf` (read only: schema, privileges, row counts) plus the live sites (read only GETs and the anonymous API). Staging is `victress-staging` (`cmvifuayvqhbfkeskoqi`).
 
 How to read the columns. **Built**: the code exists. **Merged**: it is on `main`. **On production**: the code is deployed and the database objects it needs exist (checked against the production schema), not that anyone has used it. **Gate**: the flag or migration that switches it on. **Unknown** means this repository and the read only checks cannot tell: Vercel environment variables, the Supabase Auth dashboard settings and email templates, and the Resend account are not visible from here.
 
@@ -13,10 +13,10 @@ How to read the columns. **Built**: the code exists. **Merged**: it is on `main`
 ## Feature table
 | Feature | Built | Merged | On production | Gate (flag or migration) | What blocks it |
 |---|---|---|---|---|---|
-| Marketing pages (home, platform, Women in Esports, design partner, pricing, teams, about, partnerships, contact, privacy, terms) | Yes | Yes | Yes (all 200; live SEO audit 691 checks, 0 failed) | None | `main` still says Player Resume is "Available now" and "shareable" in places; fixed in #22 (unmerged). Titles and descriptions still use the tagline until #28. Legal text is draft, pending counsel |
-| `llms.txt`, `robots.txt`, sitemap, structured data | Yes | Yes | Yes | None | Nothing; wording follows the same unmerged fixes |
-| Sign up and onboarding (Discord, Google, email link) | Yes | Yes | **Email link: yes, completed by the founder.** Discord and Google: **unknown** (provider setup is in the Supabase dashboard) | Supabase Auth settings (sign up on or off) | Auth email templates unknown (proposal drafted); name step showed a hard coded "taken" line and the welcome email promised a link (both fixed in #22, unmerged); Pro (no backups on Free) |
-| Dashboard: Overview | Yes | Yes | Yes (schema) | None | Hub labels claim "Available now" for Player Resume and Privacy and sharing (fixed in #22) |
+| Marketing pages (home, platform, Women in Esports, design partner, pricing, teams, about, partnerships, contact, privacy, terms) | Yes | Yes | Yes (all 200; live SEO audit 691 checks, 0 failed) | None | The copy now matches what works (fixed in #22, merged): Player Resume is In development, nothing is called "Available now" that is not. Titles and descriptions (#28, #31, merged) are plain, tagline free and describe only what is live. Legal text is draft, pending counsel |
+| `llms.txt`, `robots.txt`, sitemap, structured data | Yes | Yes | Yes | None | Nothing; wording follows the merged fixes |
+| Sign up and onboarding (Discord, Google, email link) | Yes | Yes | **Email link: yes, completed by the founder.** Discord and Google: **unknown** (provider setup is in the Supabase dashboard) | Supabase Auth settings (sign up on or off) | Auth email templates unknown (proposal drafted); name step showed a hard coded "taken" line and the welcome email promised a link (both fixed in #22, merged); Pro (no backups on Free) |
+| Dashboard: Overview | Yes | Yes | Yes (schema) | None | Hub labels corrected in #22 (merged) |
 | Dashboard: Profile (name, photo, bio, games) | Yes | Yes | Yes (schema; `avatars` bucket exists). Not exercised beyond onboarding | None | Nothing known; photo upload is untested on production |
 | Dashboard: Stats (self-reported) | Yes | Yes | Schema yes; **0 entries, never exercised on production** | None | Only a real entry will show |
 | Dashboard: Team | Yes | Yes | Schema yes; **0 teams, never exercised** | None | Join page calls the public API directly (no throttle), see #25 |
@@ -36,9 +36,9 @@ How to read the columns. **Built**: the code exists. **Merged**: it is on `main`
 | Reporting, blocking, moderation | **No** (no code, no tables) | n/a | No | None exists | Owner recorded (Matt Hill, 2026-11-07); deputy, hours, report channel and tooling not established. Proposal: `proposals/reporting-blocking-moderation.md` |
 | Waitlist form | Yes | Yes | Grant applied 2026-11-07 (migration `20261107204332`); **0 rows at last check, no submission seen since** | None | Needs one real submission to confirm; the confirmation email depends on Resend |
 | Contact and design partner forms | Yes (send an email to `hello@victressesports.com`, store nothing) | Yes | Code yes; **Resend configuration unknown** | `RESEND_API_KEY` (Vercel) | Unknown until a form is submitted. On `main` no acknowledgement email goes to the submitter; a fixed plain text one is added in #22 (tested against a local Resend stand in) |
-| Emails the app sends (welcome, waitlist) | Yes | Yes | **Unknown** (Resend not visible) | `RESEND_API_KEY`, `RESEND_FROM_EMAIL` | Welcome text promised a shareable link (fixed in #22); list in `emails.md` (after #22 merges) |
-| Supabase Auth emails (confirm signup, magic link) | n/a (dashboard) | n/a | **Unknown text** | Supabase dashboard | Proposal drafted in #22 |
-| Analytics | Vercel Analytics component loads when `VERCEL` is set; #11 (consent aware analytics) is unmerged | Component yes; #11 no | **Unknown** whether Vercel Analytics is enabled for the project | Vercel project setting | Consent control must be built and approved first (pilot readiness list) |
+| Emails the app sends (welcome, waitlist) | Yes | Yes | **Unknown** (Resend not visible) | `RESEND_API_KEY`, `RESEND_FROM_EMAIL` | Welcome text promised a shareable link (fixed in #22); list in `emails.md` |
+| Supabase Auth emails (confirm signup, magic link) | n/a (dashboard) | n/a | **Unknown text** | Supabase dashboard | Proposal in `proposals/auth-email-templates.md`; waiting for the founder to paste the current templates |
+| Analytics | Vercel Analytics component loads when `VERCEL` is set; #11 (consent aware analytics) is held, unmerged | Component yes; #11 no | **Unknown** whether Vercel Analytics is enabled for the project | Vercel project setting | Consent control must be built and approved first (pilot readiness list) |
 
 ## Feature flags (code defaults; production values are unknown)
 `NEXT_PUBLIC_BILLING_ENABLED`, `DIRECTORY_ENABLED`, `SHARING_ENABLED`, `SCRIM_UPLOADS_ENABLED`: all default off in code and `.env.example`. Vercel's settings are not visible from here, so the production values are **unknown**; the anonymous checks cannot show them (private profiles return the same 404 either way).
