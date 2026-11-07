@@ -59,8 +59,8 @@ Production recorded the expand step as version **`20261107052543`** (name `priva
 | `20261107000500_longer_invite_codes.sql` | `20261107060917` | `longer_invite_codes` |
 | `20261107000620_waitlist_service_role_grants.sql` | `20261107204332` | `waitlist_service_role_grants` |
 | `20261107000300_dashboard_foundation.sql` + `20261107000310_upload_allowlist.sql` (one transaction) | `20261107212657` | `dashboard_foundation_with_allowlist` |
-| `20261107000400_scrim_matches.sql` | (stamped at apply time; see `list_migrations`) | `scrim_matches` |
-| `20261107000600_invite_info_service_grant.sql` | (stamped at apply time; see `list_migrations`) | `invite_info_service_grant` |
+| `20261107000400_scrim_matches.sql` | `20261107212711` | `scrim_matches` |
+| `20261107000600_invite_info_service_grant.sql` | `20261107212726` | `invite_info_service_grant` |
 
 Applied out of repository order on 2026-11-07 (founder approved, one call, read only verification after): `20261107000620_waitlist_service_role_grants.sql`. It sits after the unapplied dashboard files in repository order but is independent of them (it touches only `public.waitlist`). The offset between a repository file number and its production version is therefore not constant: production stamps the time of application.
 
