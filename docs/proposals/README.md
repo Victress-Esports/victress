@@ -19,6 +19,10 @@ Governing document: [docs/strategy/victress-business-purpose.md](../strategy/vic
 | [Minors and recruiter access](minors-and-recruiter-access.md) | Restriction maintained, questions for counsel |
 | [Plan entitlement matrix](entitlements.md) | Revision 2.2: one team per Team subscription and "up to 10 members" approved as direction; coach permissions a separate, unbuilt concept; prices unchanged |
 | [About page draft](about-page-draft.md) | Draft only; deferred for the founder's separate language review; nothing published |
+| [Join team throttling and invite rate limit plan](join-team-throttling.md) | Proposal: every invite path and its limit, a database attempt counter, edge limit, tests; nothing implemented |
+| [Analytics consent control](analytics-consent-control.md) | Design only; #11 stays unmerged and analytics off |
+| [Women in Esports wording](core-expression-wording.md) | Every place that says "core expression" or "why Victress exists", with the proposed wording; nothing changed |
+| [Feature flag readiness](feature-flag-readiness.md) | Test evidence per flag (sharing, directory, uploads) and what blocks Preview and production |
 | [Scrim Intelligence](scrim-intelligence.md) | Proposal: pipeline, candidate games ranked (provisional, mostly unverified), the real files the founder must supply, consent for uploaded demos, failure handling, validation plan. **No game approved, parsing not proven** |
 | [Reporting, blocking and moderation](reporting-blocking-moderation.md) | Proposal: what exists (nothing), the minimum before each exposure feature, tables, ownership, decisions. Nothing implemented; owner not assigned |
 | [Dashboard migrations production plan](dashboard-migrations-production-plan.md) | Proposal (PR #27): order, dry runs, tested rollback, Pro recommendation, pausing sign ups |
