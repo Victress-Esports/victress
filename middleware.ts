@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { supabaseEnv } from "@/lib/supabase/env";
 import { bareHost, isLocalHost, isProdHost, siteFor } from "@/lib/hosts";
 
 /** Same-site relative paths only. */
@@ -31,8 +32,10 @@ export async function middleware(req: NextRequest) {
   let res = NextResponse.rewrite(url);
 
   // Product site: keep the Supabase session fresh. Only runs when the visitor has auth cookies.
-  const supaUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supaKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  // A missing URL or anon key on the product site is a deployment error: fail loudly, never skip the session refresh.
+  const supa = side === "a" ? supabaseEnv() : null;
+  const supaUrl = supa?.url;
+  const supaKey = supa?.anonKey;
   if (side === "a" && supaUrl && supaKey && req.cookies.getAll().some((c) => c.name.startsWith("sb-"))) {
     const supabase = createServerClient(supaUrl, supaKey, {
       cookies: {
