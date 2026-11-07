@@ -5,7 +5,14 @@ import { buttonClass } from "@/components/ui/Button";
 import { claimNameAction, finishOnboardingAction } from "@/app/a/onboarding/actions";
 import type { GameConfig } from "@/content/games";
 
-type Step = "name" | "game" | "role" | "rank";
+type Step = "type" | "name" | "game" | "role" | "rank";
+type AccountType = "player" | "team" | "recruiter";
+
+const TYPES: { id: AccountType; title: string; line: string }[] = [
+  { id: "player", title: "Player", line: "Build your Player Resume." },
+  { id: "team", title: "Team or coach", line: "Run a roster and follow your team." },
+  { id: "recruiter", title: "Recruiter or scout", line: "Scout Desk is not open yet. You can still make a player profile." },
+];
 
 const card =
   "min-h-16 rounded-2xl border border-line bg-surface px-5 py-4 text-left text-lg font-semibold transition-colors hover:border-white focus-visible:border-white aria-pressed:border-crimson aria-pressed:bg-crimson";
@@ -20,7 +27,8 @@ const NAME_MESSAGES: Record<string, string> = {
 
 export function OnboardingWizard({ games, needsName }: { games: GameConfig[]; needsName: boolean }) {
   const [pending, start] = useTransition();
-  const [step, setStep] = useState<Step>(needsName ? "name" : "game");
+  const [step, setStep] = useState<Step>("type");
+  const [accountType, setAccountType] = useState<AccountType>("player");
   const [game, setGame] = useState<GameConfig | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -29,11 +37,11 @@ export function OnboardingWizard({ games, needsName }: { games: GameConfig[]; ne
   // Games without fixed roles (Rocket League) skip the role step.
   const hasRoles = (g: GameConfig | null) => !g || g.roles.length > 0;
   const progressSteps: Step[] = ["game", ...(hasRoles(game) ? (["role"] as const) : []), "rank"];
-  const pct = step === "name" ? 0 : Math.round(((progressSteps.indexOf(step) + 1) / progressSteps.length) * 100);
+  const pct = step === "name" || step === "type" ? 0 : Math.round(((progressSteps.indexOf(step) + 1) / progressSteps.length) * 100);
 
   const finish = (g: GameConfig | null, r: string | null, k: string | null) =>
     start(async () => {
-      await finishOnboardingAction({ game: g?.id ?? null, role: r, rank: k });
+      await finishOnboardingAction({ game: g?.id ?? null, role: r, rank: k, account_type: accountType });
     });
 
   function pickGame(g: GameConfig) {
@@ -49,6 +57,10 @@ export function OnboardingWizard({ games, needsName }: { games: GameConfig[]; ne
     if (step === "game") return finish(null, null, null); // no game: nothing left to ask
     if (step === "role") return setStep("rank");
     if (step === "rank") return finish(game, role, null);
+  }
+  function pickType(t: AccountType) {
+    setAccountType(t);
+    setStep(needsName ? "name" : "game");
   }
   function back() {
     if (step === "rank") setStep(game && game.roles.length ? "role" : "game");
@@ -67,7 +79,9 @@ export function OnboardingWizard({ games, needsName }: { games: GameConfig[]; ne
   }
 
   const title =
-    step === "name"
+    step === "type"
+      ? "How will you use Victress?"
+      : step === "name"
       ? "Pick your name."
       : step === "game"
         ? "Pick your game."
@@ -75,7 +89,9 @@ export function OnboardingWizard({ games, needsName }: { games: GameConfig[]; ne
           ? `Pick your ${(game?.roleLabel ?? "role").toLowerCase()}.`
           : "Pick your rank.";
   const line =
-    step === "name"
+    step === "type"
+      ? "This sets up your account. It does not give access to anyone else's data."
+      : step === "name"
       ? "That one was taken. Choose another."
       : step === "game"
         ? "Where do you compete? You can add more later."
@@ -87,7 +103,7 @@ export function OnboardingWizard({ games, needsName }: { games: GameConfig[]; ne
 
   return (
     <div className="flex flex-col gap-8">
-      {step !== "name" ? (
+      {step !== "name" && step !== "type" ? (
         <div
           role="progressbar"
           aria-label="Onboarding progress"
@@ -104,6 +120,17 @@ export function OnboardingWizard({ games, needsName }: { games: GameConfig[]; ne
         <h1 className="font-display text-4xl font-bold">{title}</h1>
         <p className="mt-2 text-mute">{line}</p>
       </div>
+
+      {step === "type" ? (
+        <div className="flex flex-col gap-3" role="group" aria-label="Account type">
+          {TYPES.map((t) => (
+            <button key={t.id} type="button" aria-pressed={accountType === t.id} onClick={() => pickType(t.id)} className={card}>
+              {t.title}
+              <span className="mt-1 block text-sm font-normal text-mute">{t.line}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
 
       {step === "name" ? (
         <form onSubmit={submitName} className="flex flex-col gap-3">
@@ -166,7 +193,7 @@ export function OnboardingWizard({ games, needsName }: { games: GameConfig[]; ne
         </div>
       ) : null}
 
-      {step !== "name" ? (
+      {step !== "name" && step !== "type" ? (
         <div className="flex items-center justify-between">
           <button type="button" onClick={back} disabled={step === "game" || pending} className={buttonClass("ghost", "px-2 disabled:invisible")}>
             Back

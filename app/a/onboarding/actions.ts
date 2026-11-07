@@ -33,6 +33,7 @@ const finishSchema = z.object({
   game: z.enum(GAME_IDS).nullable().optional(),
   role: z.string().max(40).nullable().optional(),
   rank: z.string().max(40).nullable().optional(),
+  account_type: z.enum(["player", "team", "recruiter"]).optional(),
 });
 
 /** Saves the onboarding answers (all optional: skipping is always allowed). The first game becomes the primary game. */
@@ -48,7 +49,8 @@ export async function finishOnboardingAction(input: z.input<typeof finishSchema>
     if (!(await savePlayerGame(sb, user.id, cfg, role, rank))) return { ok: false as const };
   }
 
-  await sb.auth.updateUser({ data: { onboarded: true } });
+  // account_type records what the person said they are. It is not an entitlement: it grants no access to anyone's data.
+  await sb.auth.updateUser({ data: { onboarded: true, account_type: parsed.data.account_type ?? "player" } });
 
   // An invite link opened before signup: continue to it.
   const store = await cookies();

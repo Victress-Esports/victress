@@ -9,9 +9,8 @@ import { appUrl } from "@/lib/urls";
 
 const fail = (message = "Something went wrong. Try again."): Result => ({ ok: false, message });
 
-/** Link lifetimes offered to players, in days. The default is a proposal pending legal review. */
-export const LINK_DAYS = [7, 30, 90] as const;
-export const DEFAULT_LINK_DAYS = 90;
+// Link lifetimes offered to players, in days. The 90 day default is a proposal pending legal review.
+const LINK_DAYS = [7, 30, 90] as const;
 
 const settingsSchema = z.object({
   directory_listed: z.boolean(),
