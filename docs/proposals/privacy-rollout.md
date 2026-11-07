@@ -18,3 +18,8 @@ Migrations: `20261107000100_privacy_expand.sql` (adds, breaks nothing) and `2026
 
 ## Still open
 Path token versus fragment and log scrubbing (R3), avatar delivery with signed URLs and the private avatar bucket (R6), edge rate limiting, a scoped server credential instead of service role, sign in open or closed state in production.
+
+## Dashboard foundation (migration `20261107000300_dashboard_foundation.sql`)
+Additive, owner only, not applied to production. Adds `tournament_entries`, `highlights`, `scrim_uploads` and the private `scrim-uploads` bucket (own folder only). Apply only after the contract step and with its own authorization and profile count check. Tested with `supabase/tests/local/run-dashboard.sh`.
+
+`SCRIM_UPLOADS_ENABLED` stays off until the privacy foundation is live and approved. Open before turning it on: counsel review of demo files that contain other people's names, voice and chat (the uploader asks the player to confirm they took part and will not share the file); retention and deletion policy for stored files; virus and content handling; the project level upload size limit. Files are stored only. No parser has been validated, so no stats are produced from them.
