@@ -83,10 +83,22 @@ async function auditPage({ host, path, index, types = [], og = true, hidden = fa
   // Founder rule: titles and descriptions are plain industry phrases that say what the page is. They are never the tagline.
   {
     const tagline = /turn practice into progress/i;
+    // Founder rule (2026-11-07): titles and descriptions are indexed, so they describe only what is live. No "coming soon", no
+    // "planned", no unbuilt product names. Those labels stay on the pages themselves, next to the unbuilt features.
+    const unbuilt = /coming soon|\bplanned\b|scout desk|scrim intelligence|scrim analysis/i;
     const social = ["og:title", "og:description", "twitter:title", "twitter:description"].map((k) => [k, meta(html, k.startsWith("og") ? "property" : "name", k) ?? ""]);
     ok(!tagline.test(title), `title contains the tagline: ${title}`);
     ok(!tagline.test(desc), "meta description contains the tagline");
     for (const [k, v] of social) ok(!tagline.test(v), `${k} contains the tagline`);
+    ok(!unbuilt.test(title), `title mentions coming soon, planned or an unbuilt product: ${title}`);
+    ok(!unbuilt.test(desc), `meta description mentions coming soon, planned or an unbuilt product: ${desc}`);
+    for (const [k, v] of social) ok(!unbuilt.test(v), `${k} mentions coming soon, planned or an unbuilt product: ${v}`);
+    // JSON-LD "description" fields (the slogan is the one place the tagline is kept on purpose; FAQ answers are page content).
+    const walk = (o, out = []) => { if (Array.isArray(o)) o.forEach((x) => walk(x, out)); else if (o && typeof o === "object") for (const [k, v] of Object.entries(o)) { if (k === "description" && typeof v === "string") out.push(v); else walk(v, out); } return out; };
+    for (const blk of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
+      let ldj = null; try { ldj = JSON.parse(blk[1]); } catch {}
+      if (ldj) for (const d of walk(ldj)) { ok(!tagline.test(d) && !unbuilt.test(d), `JSON-LD description mentions the tagline, coming soon, planned or an unbuilt product: ${d.slice(0, 80)}`); }
+    }
     if (host === MARKETING && index) ok(/ \| Victress$/.test(title), `marketing title is not "<what the page is> | Victress": ${title}`);
   }
   if (seen.title.has(title)) fail(`title duplicates ${seen.title.get(title)}`);
@@ -239,7 +251,7 @@ const pages = [
     // Approved homepage values. The wings are the logo (nav and footer) and a faint cropped backdrop; the full-size art file itself must not be a hero visual.
     exact: {
       title: "Esports Player Development and Recruitment | Victress",
-      description: "Esports player development and recruitment for players, teams and scouts. Accounts and rosters work today. Scrim analysis and Scout Desk are coming soon.",
+      description: "Esports player development and recruitment for players, teams, coaches and collegiate programs. Create an account with source labeled stats and manage rosters.",
     },
     notContains: ["wings-480", "wings-720", "/brand/wings.webp", "Claim your name", "Available now", "shareable player profile", "share one link"],
   },
