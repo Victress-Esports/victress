@@ -109,10 +109,11 @@ export default async function Dashboard() {
           chip={<StatusChip tone="on">Available now</StatusChip>}
         />
         <ModuleCard
+          href="/dashboard/scout"
           title="Scout Desk"
           line={
             canUseScoutDesk(tier)
-              ? "Structured discovery and evaluation."
+              ? "Included in your plan. Discovery is not open yet."
               : "Player discovery is part of the Scout plan. Coming soon, and not open to any plan yet."
           }
           chip={<StatusChip>Scout plan · Coming soon</StatusChip>}
