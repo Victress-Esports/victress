@@ -4,9 +4,8 @@
 export const seo = {
   marketing: {
     home: {
-      title: "Victress | Esports Player Profiles & Performance",
-      description:
-        "Build your esports player profile, track performance, and showcase your competitive progress. Made for players, teams, and collegiate programs.",
+      title: "Turn practice into progress. | Victress",
+      description: "Player Resume is available now. Scrim Intelligence and Scout Desk are coming soon. Turn practice into progress with Victress.",
     },
     pricing: {
       title: "Victress pricing: free to start",
