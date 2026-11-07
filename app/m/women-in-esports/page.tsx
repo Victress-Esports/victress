@@ -27,10 +27,7 @@ export default function WomenInEsportsPage() {
           className="-right-40 -top-6 hidden w-[760px] max-w-none sm:block"
         />
         <div className="relative mx-auto max-w-6xl px-4 pb-14 pt-16 sm:px-6 sm:pt-24">
-          <span className="inline-flex rounded-full bg-surface-2 px-3 py-1 text-xs font-semibold text-signal">
-            {e.eyebrow}
-          </span>
-          <h1 className="mt-4 font-display text-5xl font-bold leading-tight sm:text-6xl">
+          <h1 className="font-display text-5xl font-bold leading-tight sm:text-6xl">
             {w.title}
           </h1>
           <p className="mt-4 text-lg text-mute">{e.line}</p>
@@ -109,12 +106,12 @@ export default function WomenInEsportsPage() {
                 key={c.title}
                 className="rounded-2xl border border-line bg-surface p-6"
               >
-                <span className="inline-flex rounded-full bg-surface-2 px-3 py-1 text-xs font-semibold text-coral">
-                  {w.inDevelopment}
-                </span>
-                <h3 className="mt-3 font-display text-xl font-bold">
+                <h3 className="font-display text-xl font-bold">
                   {c.title}
                 </h3>
+                <span className="mt-3 inline-flex rounded-full bg-surface-2 px-3 py-1 text-xs font-semibold text-coral">
+                  {w.inDevelopment}
+                </span>
                 <p className="mt-2 text-mute">{c.line}</p>
               </li>
             ))}
