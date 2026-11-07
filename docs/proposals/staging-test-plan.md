@@ -20,8 +20,8 @@ Set each in Vercel, project Settings, Environment Variables, environment **Previ
 
 | Name | Preview value comes from | Notes |
 |---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | staging project API URL | Must be the staging URL, never the production URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | staging publishable (anon) key | Public by design |
+| `SUPABASE_URL` | staging project API URL | Public by design. Must be the staging URL, never the production URL |
+| `SUPABASE_ANON_KEY` | staging publishable (anon) key | Public by design |
 | `SUPABASE_SERVICE_ROLE_KEY` | staging service role key | Server only. Mark Sensitive. Never the production key |
 | `NEXT_PUBLIC_VERCEL_ENV` | Vercel system variable | Needs "Automatically expose System Environment Variables" turned on; see section 4 |
 | `NEXT_PUBLIC_VERCEL_URL` | Vercel system variable | Same setting |
@@ -33,6 +33,8 @@ Set each in Vercel, project Settings, Environment Variables, environment **Previ
 | `RESEND_FROM_EMAIL` | leave unset on Preview | |
 | `LEADERBOARD_INCLUDE_DEMO` | optional, `false` | |
 | `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_MARKETING_URL` | leave unset on Preview | Preview overrides them (section 4) |
+
+Vercel does not accept `NEXT_PUBLIC_` names for these, so the variables are `SUPABASE_URL` and `SUPABASE_ANON_KEY`; `next.config.ts` maps them to the `NEXT_PUBLIC_` names the code reads (PR claude/supabase-env-names). The URL and anon key are public by design and ship to the browser. The service role key is server only: it is never mapped and must never appear in a client bundle. The build fails if the URL or anon key is missing. Production and Preview are scoped separately.
 
 Do not copy the Production values for Supabase into Preview. Verify afterwards that a Preview deployment reads staging: sign in on the Preview and confirm the new user appears in the staging Auth users list and not in production.
 
