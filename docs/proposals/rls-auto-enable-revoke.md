@@ -1,6 +1,6 @@
 # Proposal: revoke public execute on `public.rls_auto_enable()`
 
-Status: **PROPOSAL, not applied.** Raised in the design pass review (PR #3, now part of `main`) and still reported by the Supabase security advisor on 2026-11-07 (warnings 0028 and 0029). Applying it needs its own explicit founder authorization; this document changes nothing in production.
+Status: **APPLIED to production on 2026-11-07** (founder authorization; migration `revoke_rls_auto_enable_public_execute`, version `20261107055545`; recount before: 0 profiles, 0 auth users, 0 teams). Raised in the design pass review (PR #3, now part of `main`) and still reported by the Supabase security advisor on 2026-11-07 (warnings 0028 and 0029). Result: identical to the dry run (see "Applied" below). The documented rollback is the grant in the "Exact rollback" section.
 
 ## What it is
 `public.rls_auto_enable()` was not created by this repository's migrations. It matches Supabase's standard "enable row level security on new tables" helper (owner `postgres`, `SECURITY DEFINER`, `search_path = pg_catalog`, returns `event_trigger`). The event trigger `ensure_rls` (on `ddl_command_end` for `CREATE TABLE`, `CREATE TABLE AS`, `SELECT INTO`) runs it, and it enables row level security on tables created in `public`.
@@ -71,7 +71,16 @@ grant execute on function public.rls_auto_enable() to public;
 ```
 This restores the same privileges as before (PUBLIC, and so anon and authenticated, can execute; the owner can). One cosmetic difference: PostgreSQL stores the result as `{postgres=X/postgres,=X/postgres}` instead of `NULL`. They mean the same thing; tested on a throwaway Postgres 16.
 
-## Apply procedure (when authorized)
+## Applied (2026-11-07)
+- Statement run, exactly as proposed: `revoke execute on function public.rls_auto_enable() from public, anon, authenticated;`
+- ACL after: `{postgres=X/postgres}`. `anon`, `authenticated` and `service_role` cannot execute it; the owner can. Same as the dry run.
+- Event trigger `ensure_rls` still present and enabled, pointing at `rls_auto_enable`.
+- Anonymous API check with the public key: `POST /rest/v1/rpc/rls_auto_enable` with an empty body returns 401 `permission denied for function rls_auto_enable`; with a body it returns 404 (no matching function signature). The intended public lookup `team_invite_info` still answers `null` for a bad code.
+- Security advisor: `rls_auto_enable` is no longer listed under the anon (0028) or signed in (0029) warnings.
+- Production data unchanged: 0 profiles, 0 auth users, 0 teams.
+- **Documented rollback:** `grant execute on function public.rls_auto_enable() to public;` (see "Exact rollback"). Not applied.
+
+## Apply procedure (as it was to be run)
 1. Recount profiles and auth users (no data is touched, but the step is cheap and keeps the habit).
 2. Run the revoke above (one statement).
 3. Read only check: ACL is `{postgres=X/postgres}`; run the advisors and confirm warning 0028 no longer lists `rls_auto_enable` (and 0029 no longer lists it).
