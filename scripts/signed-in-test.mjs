@@ -40,7 +40,7 @@ const text = async (page) => (await page.locator("body").innerText()).replace(/\
   check(/Dashboard/.test(t) && /Plan\s*Rookie/.test(t), "hub: plan shows Rookie");
   check((t.match(/Not open yet/g) || []).length >= 4, "hub: all four features show Not open yet");
   check(/Scout plan · Coming soon/.test(t), "hub: Scout Desk is locked to the Scout plan and Coming soon");
-  check((await page.locator('a[href="/dashboard/scout"]').count()) === 0, "hub: no link to a Scout Desk route");
+  check((await page.locator('a[href="/dashboard/scout"]').count()) === 1, "hub: the Scout Desk card links to the locked page");
   for (const [href, label] of [["/dashboard/resume", "Player Resume"], ["/dashboard/scrims", "Scrim Intelligence"], ["/dashboard/privacy", "Privacy and sharing"]])
     check((await page.locator(`a[href="${href}"]`).count()) > 0, `hub: card links to ${label}`);
   check(!/Your profile is live/.test(t), "hub: no 'profile is live' claim");
@@ -126,7 +126,13 @@ const text = async (page) => (await page.locator("body").innerText()).replace(/\
   const { ctx, page } = await session("scout", OFF);
   const t = await text(page);
   check(/Plan\s*Rookie/.test(t) && /Scout plan · Coming soon/.test(t), "scout persona: still Rookie; Scout Desk locked (no entitlement source exists)");
-  check((await page.locator('a[href="/dashboard/scout"]').count()) === 0, "scout persona: no Scout Desk link");
+  await page.goto(`http://app.localhost:${OFF}/dashboard/scout`);
+  const sd = await text(page);
+  check(/Scout Desk/.test(sd) && /Part of the Scout plan/.test(sd) && /Coming soon/.test(sd), "scout persona: Scout Desk shows the locked, Coming soon page");
+  check(/nothing to upgrade to today/.test(sd), "scout persona: no upgrade is offered while the plan cannot be bought");
+  check(!/mock_|Mock Ace|Private Pat|@example/.test(sd), "scout persona: the page shows no player data or contact details");
+  check(/Self-reported, API or Demo parsed/.test(sd) && /never says how good a player is/.test(sd), "scout persona: provenance and verification limits are stated");
+  check((await page.locator("main input, main textarea, main form, main select").count()) === 0, "scout persona: no search, filter or contact controls exist");
   await ctx.close();
 }
 
