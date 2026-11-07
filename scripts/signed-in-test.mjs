@@ -106,6 +106,29 @@ const text = async (page) => (await page.locator("body").innerText()).replace(/\
   check(/Uploads are not open yet/.test(t) && (await page.locator('input[type="file"]').count()) === 0, "scrims: no uploader while the flag is off");
   check(/Self-reported/.test(t) && /API/.test(t) && /Demo parsed/.test(t), "scrims: all three provenance labels are explained");
   check(!/\d+(\.\d+)?\s*(ACS|K\/D)/i.test(t), "scrims: no stats are shown");
+  // match log
+  check(/Match log/.test(t) && /No matches logged yet/.test(t), "scrims: the match log starts empty");
+  await page.fill("#m-opp", "Mock Rivals");
+  await page.fill("#m-score", "13-9");
+  await page.fill("#m-map", "Ascent");
+  await page.getByRole("button", { name: "Log match" }).click();
+  await page.waitForSelector("text=Win · 13-9 vs Mock Rivals");
+  check(true, "scrims: a match with opponent, score, map and date can be logged");
+  check(/1 wins · 0 losses · 0 draws, counted from the 1 match you logged/.test(await text(page)), "scrims: the tally is counted only from the player's own entries");
+  await page.selectOption("#m-result", "loss");
+  await page.fill("#m-score", "nine to thirteen");
+  await page.getByRole("button", { name: "Log match" }).click();
+  await page.waitForSelector("text=Write the score like 13-9.");
+  check(true, "scrims: a free text score is refused");
+  await page.fill("#m-score", "7:13");
+  await page.getByRole("button", { name: "Log match" }).click();
+  await page.waitForSelector("text=Loss · 7:13");
+  await page.reload();
+  check(/1 wins · 1 losses/.test(await text(page)), "scrims: logged matches persist after a reload");
+  await page.getByRole("button", { name: /^Remove match .* vs Mock Rivals$/ }).first().click();
+  await page.waitForFunction(() => /1 wins · 0 losses|0 wins · 1 losses/.test(document.body.innerText));
+  check(true, "scrims: a match can be removed");
+  check((await page.locator('input[type="file"]').count()) === 0, "scrims: the match log adds no file upload control");
   check(errors.length === 0, `rookie: no page errors ${errors.join(" | ")}`);
   await ctx.close();
 }

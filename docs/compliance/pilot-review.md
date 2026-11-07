@@ -19,6 +19,7 @@ Today, **Scrim Intelligence does not analyze anything.** No parser has been vali
 | Account (Supabase Auth) | Sign in identity and email | The user; server side service | Existing |
 | `profiles` | Handle, optional display name, photo URL, bio, game, role, rank, team, consent flags | Owner only after the privacy contract step; public only through service role functions and only per consent | Implemented (branch), not applied |
 | `stat_entries` | Player entered stats, source `manual` = Self-reported | Owner; public only if the player allowed stats | Implemented (branch) |
+| `scrim_matches` | A player's own practice match log: date, game, opponent team name, result, optional score, map, note. Self-reported. Owner only, never in a public view or share link | Owner only | Implemented (branch), not applied |
 | `tournament_entries`, `highlights` | Player entered tournament history; links to clips hosted elsewhere | Owner only. Not part of any public view or share link | Implemented (branch), not applied |
 | `profile_share_links` | SHA-256 hash of a sharing token, label, field scope, expiry, revocation, view count | Owner (token hash is not readable by anyone, including the owner) | Implemented (branch), not applied |
 | `scrim_uploads` + private Storage bucket `scrim-uploads` | File name, game, size, storage path; the file itself | Owner only | Implemented (branch), not applied |

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { MatchLog, type MatchRow } from "@/components/app/MatchLog";
 import { ProvenanceTag } from "@/components/app/ProvenanceTag";
 import { ScrimUploader, type UploadRow } from "@/components/app/ScrimUploader";
 import { Section } from "@/components/ui/form";
@@ -15,6 +16,13 @@ export default async function ScrimsPage() {
   // Only approved design partners can upload. The database enforces this too; this only decides what to show.
   const { data: approved } = flagOn ? await sb.rpc("upload_allowed") : { data: false };
   const enabled = flagOn && approved === true;
+  const { data: matches } = await sb
+    .from("scrim_matches")
+    .select("id, game, played_on, opponent, result, score, map, note")
+    .eq("profile_id", user.id)
+    .order("played_on", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(200);
   const { data: uploads } = enabled
     ? await sb.from("scrim_uploads").select("id, game, original_name, size_bytes, created_at").eq("profile_id", user.id).order("created_at", { ascending: false })
     : { data: [] };
@@ -23,13 +31,13 @@ export default async function ScrimsPage() {
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
       <div>
         <h1 className="font-display text-4xl font-bold">Scrim Intelligence</h1>
-        <p className="mt-2 text-mute">Turn private practice into performance information. This is the foundation: storage first, analysis later.</p>
+        <p className="mt-2 text-mute">Turn private practice into performance information. This is the foundation: your own match log and private file storage first, analysis later.</p>
       </div>
 
       <Section title="Automated analysis" line="Coming soon">
         <p className="text-mute">
           Victress does not analyze files yet and shows no automated stats. Analysis will switch on only after a parser has been validated against real
-          demos. Until then, nothing on this page is a measurement of your play.
+          demos. Until then, nothing on this page is measured by Victress: the match log below is what you enter yourself.
         </p>
       </Section>
 
@@ -44,6 +52,10 @@ export default async function ScrimsPage() {
           ))}
         </ul>
         <p className="mt-4 text-sm text-mute">Verification will mean we can show where evidence came from and that it is intact. It never judges how good a player is.</p>
+      </Section>
+
+      <Section title="Match log" line="Record your practice matches. Private to you, and entered by you, so every entry is Self-reported.">
+        <MatchLog rows={(matches ?? []) as MatchRow[]} games={games.map((g) => g.game)} />
       </Section>
 
       <Section title="Your practice files" line="Demo and replay files, stored privately.">
