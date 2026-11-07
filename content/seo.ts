@@ -64,7 +64,7 @@ export const seo = {
     },
     dashboard: {
       title: "Dashboard | Victress",
-      description: "Your Victress profile, live preview and next steps.",
+      description: "Your plan, modules and what is switched on.",
     },
     editProfile: {
       title: "Edit profile | Victress",
