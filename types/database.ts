@@ -77,6 +77,24 @@ export type Database = {
         Update: { expires_at?: string | null; fields?: Json; label?: string | null; revoked_at?: string | null };
         Relationships: [];
       };
+      tournament_entries: {
+        Row: { created_at: string; game: string; id: string; name: string; placement: string | null; played_on: string | null; profile_id: string; team_name: string | null };
+        Insert: { game: string; name: string; placement?: string | null; played_on?: string | null; profile_id: string; team_name?: string | null };
+        Update: { game?: string; name?: string; placement?: string | null; played_on?: string | null; team_name?: string | null };
+        Relationships: [];
+      };
+      highlights: {
+        Row: { created_at: string; game: string; id: string; note: string | null; profile_id: string; title: string; url: string };
+        Insert: { game: string; note?: string | null; profile_id: string; title: string; url: string };
+        Update: { game?: string; note?: string | null; title?: string; url?: string };
+        Relationships: [];
+      };
+      scrim_uploads: {
+        Row: { created_at: string; game: string; id: string; original_name: string; profile_id: string; size_bytes: number; status: string; storage_path: string };
+        Insert: { game: string; original_name: string; profile_id: string; size_bytes: number; storage_path: string };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
       player_games: {
         Row: { created_at: string; game: string; is_primary: boolean; profile_id: string; rank: string | null; role: string | null };
         Insert: { created_at?: string; game: string; is_primary?: boolean; profile_id: string; rank?: string | null; role?: string | null };
