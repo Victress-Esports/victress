@@ -80,6 +80,15 @@ async function auditPage({ host, path, index, types = [], og = true, hidden = fa
   ok(title.length > 0 && title.length < 60, `title length ${title.length} (must be 1-59)`);
   ok(desc.length > 0 && desc.length < 160, `description length ${desc.length} (must be 1-159)`);
   ok((title.match(/\| Victress/g) ?? []).length <= 1, "title repeats '| Victress'");
+  // Founder rule: titles and descriptions are plain industry phrases that say what the page is. They are never the tagline.
+  {
+    const tagline = /turn practice into progress/i;
+    const social = ["og:title", "og:description", "twitter:title", "twitter:description"].map((k) => [k, meta(html, k.startsWith("og") ? "property" : "name", k) ?? ""]);
+    ok(!tagline.test(title), `title contains the tagline: ${title}`);
+    ok(!tagline.test(desc), "meta description contains the tagline");
+    for (const [k, v] of social) ok(!tagline.test(v), `${k} contains the tagline`);
+    if (host === MARKETING && index) ok(/ \| Victress$/.test(title), `marketing title is not "<what the page is> | Victress": ${title}`);
+  }
   if (seen.title.has(title)) fail(`title duplicates ${seen.title.get(title)}`);
   else seen.title.set(title, label);
   if (seen.desc.has(desc)) fail(`description duplicates ${seen.desc.get(desc)}`);
@@ -229,8 +238,8 @@ const pages = [
     ],
     // Approved homepage values. The wings are the logo (nav and footer) and a faint cropped backdrop; the full-size art file itself must not be a hero visual.
     exact: {
-      title: "Turn practice into progress. | Victress",
-      description: "Players enter their own stats and teams manage rosters today. Player Resume is in development. Scrim Intelligence and Scout Desk are coming soon.",
+      title: "Esports Player Development and Recruitment | Victress",
+      description: "Esports player development and recruitment for players, teams and scouts. Accounts and rosters work today. Scrim analysis and Scout Desk are coming soon.",
     },
     notContains: ["wings-480", "wings-720", "/brand/wings.webp", "Claim your name", "Available now", "shareable player profile", "share one link"],
   },
@@ -386,6 +395,7 @@ console.log("\n######## HOME FAQ, PRODUCT SCHEMA, llms.txt ########");
   const llms = await get(MARKETING, "/llms.txt");
   console.log(`   /llms.txt -> ${llms.status} ${llms.headers["content-type"]}, ${llms.body.length} chars`);
   ok(llms.status === 200 && /text\/plain/.test(llms.headers["content-type"] ?? ""), "llms.txt should be 200 text/plain");
+  ok(!/turn practice into progress/i.test(llms.body.slice(0, 600)) && /esports player development and recruitment platform/i.test(llms.body.slice(0, 300)), "llms.txt must open with the plain description, not the tagline");
   ok(/Coming soon/.test(llms.body) && /Self-reported/.test(llms.body) && /private by default and are not indexed by search engines/.test(llms.body), "llms.txt must separate planned from live features and state the profile privacy rule");
   ok(!/Perform\. Compete|performance into progress|Your stats\. Your profile|ounding club|privacy-friendly analytics/.test(llms.body), "llms.txt contains a retired slogan or an unapproved claim");
   // Structure: Women in Esports has its own "Why Victress exists" section, Player Resume is stated as available now, no internal references.
