@@ -19,9 +19,15 @@ Migrations: `20261107000100_privacy_expand.sql` (adds, breaks nothing) and `2026
 ## Still open
 Path token versus fragment and log scrubbing (R3), avatar delivery with signed URLs and the private avatar bucket (R6), edge rate limiting, a scoped server credential instead of service role, sign in open or closed state in production.
 
-## Dashboard foundation (migration `20261107000300_dashboard_foundation.sql`)
-Additive, owner only, not applied to production. Adds `tournament_entries`, `highlights`, `scrim_uploads` and the private `scrim-uploads` bucket (own folder only). Apply only after the contract step and with its own authorization and profile count check. Tested with `supabase/tests/local/run-dashboard.sh`.
+## Dashboard foundation (migrations `20261107000300_dashboard_foundation.sql` and `20261107000310_upload_allowlist.sql`)
 
-`SCRIM_UPLOADS_ENABLED` stays off until the privacy foundation is live and approved. Open before turning it on: counsel review of demo files that contain other people's names, voice and chat (the uploader asks the player to confirm they took part and will not share the file); retention and deletion policy for stored files; virus and content handling; the project level upload size limit. Files are stored only. No parser has been validated, so no stats are produced from them.
+> **WARNING: do not apply `20261107000300_dashboard_foundation.sql` to production until file uploads are formally approved.**
+> It creates the `scrim-uploads` Storage bucket. The application flag `SCRIM_UPLOADS_ENABLED` only hides the interface; it does not stop a signed in user calling Storage directly. If `..000300` is applied without `..000310`, any signed in user could upload files to their own folder regardless of the flag. If uploads are not approved, apply neither. When they are approved, apply `..000300` and `..000310` together (the allowlist closes the direct path), each with its own explicit authorization, a fresh profile count check and a rollback plan.
+
+Additive, owner only, not applied to production. `..000300` adds `tournament_entries`, `highlights`, `scrim_uploads` and the private bucket (own folder only). `..000310` adds the `design_partner_allowlist` table (readable and writable by `service_role` only), `upload_allowed()`, requires the allowlist in the Storage insert policy, and removes every client write path to `scrim_uploads`: the server action records uploads with the service role after checking the flag, the allowlist, the path, and the real size reported by Storage, so a client cannot write `size_bytes`. A partner removed from the allowlist can no longer upload but can still delete what they stored. Tests: `supabase/tests/local/run-dashboard.sh` (`dashboard.sql` and `upload_allowlist.sql`).
+
+The tournament and highlight tables in `..000300` are harmless on their own, but they share the file with the bucket, so the whole file waits. Splitting the bucket into its own migration is an option if the resume sections should ship before uploads are approved (needs a decision).
+
+`SCRIM_UPLOADS_ENABLED` stays off until the privacy foundation is live and approved. Open before turning it on: counsel review of demo files that contain other people's names, voice and chat (the uploader asks the player to confirm they took part and will not share the file); retention and deletion policy for stored files; virus and content handling; the project level upload size limit; who may add partners to the allowlist (service role only, through a reviewed process). Files are stored only. No parser has been validated, so no stats are produced from them.
 
 See also [pilot compliance review](../compliance/pilot-review.md) for the demo file, case study and flag gating review prepared for counsel.

@@ -98,7 +98,7 @@ Exposure increasing features are **off unless an environment flag is exactly `"t
 Other standing gates: Scout Desk (player discovery) is **Scout plan only** and not available to any plan yet; recruiter discovery and contact are disabled for all players pending qualified legal review; individual scouts are excluded; Scout access is not sold or enabled until verification capacity and policy exist.
 
 **Technical limits of the flags (important for counsel and engineering):**
-1. Flags are application level. Once the dashboard migration is applied, the `scrim-uploads` bucket and its policies exist, and a signed in user could call Storage's API directly and upload into their own folder even though the interface is hidden and the server refuses to record it. Recommended: apply the bucket creation and storage policies in a separate migration at the time uploads are authorized, or add a database level switch. **Open until decided.**
+1. Flags are application level, so on their own they do not stop direct Storage calls. **Addressed on branch `claude/upload-allowlist` (not applied):** migration `20261107000310_upload_allowlist.sql` requires membership in a design partner allowlist (writable only by `service_role`) in the Storage insert policy, and removes every client write path to `scrim_uploads` so `size_bytes` can only come from the server action. Local tests show a signed in user not on the allowlist cannot store or record a file even by calling Storage directly. `20261107000300_dashboard_foundation.sql` must not be applied to production alone or before uploads are approved. Who may add partners to the allowlist is **Open**.
 2. Flags are read at runtime from the host environment; changing one is a configuration change and redeploy on the platform. Who may change them, and the record of that approval, is a process question.
 3. `NEXT_PUBLIC_` values are inlined at build time. The local test build that points at a mock server must never be deployed (see `docs/seo.md`).
 4. The local sign in stand in and mock Supabase are test tooling in `scripts/` and are absent from production builds (verified by scanning a production build for their strings).
@@ -116,7 +116,7 @@ Each production step needs its own explicit founder authorization, a fresh profi
 - [ ] Age / minors approach decided by counsel (no age mechanism or exception has been invented; see section 7).
 
 **B. Before scrim uploads open (`SCRIM_UPLOADS_ENABLED`)**
-- [ ] Dashboard migration applied (with the bucket separation decision in section 5).
+- [ ] Dashboard migrations `..000300` and `..000310` applied together (allowlist in place), and partners added to the allowlist through a reviewed process.
 - [ ] Section 3 questions answered; retention period, deletion routine (including account deletion and orphaned objects), third party removal process defined.
 - [ ] Partner agreement drafted and reviewed (data use, no publication without mutual sign off, deletion at end of pilot).
 - [ ] Malware/content handling decision; provider upload limits confirmed.

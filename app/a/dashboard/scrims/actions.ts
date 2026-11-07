@@ -7,6 +7,7 @@ import { GAME_IDS } from "@/content/games";
 import { MAX_SCRIM_BYTES, SCRIM_EXTENSIONS } from "@/content/provenance";
 import { requireUser } from "@/lib/auth";
 import { scrimUploadsEnabled } from "@/lib/dashboard";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 
 const BUCKET = "scrim-uploads";
 const fail = (message = "Something went wrong. Try again."): Result => ({ ok: false, message });
@@ -18,12 +19,16 @@ const recordSchema = z.object({
 });
 
 /**
- * Records a file the browser already stored in the player's own private folder. The size comes from Storage, not the client.
+ * Records a file the browser already stored in the player's own private folder. The size comes from Storage, not the client,
+ * and the row is written with the service role: clients have no write access to scrim_uploads at all.
+ * Requires the uploads flag AND an approved design partner (the same allowlist the Storage policy enforces).
  * The file is stored only: nothing is parsed or analyzed.
  */
 export async function recordScrimUploadAction(input: z.input<typeof recordSchema>): Promise<Result> {
   const { sb, user } = await requireUser();
   if (!scrimUploadsEnabled()) return fail("Uploads are not open yet.");
+  const { data: approved } = await sb.rpc("upload_allowed");
+  if (approved !== true) return fail("Uploads are open to approved design partners only.");
   const p = recordSchema.safeParse(input);
   if (!p.success) return fail();
   const { path, name, game } = p.data;
@@ -41,7 +46,12 @@ export async function recordScrimUploadAction(input: z.input<typeof recordSchema
     return fail("That file didn't upload. Try again.");
   }
 
-  const { error } = await sb.from("scrim_uploads").insert({ profile_id: user.id, game, storage_path: path, original_name: name, size_bytes: size });
+  const admin = supabaseAdmin();
+  if (!admin) {
+    await sb.storage.from(BUCKET).remove([path]);
+    return fail();
+  }
+  const { error } = await admin.from("scrim_uploads").insert({ profile_id: user.id, game, storage_path: path, original_name: name, size_bytes: size });
   if (error) {
     await sb.storage.from(BUCKET).remove([path]);
     return fail(error.message.includes("dashboard_limit") ? "You have reached the limit of 25 files. Remove one first." : undefined);

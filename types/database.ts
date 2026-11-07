@@ -91,7 +91,8 @@ export type Database = {
       };
       scrim_uploads: {
         Row: { created_at: string; game: string; id: string; original_name: string; profile_id: string; size_bytes: number; status: string; storage_path: string };
-        Insert: { game: string; original_name: string; profile_id: string; size_bytes: number; storage_path: string };
+        // Clients cannot insert: the server records uploads with the service role (migration 20261107000310).
+        Insert: never;
         Update: Record<string, never>;
         Relationships: [];
       };
@@ -171,6 +172,7 @@ export type Database = {
       shared_profile: { Args: { p_hash: string }; Returns: Json };
       sitemap_directory_count: { Args: Record<string, never>; Returns: number };
       sitemap_directory_profiles: { Args: { p_limit?: number; p_offset?: number }; Returns: { handle: string; updated_at: string }[] };
+      upload_allowed: { Args: Record<string, never>; Returns: boolean };
       team_roster: {
         Args: Record<string, never>;
         Returns: { profile_id: string; team_role: string; handle: string; display_name: string | null; avatar_url: string | null; game: string | null; rank: string | null; joined_at: string }[];

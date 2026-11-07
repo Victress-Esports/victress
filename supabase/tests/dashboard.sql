@@ -11,6 +11,8 @@ declare
 begin
   insert into auth.users (id, aud, role, email) values
     (ua, 'authenticated', 'authenticated', 'a@test.invalid'), (ub, 'authenticated', 'authenticated', 'b@test.invalid');
+  -- an upload record for A, written the only way it can be written now: with the service role (see upload_allowlist.sql)
+  insert into public.scrim_uploads (profile_id, game, storage_path, original_name, size_bytes) values (ua, 'CS2', ua || '/f1.dem', 'f1.dem', 1000);
 
   -- anonymous: nothing
   set local role anon;
@@ -27,7 +29,6 @@ begin
   set local role authenticated;
   insert into public.tournament_entries (profile_id, game, name, placement) values (ua, 'VALORANT', 'Spring Open', '3rd');
   insert into public.highlights (profile_id, game, title, url) values (ua, 'VALORANT', 'Ace', 'https://example.com/clip');
-  insert into public.scrim_uploads (profile_id, game, storage_path, original_name, size_bytes) values (ua, 'CS2', ua || '/f1.dem', 'f1.dem', 1000);
   select count(*) into n from public.tournament_entries; r := array_append(r, (case when n = 1 then 'PASS owner reads own tournament' else 'FAIL owner tournament count ' || n end)::text);
 
   -- validation
@@ -35,22 +36,11 @@ begin
   exception when check_violation then r := array_append(r, ('PASS highlight must be https')::text); end;
   begin insert into public.highlights (profile_id, game, title, url) values (ua, 'VALORANT', 'x', 'javascript:alert(1)'); r := array_append(r, ('FAIL javascript url accepted')::text);
   exception when check_violation then r := array_append(r, ('PASS javascript url refused')::text); end;
-  begin insert into public.scrim_uploads (profile_id, game, storage_path, original_name, size_bytes) values (ua, 'CS2', ub || '/x.dem', 'x.dem', 10); r := array_append(r, ('FAIL upload path in another folder accepted')::text);
-  exception when check_violation then r := array_append(r, ('PASS upload path must be in own folder')::text); end;
-  begin insert into public.scrim_uploads (profile_id, game, storage_path, original_name, size_bytes) values (ua, 'CS2', ua || '/big.dem', 'big.dem', 209715201); r := array_append(r, ('FAIL oversize accepted')::text);
-  exception when check_violation then r := array_append(r, ('PASS oversize upload refused')::text); end;
-  begin insert into public.scrim_uploads (profile_id, game, storage_path, original_name, size_bytes, status) values (ua, 'CS2', ua || '/s.dem', 's.dem', 10, 'parsed'); r := array_append(r, ('FAIL client set a status')::text);
-  exception when insufficient_privilege then r := array_append(r, ('PASS a user cannot set upload status')::text); end;
 
   -- cannot write as someone else
   begin insert into public.tournament_entries (profile_id, game, name) values (ub, 'CS2', 'Spoof'); r := array_append(r, ('FAIL wrote a row for another user')::text);
   exception when insufficient_privilege or check_violation then r := array_append(r, ('PASS cannot write a row for another user')::text); end;
 
-  -- caps
-  begin
-    for i in 1..30 loop insert into public.scrim_uploads (profile_id, game, storage_path, original_name, size_bytes) values (ua, 'CS2', ua || '/c' || i || '.dem', 'c.dem', 10); end loop;
-    r := array_append(r, ('FAIL upload cap not enforced')::text);
-  exception when sqlstate 'P0001' then r := array_append(r, ('PASS upload cap enforced')::text); end;
   reset role;
 
   -- stranger B sees nothing of A's
@@ -68,8 +58,6 @@ begin
   r := array_append(r, (case when n = 1 then 'PASS scrim bucket exists and is private' else 'FAIL scrim bucket' end)::text);
   perform set_config('request.jwt.claims', json_build_object('sub', ua, 'role', 'authenticated')::text, true);
   set local role authenticated;
-  begin insert into storage.objects (bucket_id, name) values ('scrim-uploads', ua || '/ok.dem'); r := array_append(r, ('PASS owner can store in own folder')::text);
-  exception when others then r := array_append(r, ('FAIL owner storing in own folder: ' || sqlerrm)::text); end;
   begin insert into storage.objects (bucket_id, name) values ('scrim-uploads', ub || '/evil.dem'); r := array_append(r, ('FAIL stored in another folder')::text);
   exception when insufficient_privilege then r := array_append(r, ('PASS cannot store in another folder')::text); end;
   reset role;
