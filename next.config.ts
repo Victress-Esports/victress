@@ -38,7 +38,19 @@ const config: NextConfig = {
       "/onboarding/:path*",
       "/login",
       "/join/:path*",
-    ].map((source) => ({ source, headers: NOINDEX }));
+    ]
+      .map((source) => ({ source, headers: NOINDEX }))
+      // Sharing links are private capabilities: never cached, never indexed, and they send no referrer.
+      .concat([
+        {
+          source: "/r/:path*",
+          headers: [
+            ...NOINDEX,
+            { key: "Cache-Control", value: "no-store" },
+            { key: "Referrer-Policy", value: "no-referrer" },
+          ],
+        },
+      ]);
   },
 };
 

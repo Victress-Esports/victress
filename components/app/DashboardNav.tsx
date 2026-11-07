@@ -8,6 +8,7 @@ const LINKS = [
   { href: "/dashboard/profile", label: "Profile" },
   { href: "/dashboard/stats", label: "Stats" },
   { href: "/dashboard/team", label: "Team" },
+  { href: "/dashboard/privacy", label: "Privacy" },
   { href: "/leaderboard", label: "Leaderboards" },
 ];
 

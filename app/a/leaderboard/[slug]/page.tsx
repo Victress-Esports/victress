@@ -10,10 +10,15 @@ import { leaderboardSeo, seo } from "@/content/seo";
 import { breadcrumbs } from "@/lib/jsonld";
 import { MIN_PLAYERS, boardPlayerCount, includeDemo } from "@/lib/leaderboard";
 import { pageMetadata, privateMetadata } from "@/lib/seo";
-import { supabasePublic } from "@/lib/supabase/public";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 import { APP_URL, marketingUrl } from "@/lib/urls";
 
 export const revalidate = 60;
+
+type BoardRow = {
+  place: number; handle: string; display_name: string | null; avatar_url: string | null; role: string | null; rank: string | null;
+  value: number; matches: number | null; is_demo: boolean;
+};
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const game = gameBySlug((await params).slug);
@@ -36,13 +41,13 @@ export default async function Leaderboard({
   const sp = await searchParams;
   const stat = game.stats.find((s) => s.key === sp.by) ?? game.stats.find((s) => s.key === game.leaderboardStat)!;
 
-  const db = supabasePublic();
+  const db = supabaseAdmin();
   const demo = includeDemo();
   const players = await boardPlayerCount(game.id);
   const open = players >= MIN_PLAYERS;
 
-  const { data: rows } = open
-    ? await db.rpc("leaderboard", { p_game: game.id, p_metric: stat.key, p_limit: 50, p_include_demo: demo })
+  const { data: rows } = open && db
+    ? await db.rpc("board_entries", { p_game: game.id, p_metric: stat.key, p_limit: 50, p_include_demo: demo })
     : { data: [] };
 
   return (
@@ -116,7 +121,7 @@ export default async function Leaderboard({
             </div>
 
             <ol className="mt-4 flex flex-col gap-2">
-              {(rows ?? []).map((r) => (
+              {((rows ?? []) as BoardRow[]).map((r) => (
                 <li key={r.handle} className="flex items-center gap-3 rounded-2xl border border-line bg-surface px-4 py-3">
                   <span className="tnum w-8 shrink-0 text-lg font-bold text-coral">{r.place}</span>
                   {r.avatar_url ? (
@@ -127,10 +132,10 @@ export default async function Leaderboard({
                     </span>
                   )}
                   <div className="min-w-0 flex-1">
-                    <Link href={`/${r.handle}`} className="block truncate font-semibold hover:underline">
+                    <span className="block truncate font-semibold">
                       {r.display_name || r.handle}
                       {r.is_demo ? <span className="ml-2 rounded-full bg-surface-2 px-2 py-0.5 text-xs font-semibold text-coral">Demo</span> : null}
-                    </Link>
+                    </span>
                     <p className="truncate text-sm text-mute">{[r.role, r.rank].filter(Boolean).join(" · ") || `@${r.handle}`}</p>
                   </div>
                   <div className="text-right">

@@ -10,42 +10,28 @@ import { getGame } from "@/content/games";
 import { profileSeo } from "@/content/seo";
 import { checkHandle } from "@/lib/handles";
 import { profilePage } from "@/lib/jsonld";
+import { directoryProfile } from "@/lib/privacy";
 import { appHost, statRows } from "@/lib/profiles";
 import { pageMetadata } from "@/lib/seo";
-import { supabasePublic } from "@/lib/supabase/public";
 import { APP_URL, marketingUrl } from "@/lib/urls";
 
 export const revalidate = 60;
 
-/** Only profiles whose owner switched on "Show my profile in search engines" are indexable (and never demo players). */
-const isIndexable = (p: { search_indexable: boolean | null; is_demo: boolean | null }) => !!p.search_indexable && !p.is_demo;
+/** Only profiles in the directory whose owner also switched on "Show my profile in search engines" are indexable. */
+const isIndexable = (p: { search_indexable?: boolean; is_demo: boolean }) => !!p.search_indexable && !p.is_demo;
 
+/** A profile is public only if its owner listed it in the directory and the directory is switched on. Otherwise: not found. */
 async function load(raw: string) {
   const { verdict, handle } = checkHandle(raw);
   if (verdict !== "ok") return null;
-  const db = supabasePublic();
-  const { data: profile } = await db.from("public_profiles").select("*").eq("handle", handle).maybeSingle();
-  if (!profile?.id || !profile.handle) return null;
-  const [{ data: latest }, { data: games }, { data: row }] = await Promise.all([
-    profile.game
-      ? db
-          .from("stat_entries")
-          .select("metrics")
-          .eq("profile_id", profile.id)
-          .eq("game", profile.game)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle()
-      : Promise.resolve({ data: null }),
-    db.from("player_games").select("game, role, rank, is_primary").eq("profile_id", profile.id).order("created_at"),
-    db.from("profiles").select("updated_at").eq("id", profile.id).maybeSingle(),
-  ]);
+  const profile = await directoryProfile(handle);
+  if (!profile) return null;
   return {
     profile,
-    stats: statRows(profile.game, latest?.metrics),
-    games: games ?? [],
-    alsoPlays: (games ?? []).filter((g) => !g.is_primary),
-    updatedAt: row?.updated_at ?? null,
+    stats: statRows(profile.game, profile.metrics),
+    games: profile.games,
+    alsoPlays: profile.games.filter((g) => !g.is_primary),
+    updatedAt: profile.updated_at,
   };
 }
 
@@ -53,7 +39,7 @@ export async function generateMetadata({ params }: { params: Promise<{ handle: s
   const found = await load((await params).handle);
   if (!found) return { title: { absolute: "Player not found | Victress" }, robots: { index: false, follow: false } };
   const { profile } = found;
-  const handle = profile.handle!;
+  const handle = profile.handle;
   const cfg = getGame(profile.game);
   const facts = [cfg?.name, profile.role, profile.rank].filter(Boolean).join(" · ");
   const { title, description } = profileSeo({ name: profile.display_name, handle, facts, bio: profile.bio });
@@ -81,7 +67,7 @@ export default async function PublicProfile({ params }: { params: Promise<{ hand
       {isIndexable(profile) ? (
         <JsonLd
           data={profilePage({
-            handle: profile.handle!,
+            handle: profile.handle,
             displayName: profile.display_name,
             avatarUrl: profile.avatar_url,
             bio: profile.bio,
@@ -97,7 +83,7 @@ export default async function PublicProfile({ params }: { params: Promise<{ hand
       </header>
       <main id="main" className="flex flex-1 flex-col items-center justify-center gap-8 py-12">
         <ProfileCard
-          handle={profile.handle!}
+          handle={profile.handle}
           displayName={profile.display_name}
           avatarUrl={profile.avatar_url}
           game={profile.game}

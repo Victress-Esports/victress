@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { buttonClass } from "@/components/ui/Button";
 import { seo } from "@/content/seo";
 import { privateMetadata } from "@/lib/seo";
 import { GamesManager } from "@/components/app/GamesManager";
-import { AvatarUploader, HandleForm, ProfileForm, SearchVisibilityToggle } from "@/components/app/ProfileForm";
+import { AvatarUploader, HandleForm, ProfileForm } from "@/components/app/ProfileForm";
 import { Section } from "@/components/ui/form";
 import { loadMe } from "@/lib/me";
 import { appHost } from "@/lib/profiles";
@@ -33,8 +35,10 @@ export default async function ProfileEditor() {
         <GamesManager games={games} />
       </Section>
 
-      <Section title="Search engines" line="Choose whether Google and Bing may list your public profile.">
-        <SearchVisibilityToggle initial={profile.search_indexable} />
+      <Section title="Who can see your profile" line="Your profile is private by default. Choose what is visible, to whom, and manage sharing links.">
+        <Link href="/dashboard/privacy" className={buttonClass("secondary")}>
+          Privacy and sharing
+        </Link>
       </Section>
 
       <Section title="Your name">
