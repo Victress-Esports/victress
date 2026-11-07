@@ -8,6 +8,8 @@ Migrations: `20261107000100_privacy_expand.sql` (adds, breaks nothing) and `2026
 1. Count profiles in production (`select count(*) from public.profiles`). Both migrations abort with `STOP (decision 4)` if any profile exists. If the count is not zero, stop and prepare a plan for founder review.
 2. Confirm the step is explicitly authorized.
 
+> **Status 2026-11-07 (evening): production has data.** 1 auth user and 1 profile (the founder's test account, all consents off). The expand and contract steps below were applied when the database was empty; they cannot be re run (the decision 4 safeguard stops them) and their rollbacks now need a data plan. Do not delete the test account. See [dashboard-migrations-production-plan.md](dashboard-migrations-production-plan.md) for what comes next.
+
 ## Steps
 1. **Expand.** Apply `..000100`. Old application keeps working (verified by `supabase/tests/privacy_expand.sql`). Rollback: drop the new columns, table, functions and restore the previous `handle_new_user()`; no data depends on them yet.
 2. **Switch.** Deploy the application that reads only through the service role functions (`lib/privacy.ts`). Needs `SUPABASE_SERVICE_ROLE_KEY` set server side in Vercel. `SHARING_ENABLED` and `DIRECTORY_ENABLED` stay unset (off). Rollback: redeploy the previous build (expand left the old reads intact).
