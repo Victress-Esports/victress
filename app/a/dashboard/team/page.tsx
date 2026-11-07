@@ -25,16 +25,10 @@ export default async function Team() {
   }
 
   const isOwner = team.owner_id === user.id;
-  const { data: members } = await sb.from("team_members").select("profile_id, role").eq("team_id", team.id);
-  const ids = (members ?? []).map((m) => m.profile_id);
-  const { data: people } = ids.length
-    ? await sb.from("public_profiles").select("id, handle, display_name, game, rank").in("id", ids)
-    : { data: [] };
-  const byId = new Map((people ?? []).map((p) => [p.id, p]));
-
+  const { data: members } = await sb.rpc("team_roster");
   const roster = (members ?? [])
-    .map((m) => ({ ...m, p: byId.get(m.profile_id) }))
-    .sort((a, b) => (a.role === "owner" ? -1 : b.role === "owner" ? 1 : (a.p?.handle ?? "").localeCompare(b.p?.handle ?? "")));
+    .map((m) => ({ profile_id: m.profile_id, role: m.team_role, p: { handle: m.handle, display_name: m.display_name, game: m.game, rank: m.rank } }))
+    .sort((a, b) => (a.role === "owner" ? -1 : b.role === "owner" ? 1 : (a.p.handle ?? "").localeCompare(b.p.handle ?? "")));
 
   let inviteUrl: string | null = null;
   if (isOwner) {
@@ -55,7 +49,7 @@ export default async function Team() {
       <Section title={`Roster (${roster.length} of 10)`}>
         <ul className="flex flex-col gap-2">
           {roster.map((m) => {
-            const name = m.p?.display_name || m.p?.handle || "Player";
+            const name = m.p.display_name || m.p.handle || "Player";
             return (
               <li key={m.profile_id} className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface-2 px-4 py-3">
                 <div className="min-w-0">
@@ -63,7 +57,7 @@ export default async function Team() {
                     {name} {m.role === "owner" ? <span className="ml-1 rounded-full bg-crimson px-2 py-0.5 text-xs">Owner</span> : null}
                   </p>
                   <p className="truncate text-sm text-mute">
-                    @{m.p?.handle} {m.p?.game ? `· ${getGame(m.p.game)?.name ?? m.p.game}` : ""} {m.p?.rank ? `· ${m.p.rank}` : ""}
+                    @{m.p.handle} {m.p.game ? `· ${getGame(m.p.game)?.name ?? m.p.game}` : ""} {m.p.rank ? `· ${m.p.rank}` : ""}
                   </p>
                 </div>
                 {isOwner && m.profile_id !== user.id ? <RemoveMemberButton profileId={m.profile_id} name={name} /> : null}

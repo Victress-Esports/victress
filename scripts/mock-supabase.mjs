@@ -1,11 +1,19 @@
 // A tiny stand-in for the Supabase REST API, for SEO tests and Lighthouse runs. Test tooling only: it never touches a real database.
 //   node scripts/mock-supabase.mjs [port]      env: MOCK_PROFILES (default 12)
+// Models the privacy rules (supabase/migrations/20261107000*): the anon key can read nothing; the privacy functions work
+// only with the service key (SUPABASE_SERVICE_ROLE_KEY=mock-service). Anything the anon key asks for gets a permission error.
+// Fixtures: mock_ace etc. are directory listed; "private_pat" is NOT listed; a sharing link for private_pat exists for
+// the token SHARE_TOKEN (43 x "A"), and a revoked one for REVOKED_TOKEN (43 x "B").
 // Point the app at it with NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:<port> and any anon key.
+import { createHash } from "node:crypto";
 import http from "node:http";
 
 const PORT = Number(process.argv[2]) || 4010;
 const N = Number(process.env.MOCK_PROFILES) || 12;
 const day = 86400000;
+const SERVICE_KEY = "mock-service";
+const hash = (t) => createHash("sha256").update(t).digest("hex");
+const SHARE_HASH = hash("A".repeat(43));
 
 const pad = (n) => String(n).padStart(2, "0");
 const profiles = [
@@ -27,6 +35,12 @@ const profiles = [
     game: "VALORANT", role: "Sentinel", rank: "Gold", bio: "Demo profile. Not a real player.",
     created_at: new Date().toISOString(), updated_at: new Date().toISOString(), team_name: null, team_slug: null, is_demo: true, search_indexable: true,
   },
+  {
+    id: "00000000-0000-4000-8000-0000000000ee", handle: "private_pat", display_name: "Private Pat", avatar_url: null,
+    game: "VALORANT", role: "Controller", rank: "Silver", bio: "This must never be readable without consent.",
+    created_at: new Date().toISOString(), updated_at: new Date().toISOString(), team_name: null, team_slug: null, is_demo: false, search_indexable: false,
+    private: true,
+  },
   ...Array.from({ length: Math.max(0, N - 2) }, (_, i) => ({
     id: `00000000-0000-4000-8000-${String(i + 2).padStart(12, "0")}`, handle: `mock_player_${pad(i + 3)}`, display_name: `Mock Player ${pad(i + 3)}`,
     avatar_url: null, game: "VALORANT", role: "Controller", rank: "Gold", bio: null,
@@ -35,7 +49,7 @@ const profiles = [
     team_name: null, team_slug: null, is_demo: false, search_indexable: i < 3,
   })),
 ];
-const real = profiles.filter((p) => !p.is_demo); // leaderboard players
+const real = profiles.filter((p) => !p.is_demo && !p.private); // leaderboard players
 const listed = real.filter((p) => p.search_indexable); // sitemap: opted in, never demo
 const boardCounts = { VALORANT: 12, CS2: 11, ROCKET_LEAGUE: 4, LOL: 3, APEX: 2, OVERWATCH2: 1 };
 
@@ -61,22 +75,36 @@ http
     req.on("end", () => {
       const args = body ? JSON.parse(body) : {};
       const p = url.pathname;
-      if (p === "/rest/v1/public_profiles") return rows(res, req, profiles.filter((x) => x.handle === eq("handle")));
-      if (p === "/rest/v1/profiles") return rows(res, req, profiles.filter((x) => x.id === eq("id")).map((x) => ({ updated_at: x.updated_at })));
-      if (p === "/rest/v1/stat_entries")
-        return rows(res, req, [{ metrics: { acs: 262, kd: 1.31, hs_pct: 24, win_rate: 54, matches: 88 } }]);
-      if (p === "/rest/v1/player_games")
-        return rows(res, req, [
-          { game: "VALORANT", role: "Duelist", rank: "Diamond", is_primary: true },
-          { game: "ROCKET_LEAGUE", role: null, rank: "Platinum", is_primary: false },
-        ]);
-      if (p === "/rest/v1/rpc/sitemap_profile_count") return json(res, listed.length);
-      if (p === "/rest/v1/rpc/sitemap_profiles") {
-        const list = listed.map((x) => ({ handle: x.handle, updated_at: x.updated_at })); // already created_at order
+      const key = req.headers.apikey || "";
+      const service = key === SERVICE_KEY;
+      // Closed anonymous reads: tables and the privacy functions are not available to the anon key.
+      const denied = () => json(res, { code: "42501", message: "permission denied", details: null, hint: null }, 401);
+      if (p.startsWith("/rest/v1/") && !p.startsWith("/rest/v1/rpc/team_invite_info") && !service) return denied();
+      const payload = (x, level) => ({
+        handle: x.handle, display_name: x.display_name, avatar_url: null, bio: level === "all" ? x.bio : null, team_name: x.team_name,
+        game: x.game, role: x.role, rank: x.rank, is_demo: x.is_demo, created_at: x.created_at, updated_at: x.updated_at,
+        games: [{ game: x.game, is_primary: true, role: x.role, rank: x.rank }, { game: "ROCKET_LEAGUE", is_primary: false, role: null, rank: "Platinum" }],
+        metrics: { acs: 262, kd: 1.31, hs_pct: 24, win_rate: 54, matches: 88 }, metrics_source: "self_reported", search_indexable: x.search_indexable,
+      });
+      if (p === "/rest/v1/rpc/directory_profile") {
+        const x = profiles.find((q) => q.handle === args.p_handle && !q.private);
+        return json(res, x ? payload(x, "all") : null);
+      }
+      if (p === "/rest/v1/rpc/shared_profile") {
+        // Only the fixture link resolves; unknown, revoked and malformed hashes all return null.
+        return json(res, args.p_hash === SHARE_HASH ? payload(profiles.find((q) => q.handle === "private_pat"), "none") : null);
+      }
+      if (p === "/rest/v1/rpc/handle_available") {
+        const h = String(args.p_handle || "");
+        return json(res, !profiles.some((q) => q.handle === h) && !/^p[0-9a-f]{12}$/.test(h));
+      }
+      if (p === "/rest/v1/rpc/sitemap_directory_count") return json(res, listed.length);
+      if (p === "/rest/v1/rpc/sitemap_directory_profiles") {
+        const list = listed.map((x) => ({ handle: x.handle, updated_at: x.updated_at }));
         return json(res, list.slice(args.p_offset ?? 0, (args.p_offset ?? 0) + (args.p_limit ?? 5000)));
       }
-      if (p === "/rest/v1/rpc/leaderboard_player_count") return json(res, boardCounts[args.p_game] ?? 0);
-      if (p === "/rest/v1/rpc/leaderboard")
+      if (p === "/rest/v1/rpc/board_player_count") return json(res, boardCounts[args.p_game] ?? 0);
+      if (p === "/rest/v1/rpc/board_entries")
         return json(
           res,
           real.slice(0, 12).map((x, i) => ({

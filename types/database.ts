@@ -10,6 +10,7 @@ export type Database = {
           avatar_url: string | null;
           bio: string | null;
           created_at: string;
+          directory_listed: boolean;
           display_name: string | null;
           game: string | null;
           handle: string;
@@ -18,7 +19,10 @@ export type Database = {
           is_demo: boolean;
           rank: string | null;
           role: string | null;
+          public_fields: Json;
+          scoutable: boolean;
           search_indexable: boolean;
+          show_on_leaderboards: boolean;
           team_id: string | null;
           updated_at: string;
         };
@@ -34,7 +38,10 @@ export type Database = {
           is_demo?: boolean;
           rank?: string | null;
           role?: string | null;
+          public_fields?: Json;
+          scoutable?: boolean;
           search_indexable?: boolean;
+          show_on_leaderboards?: boolean;
           team_id?: string | null;
           updated_at?: string;
         };
@@ -42,6 +49,7 @@ export type Database = {
           avatar_url?: string | null;
           bio?: string | null;
           created_at?: string;
+          directory_listed?: boolean;
           display_name?: string | null;
           game?: string | null;
           handle?: string;
@@ -50,10 +58,23 @@ export type Database = {
           is_demo?: boolean;
           rank?: string | null;
           role?: string | null;
+          public_fields?: Json;
+          scoutable?: boolean;
           search_indexable?: boolean;
+          show_on_leaderboards?: boolean;
           team_id?: string | null;
           updated_at?: string;
         };
+        Relationships: [];
+      };
+      profile_share_links: {
+        Row: {
+          created_at: string; expires_at: string | null; fields: Json; id: string; label: string | null;
+          last_viewed_at: string | null; profile_id: string; revoked_at: string | null; view_count: number;
+        };
+        // token_hash is write only: the database never returns it to the application.
+        Insert: { expires_at?: string | null; fields?: Json; label?: string | null; profile_id: string; token_hash: string };
+        Update: { expires_at?: string | null; fields?: Json; label?: string | null; revoked_at?: string | null };
         Relationships: [];
       };
       player_games: {
@@ -111,26 +132,7 @@ export type Database = {
         Relationships: [];
       };
     };
-    Views: {
-      public_profiles: {
-        Row: {
-          avatar_url: string | null;
-          bio: string | null;
-          created_at: string | null;
-          display_name: string | null;
-          game: string | null;
-          handle: string | null;
-          id: string | null;
-          is_demo: boolean | null;
-          rank: string | null;
-          role: string | null;
-          search_indexable: boolean | null;
-          team_name: string | null;
-          team_slug: string | null;
-        };
-        Relationships: [];
-      };
-    };
+    Views: { [_ in never]: never };
     Functions: {
       claim_handle: { Args: { p_handle: string }; Returns: string };
       create_team: { Args: { p_name: string }; Returns: Json };
@@ -138,29 +140,27 @@ export type Database = {
       handle_is_allowed: { Args: { h: string }; Returns: boolean };
       is_team_member: { Args: { _team_id: string }; Returns: boolean };
       join_team: { Args: { p_code: string }; Returns: string };
-      leaderboard: {
+      board_entries: {
         Args: { p_game: string; p_metric: string; p_limit?: number; p_include_demo?: boolean };
         Returns: {
-          place: number;
-          handle: string;
-          display_name: string | null;
-          avatar_url: string | null;
-          role: string | null;
-          rank: string | null;
-          value: number;
-          matches: number | null;
-          is_demo: boolean;
-          season: string;
-          updated_at: string;
+          place: number; handle: string; display_name: string | null; avatar_url: string | null; role: string | null; rank: string | null;
+          value: number; matches: number | null; is_demo: boolean; season: string; updated_at: string;
         }[];
       };
-      leaderboard_player_count: { Args: { p_game: string; p_include_demo?: boolean }; Returns: number };
+      board_player_count: { Args: { p_game: string; p_include_demo?: boolean }; Returns: number };
+      directory_profile: { Args: { p_handle: string }; Returns: Json };
+      handle_available: { Args: { p_handle: string }; Returns: boolean };
+      shared_profile: { Args: { p_hash: string }; Returns: Json };
+      sitemap_directory_count: { Args: Record<string, never>; Returns: number };
+      sitemap_directory_profiles: { Args: { p_limit?: number; p_offset?: number }; Returns: { handle: string; updated_at: string }[] };
+      team_roster: {
+        Args: Record<string, never>;
+        Returns: { profile_id: string; team_role: string; handle: string; display_name: string | null; avatar_url: string | null; game: string | null; rank: string | null; joined_at: string }[];
+      };
       leave_team: { Args: Record<string, never>; Returns: string };
       metrics_are_valid: { Args: { m: Json }; Returns: boolean };
       regenerate_invite_code: { Args: Record<string, never>; Returns: string | null };
       remove_team_member: { Args: { p_profile: string }; Returns: string };
-      sitemap_profile_count: { Args: Record<string, never>; Returns: number };
-      sitemap_profiles: { Args: { p_limit?: number; p_offset?: number }; Returns: { handle: string; updated_at: string }[] };
       set_primary_game: { Args: { p_game: string }; Returns: string };
       team_invite_code: { Args: Record<string, never>; Returns: string | null };
       team_invite_info: { Args: { p_code: string }; Returns: Json };

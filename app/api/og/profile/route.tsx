@@ -1,18 +1,15 @@
 import { ImageResponse } from "next/og";
 import { checkHandle } from "@/lib/handles";
 import { appHost } from "@/lib/profiles";
-import { supabasePublic } from "@/lib/supabase/public";
+import { directoryProfile } from "@/lib/privacy";
 
 // Per-profile social preview image (1200x630), generated from public data only.
 export async function GET(req: Request) {
   const { verdict, handle } = checkHandle(new URL(req.url).searchParams.get("handle") ?? "");
   if (verdict !== "ok") return new Response("Not found", { status: 404 });
 
-  const { data: p } = await supabasePublic()
-    .from("public_profiles")
-    .select("handle, display_name, game, role, rank, team_name")
-    .eq("handle", handle)
-    .maybeSingle();
+  // Only directory listed profiles get a card, and only with the fields the player made public.
+  const p = await directoryProfile(handle);
   if (!p?.handle) return new Response("Not found", { status: 404 });
 
   const name = p.display_name || p.handle;

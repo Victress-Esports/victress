@@ -40,10 +40,14 @@ To run the audit locally without touching a database:
 
 ```bash
 node scripts/mock-supabase.mjs 4010 &
-export NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:4010 NEXT_PUBLIC_SUPABASE_ANON_KEY=mock
+export NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:4010 NEXT_PUBLIC_SUPABASE_ANON_KEY=mock SUPABASE_SERVICE_ROLE_KEY=mock-service
+export DIRECTORY_ENABLED=true SHARING_ENABLED=true   # public profiles are off by default; the audit checks them, so turn them on here
 npm run build && npx next start -p 3200 &
 npm run seo:audit -- 3200
 ```
+
+The mock models the privacy rules: the anon key can read nothing, and public data comes only through service key functions.
+Privacy checks (private profiles, handle check, sharing link headers) run with `node scripts/privacy-test.mjs <port with flags on> <port with flags off>`.
 
 ## Structured data (JSON-LD)
 
