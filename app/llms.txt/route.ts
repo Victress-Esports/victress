@@ -5,20 +5,23 @@ import { APP_URL, MARKETING_URL } from "@/lib/urls";
 // Facts only: what works today is separated from what is planned. Served on the marketing domain only.
 const body = () => `# Victress
 
-> Victress is an esports player development and recruitment platform. Players build a shareable profile and log their stats; teams manage a roster. Marketing site: ${MARKETING_URL}. Product: ${APP_URL}.
+> Victress is an esports player development and recruitment platform. Today players can create an account and enter their own stats, and teams can manage a roster. Profiles are private by default; public directory and sharing links are disabled during the initial pilot phase. Marketing site: ${MARKETING_URL}. Product: ${APP_URL}.
+
+## Why Victress exists
+- Women in Esports: an intentional shared value commitment, delivered through the same three products: Player Resume for visibility (in development), Scrim Intelligence for development (coming soon) and Scout Desk for opportunity (coming soon). It is not a separate product, program or company, and Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment.
 
 ## What works today
-- Player profiles at ${APP_URL}/{handle}: name, avatar, bio, games, roles, ranks and stats, shareable by link.
+- Player accounts: sign in, choose a name, add your games, roles and ranks, and enter your own stats. Profiles are private by default; public directory and sharing links are disabled during the initial pilot phase.
 - Six supported games: VALORANT, Counter-Strike 2, Rocket League, League of Legends, Apex Legends, Overwatch 2.
 - Stats are entered by players and labeled "Self-reported". There is no automatic game data or verification yet.
 - Teams: create a team, share an invite link, roster of up to 10 (8 players and 2 coaches).
-- Leaderboards per game, which open once a game has 10 players.
 - A free plan (Rookie).
 
 ## Coming soon (not available yet)
 - Pro, Team and Scout paid plans (join the waitlist on the pricing page).
+- Player Resume (in development): a shareable player profile, tournament history and highlights.
+- Public player profiles, per game leaderboards and sharing links (disabled during the initial pilot phase).
 - Scout Desk for recruiting, scrim analytics, progress charts, team standings and team portfolios.
-- Women in Esports: an intentional shared value commitment (strategy section 4), delivered through the same three products: Player Resume for visibility (available now), Scrim Intelligence for development (coming soon) and Scout Desk for opportunity (coming soon). It is not a separate product, program or company, and Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment.
 - Automatic game data. Whether and how it will work for each game has not been confirmed.
 
 ## Pages
@@ -34,7 +37,7 @@ const body = () => `# Victress
 - [Privacy](${MARKETING_URL}/privacy) and [Terms](${MARKETING_URL}/terms): draft text, pending legal review.
 
 ## Good to know
-- Player profiles are not indexed by search engines unless the player turns that on.
+- Player profiles are private by default and are not indexed by search engines.
 - Sample content on the website is labeled "Sample". It is not real player data.
 - Minimum age: 13 or older.
 `;
