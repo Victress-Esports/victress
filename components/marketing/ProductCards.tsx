@@ -11,12 +11,12 @@ export function ProductCards() {
         const live = p.status === "live";
         return (
           <Card as="li" key={p.id} className="flex flex-col">
+            <h3 className="font-display text-2xl font-bold">{p.title}</h3>
             <span
-              className={`inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold ${live ? "bg-crimson text-white" : "bg-surface-2 text-coral"}`}
+              className={`mt-3 inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold ${live ? "bg-crimson text-white" : "bg-surface-2 text-coral"}`}
             >
               {live ? h.statusLive : h.statusSoon}
             </span>
-            <h3 className="mt-4 font-display text-2xl font-bold">{p.title}</h3>
             <p className="mt-3 flex-1 text-mute">{p.line}</p>
             <p className="mt-2 text-sm text-mute">{p.note}</p>
             <Link

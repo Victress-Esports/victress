@@ -18,13 +18,13 @@ const body = () => `# Victress
 ## Coming soon (not available yet)
 - Pro, Team and Scout paid plans (join the waitlist on the pricing page).
 - Scout Desk for recruiting, scrim analytics, progress charts, team standings and team portfolios.
-- Victress Women in Esports: an intentional shared value commitment (strategy section 4), delivered through the same three products: Player Resume for visibility (available now), Scrim Intelligence for development (coming soon) and Scout Desk for opportunity (coming soon). It is not a separate product, program or company, and Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment.
+- Women in Esports: an intentional shared value commitment (strategy section 4), delivered through the same three products: Player Resume for visibility (available now), Scrim Intelligence for development (coming soon) and Scout Desk for opportunity (coming soon). It is not a separate product, program or company, and Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment.
 - Automatic game data. Whether and how it will work for each game has not been confirmed.
 
 ## Pages
 - [Home](${MARKETING_URL}): the product at a glance, with a questions section.
 - [Platform](${MARKETING_URL}/platform): how Scrim Intelligence, Player Resume and Scout Desk fit together, with what is available today and what is planned.
-- [Victress Women in Esports](${MARKETING_URL}/women-in-esports): an intentional shared value commitment delivered through the same three products. It is not currently offering funding, coaching, mentorship, scholarships or recruitment.
+- [Women in Esports](${MARKETING_URL}/women-in-esports): an intentional shared value commitment delivered through the same three products. It is not currently offering funding, coaching, mentorship, scholarships or recruitment.
 - [Founding Design Partner pilot](${MARKETING_URL}/design-partner): a 4 to 6 week pilot for women's competitive rosters, Game Changers teams and collegiate programs. Applying does not guarantee a place.
 - [Pricing](${MARKETING_URL}/pricing): plans and pricing questions.
 - [For teams](${MARKETING_URL}/teams): running a club roster.
