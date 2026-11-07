@@ -34,7 +34,7 @@ export default async function Dashboard() {
         <h1 className="font-display text-4xl font-bold leading-tight sm:text-5xl">Your profile is live.</h1>
         <p className="mt-3 text-lg text-mute">Share it anywhere.</p>
         <p className="tnum mt-6 break-all rounded-xl border border-line bg-surface px-4 py-3 text-sm text-mute">{link}</p>
-        <CopyLink url={link} className="mt-4 w-full sm:w-auto" />
+        <CopyLink url={link} className="mt-4 w-full sm:w-auto" resumeShare />
 
         {next ? (
           <div className="mt-8 rounded-2xl border border-dashed border-line p-5">

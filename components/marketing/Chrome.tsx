@@ -17,14 +17,14 @@ export function Nav() {
                 {l.label}
               </Link>
             ))}
-            <a href={appUrl("/login")} className="inline-flex min-h-11 items-center px-2 text-sm font-medium text-mute hover:text-white">
+            <a href={appUrl("/login", "nav_log_in")} className="inline-flex min-h-11 items-center px-2 text-sm font-medium text-mute hover:text-white">
               {copy.nav.login}
             </a>
           </nav>
-          <ButtonLink href={appUrl("/login")} className="min-h-11 px-4 text-sm">
+          <ButtonLink href={appUrl("/login", "nav_get_started")} className="min-h-11 px-4 text-sm">
             {copy.nav.cta}
           </ButtonLink>
-          <MobileMenu links={[...copy.nav.links, ...copy.nav.more]} login={copy.nav.login} loginHref={appUrl("/login")} openLabel={copy.nav.menuOpen} closeLabel={copy.nav.menuClose} />
+          <MobileMenu links={[...copy.nav.links, ...copy.nav.more]} login={copy.nav.login} loginHref={appUrl("/login", "mobile_menu_log_in")} openLabel={copy.nav.menuOpen} closeLabel={copy.nav.menuClose} />
         </div>
       </div>
     </header>

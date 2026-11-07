@@ -111,7 +111,7 @@ export default async function PublicProfile({ params }: { params: Promise<{ hand
         />
         {profile.bio ? <p className="max-w-md text-center text-mute">{profile.bio}</p> : null}
         <div className="flex w-full max-w-md flex-col gap-3 sm:flex-row">
-          <CopyLink url={`${APP_URL}/${profile.handle}`} label="Copy link" className="flex-1" />
+          <CopyLink url={`${APP_URL}/${profile.handle}`} label="Copy link" className="flex-1" resumeShare />
           <Link href="/" className={buttonClass("secondary", "flex-1")}>
             Claim your name
           </Link>

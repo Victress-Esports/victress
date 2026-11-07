@@ -80,7 +80,7 @@ export default function Home() {
               <p className="mt-4 max-w-md text-lg text-mute">{h.teams.line}</p>
               <p className="mt-2 max-w-md text-sm text-mute">{h.teams.soon}</p>
               <ButtonLink
-                href={appUrl("/login?next=/dashboard/team")}
+                href={appUrl("/login?next=/dashboard/team", "teams_section_start_team")}
                 className="mt-8"
               >
                 {h.teams.cta}
@@ -116,8 +116,8 @@ export default function Home() {
             {h.final.title}
           </h2>
           <div className="mt-10 flex flex-wrap justify-center gap-3">
-            <ButtonLink href={appUrl("/login")}>{h.final.cta}</ButtonLink>
-            <ButtonLink href={appUrl("/login")} variant="secondary">
+            <ButtonLink href={appUrl("/login", "final_get_started")}>{h.final.cta}</ButtonLink>
+            <ButtonLink href={appUrl("/login", "final_log_in")} variant="secondary">
               {h.final.login}
             </ButtonLink>
           </div>

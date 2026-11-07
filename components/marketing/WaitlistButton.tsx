@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { buttonClass } from "@/components/ui/Button";
+import { track } from "@/lib/analytics/client";
 import { copy } from "@/content/copy";
 import type { WaitlistInterest } from "@/content/pricing";
 
@@ -41,7 +42,11 @@ export function WaitlistButton({
         body: JSON.stringify({ email, interest }),
       });
       setStatus(res.ok ? "done" : "error");
-      if (res.ok) setEmail("");
+      if (res.ok) {
+        setEmail("");
+        // The interest (plan or scrims) only; never the email address.
+        track("generate_lead", { lead_type: "waitlist", interest });
+      }
     } catch {
       setStatus("error");
     }

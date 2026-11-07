@@ -104,7 +104,7 @@ export default function About() {
           ))}
         </ul>
       </section>
-      <ButtonLink href={appUrl("/login")} className="mt-12">
+      <ButtonLink href={appUrl("/login", "about_get_started")} className="mt-12">
         {a.cta}
       </ButtonLink>
     </div>

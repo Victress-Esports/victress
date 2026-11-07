@@ -20,7 +20,7 @@ export default function Teams() {
         <header>
           <h1 className="font-display text-5xl font-bold leading-tight sm:text-6xl">{t.title}</h1>
           <p className="mt-5 text-lg text-mute">{t.line}</p>
-          <ButtonLink href={appUrl("/login?next=/dashboard/team")} className="mt-8">
+          <ButtonLink href={appUrl("/login?next=/dashboard/team", "teams_page_start_team")} className="mt-8">
             {t.cta}
           </ButtonLink>
         </header>

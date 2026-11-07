@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { buttonClass } from "@/components/ui/Button";
+import { cancelPendingEvent, trackOnNextPage } from "@/lib/analytics/client";
 import { claimNameAction, finishOnboardingAction } from "@/app/a/onboarding/actions";
 import type { GameConfig } from "@/content/games";
 
@@ -33,7 +34,11 @@ export function OnboardingWizard({ games, needsName }: { games: GameConfig[]; ne
 
   const finish = (g: GameConfig | null, r: string | null, k: string | null) =>
     start(async () => {
+      // The action redirects on success, so nothing after it runs then. The event is sent on the next page; if the action
+      // comes back (it failed), it is cancelled and not counted.
+      trackOnNextPage("player_resume_created", { game: g?.id ?? "none", role_selected: !!r, rank_selected: !!k });
       await finishOnboardingAction({ game: g?.id ?? null, role: r, rank: k });
+      cancelPendingEvent();
     });
 
   function pickGame(g: GameConfig) {

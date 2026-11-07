@@ -11,9 +11,27 @@ const previewOrigin = IS_PREVIEW ? `https://${vercelUrl}` : null;
 export const MARKETING_URL = previewOrigin ?? process.env.NEXT_PUBLIC_MARKETING_URL ?? "https://victressesports.com";
 export const APP_URL = previewOrigin ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://victress.gg";
 
-/** Link to a page on the product site. All marketing CTAs use this. */
-export const appUrl = (path = "/") =>
-  IS_PREVIEW ? `${APP_URL}/__site/app?to=${encodeURIComponent(path)}` : `${APP_URL}${path}`;
+/**
+ * Campaign tags for links from the marketing site to the application, so the application's own analytics can attribute
+ * a visit to the marketing site. One convention everywhere: source victressesports, medium website, campaign site_cta,
+ * content = where the link sits. The two sites are separate analytics properties and do not share sessions.
+ */
+const withUtm = (path: string, placement?: string) => {
+  if (!placement) return path;
+  const [base, query = ""] = path.split("?");
+  const params = new URLSearchParams(query);
+  params.set("utm_source", "victressesports");
+  params.set("utm_medium", "website");
+  params.set("utm_campaign", "site_cta");
+  params.set("utm_content", placement);
+  return `${base}?${params.toString()}`;
+};
+
+/** Link to a page on the product site. All marketing CTAs use this; pass a placement id to tag the link. */
+export const appUrl = (path = "/", placement?: string) => {
+  const p = withUtm(path, placement);
+  return IS_PREVIEW ? `${APP_URL}/__site/app?to=${encodeURIComponent(p)}` : `${APP_URL}${p}`;
+};
 
 /** Link to a page on the marketing site. */
 export const marketingUrl = (path = "/") =>

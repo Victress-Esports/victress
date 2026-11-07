@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { buttonClass } from "@/components/ui/Button";
+import { track } from "@/lib/analytics/client";
 import { FormMessage } from "@/components/ui/form";
 import { joinTeamAction } from "@/app/a/dashboard/actions";
 
@@ -19,7 +20,10 @@ export function JoinTeamButton({ code, teamName }: { code: string; teamName: str
         onClick={() =>
           start(async () => {
             const r = await joinTeamAction(code);
-            if (r.ok) router.push("/dashboard/team");
+            if (r.ok) {
+              track("team_joined");
+              router.push("/dashboard/team");
+            }
             else setMsg(r.message ?? "");
           })
         }

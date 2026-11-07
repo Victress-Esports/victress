@@ -54,7 +54,7 @@ export function PricingCards() {
               {plan.note ? <p className="mt-4 text-sm text-mute">{plan.note}</p> : null}
               <div className="mt-6">
                 {plan.live ? (
-                  <ButtonLink href={appUrl("/login")} className="w-full">
+                  <ButtonLink href={appUrl("/login", "pricing_rookie_start_free")} className="w-full">
                     {p.liveCta}
                   </ButtonLink>
                 ) : (
