@@ -25,7 +25,7 @@ export const seo = {
       description: "How Scrim Intelligence, Player Resume and Scout Desk work together. See what is available now and what is coming soon.",
     },
     womenInEsports: {
-      title: "Victress Women in Esports | Shared value commitment",
+      title: "Women in Esports | Victress",
       description: "How Victress uses Player Resume, Scrim Intelligence and Scout Desk to address barriers women in competitive esports face. See what is available now.",
     },
     designPartner: {

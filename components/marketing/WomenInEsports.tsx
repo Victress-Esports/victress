@@ -3,7 +3,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { copy } from "@/content/copy";
 
 /**
- * Victress Women in Esports: an intentional shared value commitment (strategy section 4), delivered through the same three pillars
+ * Women in Esports: an intentional shared value commitment (strategy section 4), delivered through the same three pillars
  * (docs/strategy/victress-business-purpose.md, section 4). Each focus area names the pillar that delivers it and
  * repeats that pillar's real status, so nothing here reads as a live program or an offer. The About page carries
  * the fuller explanation.
@@ -21,12 +21,11 @@ export function WomenInEsports() {
         className="-right-40 -top-6 hidden w-[760px] max-w-none sm:block"
       />
       <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
-        {/* Nothing sits above the headline. The accessible name stays the full written reference: "Victress Women in Esports". */}
+        {/* Nothing sits above the headline. The initiative is called "Women in Esports", with nothing in front of it. */}
         <h2
           id="women-in-esports-title"
           className="font-display text-3xl font-bold leading-tight sm:text-4xl"
         >
-          <span className="sr-only">{e.brand} </span>
           {e.title}
         </h2>
         <p className="mt-3 text-mute">{e.line}</p>

@@ -126,15 +126,14 @@ export const copy = {
     ],
     soonCta: "Join the waitlist",
     final: { title: "Get started.", cta: "Get started", login: "Log in" },
-    sharedValueLink: "About Victress Women in Esports",
+    sharedValueLink: "About Women in Esports",
   },
 
-  // Victress Women in Esports: an intentional shared value commitment, not a limit on who Victress serves (docs/strategy/victress-business-purpose.md).
+  // Women in Esports (never "Victress Women in Esports"): an intentional shared value commitment, not a limit on who Victress serves (docs/strategy/victress-business-purpose.md).
   // It is delivered through the same three pillars, not a separate product, program, company or fourth pillar.
   // Every line must stay true today: name each pillar's real status and never imply a live program or offer.
   // Do not create another initiative name.
   womenInEsports: {
-    brand: "Victress",
     title: "Women in Esports",
     line: "Victress is called Victress for a purpose.",
     message:
@@ -160,7 +159,7 @@ export const copy = {
     note: "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment.",
     more: "Read why Victress exists",
     cta: "Get in touch",
-    subject: "Victress Women in Esports",
+    subject: "Women in Esports",
   },
 
   // /platform: how the three products fit together. Statuses come from home.pillars and must stay true.
@@ -232,7 +231,7 @@ export const copy = {
 
   // /women-in-esports. Everything about privacy and safety is a commitment in development, never a live feature.
   womenPage: {
-    title: "Victress Women in Esports.",
+    title: "Women in Esports.",
     whyTitle: "Why this matters.",
     why: [
       "Women who compete in esports face barriers that include harassment, limited access to competitive networks, informal gatekeeping and difficulty getting their achievements recognized.",
