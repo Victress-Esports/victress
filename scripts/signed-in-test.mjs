@@ -77,6 +77,28 @@ const text = async (page) => (await page.locator("body").innerText()).replace(/\
   await page.getByLabel("Role and rank").check();
   check((await text(page)) !== before, "resume: the preview changes when a field is ticked");
 
+  // resume: edit profile text and games in place
+  await page.goto(`http://app.localhost:${OFF}/dashboard/resume`);
+  await page.fill("#pf-bio", "x".repeat(300));
+  check((await page.inputValue("#pf-bio")).length === 280, "resume: the bio is limited to 280 characters");
+  await page.fill("#pf-bio", "Duelist main. Climbing one Act at a time.");
+  await page.fill("#pf-name", "Mock Rookie");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await page.waitForSelector("text=Saved.");
+  await page.reload();
+  check((await page.inputValue("#pf-bio")) === "Duelist main. Climbing one Act at a time." && (await page.inputValue("#pf-name")) === "Mock Rookie", "resume: bio and display name save and persist after a reload");
+  await page.getByRole("button", { name: /^\+ Counter-Strike 2$/ }).click();
+  await page.getByRole("button", { name: "Remove Counter-Strike 2" }).waitFor();
+  check(true, "resume: a game can be added in place");
+  const rankSelect = page.locator("label:has-text('Rank') select").last();
+  await rankSelect.selectOption({ index: 2 });
+  await page.waitForTimeout(600);
+  await page.reload();
+  check((await page.locator("label:has-text('Rank') select").last().inputValue()) !== "", "resume: a rank saved for the new game persists after a reload");
+  await page.getByRole("button", { name: "Remove Counter-Strike 2" }).click();
+  await page.waitForTimeout(600);
+  check((await page.getByRole("button", { name: "Remove Counter-Strike 2" }).count()) === 0, "resume: a game can be removed");
+
   // scrims, uploads off
   await page.goto(`http://app.localhost:${OFF}/dashboard/scrims`);
   t = await text(page);
