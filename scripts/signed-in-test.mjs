@@ -1,0 +1,145 @@
+// Browser tests for the signed in dashboard pages, using the local sign in stand-in (scripts/mock-auth.mjs).
+//   node scripts/signed-in-test.mjs <app-port-uploads-off> <app-port-uploads-on> [mock-port=4010]
+// Needs: MOCK_AUTH=1 node scripts/mock-supabase.mjs <mock-port>, and an app built with NEXT_PUBLIC_SUPABASE_URL pointing at it.
+// Test tooling only. Touches no real database.
+import { createRequire } from "node:module";
+import { writeFileSync } from "node:fs";
+const { chromium } = createRequire(import.meta.url)("playwright");
+
+const [OFF, ON, MOCK = 4010] = process.argv.slice(2).map(Number);
+let failed = 0;
+const check = (ok, name) => { console.log(`${ok ? "PASS" : "FAIL"} ${name}`); if (!ok) failed++; };
+const browser = await chromium.launch();
+
+async function session(persona, port) {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(String(e)));
+  await page.goto(`http://app.localhost:${MOCK}/dev/auth/login?persona=${persona}&to=${encodeURIComponent(`http://app.localhost:${port}`)}`);
+  return { ctx, page, errors };
+}
+const text = async (page) => (await page.locator("body").innerText()).replace(/\s+/g, " ");
+
+// --- signed out
+{
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  await page.goto(`http://app.localhost:${OFF}/dashboard`);
+  check(/\/login/.test(page.url()), "signed out: /dashboard redirects to /login");
+  await page.goto(`http://app.localhost:${OFF}/dashboard/scrims`);
+  check(/\/login/.test(page.url()), "signed out: /dashboard/scrims redirects to /login");
+  await ctx.close();
+}
+
+// --- rookie, everything off
+{
+  const { ctx, page, errors } = await session("rookie", OFF);
+  let t = await text(page);
+  check(page.url().endsWith("/dashboard"), "rookie: lands on the hub");
+  check(/Dashboard/.test(t) && /Plan\s*Rookie/.test(t), "hub: plan shows Rookie");
+  check((t.match(/Not open yet/g) || []).length >= 4, "hub: all four features show Not open yet");
+  check(/Scout plan · Coming soon/.test(t), "hub: Scout Desk is locked to the Scout plan and Coming soon");
+  check((await page.locator('a[href="/dashboard/scout"]').count()) === 0, "hub: no link to a Scout Desk route");
+  for (const [href, label] of [["/dashboard/resume", "Player Resume"], ["/dashboard/scrims", "Scrim Intelligence"], ["/dashboard/privacy", "Privacy and sharing"]])
+    check((await page.locator(`a[href="${href}"]`).count()) > 0, `hub: card links to ${label}`);
+  check(!/Your profile is live/.test(t), "hub: no 'profile is live' claim");
+
+  // privacy page
+  await page.goto(`http://app.localhost:${OFF}/dashboard/privacy`);
+  t = await text(page);
+  check(/not available yet/i.test(t) && /Sharing links are not available yet/.test(t), "privacy: public profile and sharing say not available yet");
+  check(await page.locator("#dir-l").count() > 0 && (await page.getByRole("switch", { name: /List my profile publicly/ }).isDisabled()), "privacy: the public listing switch is disabled while the directory is off");
+
+  // resume
+  await page.goto(`http://app.localhost:${OFF}/dashboard/resume`);
+  t = await text(page);
+  check(/Self-reported/.test(t) && /Coming soon/.test(t), "resume: stats are labeled Self-reported; automated sources Coming soon");
+  await page.fill("#t-name", "Spring Open");
+  await page.fill("#t-place", "3rd");
+  await page.getByRole("button", { name: "Add tournament" }).click();
+  await page.waitForSelector("text=Spring Open");
+  check(true, "resume: a tournament can be added and shows in the list");
+  await page.fill("#h-title", "Clutch");
+  await page.fill("#h-url", "http://insecure.example/clip");
+  await page.getByRole("button", { name: "Add highlight" }).click();
+  await page.waitForTimeout(800);
+  check(!(await page.locator("text=Clutch").count()), "resume: an http highlight link is refused");
+  await page.fill("#h-url", "https://example.com/clip");
+  await page.getByRole("button", { name: "Add highlight" }).click();
+  await page.waitForSelector("text=Clutch");
+  check(true, "resume: an https highlight link is accepted");
+  await page.getByRole("button", { name: "Remove Clutch" }).click();
+  await page.waitForFunction(() => !document.body.innerText.includes("Clutch"));
+  check(true, "resume: a highlight can be removed");
+  // visibility preview responds to ticks
+  const before = await text(page);
+  await page.getByLabel("Role and rank").check();
+  check((await text(page)) !== before, "resume: the preview changes when a field is ticked");
+
+  // scrims, uploads off
+  await page.goto(`http://app.localhost:${OFF}/dashboard/scrims`);
+  t = await text(page);
+  check(/Automated analysis\s*Coming soon/.test(t), "scrims: automated analysis is Coming soon");
+  check(/Uploads are not open yet/.test(t) && (await page.locator('input[type="file"]').count()) === 0, "scrims: no uploader while the flag is off");
+  check(/Self-reported/.test(t) && /API/.test(t) && /Demo parsed/.test(t), "scrims: all three provenance labels are explained");
+  check(!/\d+(\.\d+)?\s*(ACS|K\/D)/i.test(t), "scrims: no stats are shown");
+  check(errors.length === 0, `rookie: no page errors ${errors.join(" | ")}`);
+  await ctx.close();
+}
+
+// --- uploads on
+{
+  const { ctx, page } = await session("rookie", ON);
+  await page.goto(`http://app.localhost:${ON}/dashboard/scrims`);
+  const file = page.locator('input[type="file"]');
+  check((await file.count()) === 1 && (await file.isDisabled()), "scrims (flag on): the picker is locked until the player confirms");
+  await page.getByLabel(/I took part in this practice/).check();
+  writeFileSync("/tmp/claude-0/bad.exe", "x");
+  await file.setInputFiles("/tmp/claude-0/bad.exe");
+  await page.waitForSelector("text=Supported file types");
+  check(true, "scrims: an unsupported file type is refused");
+  writeFileSync("/tmp/claude-0/practice.dem", Buffer.alloc(2048, 1));
+  await file.setInputFiles("/tmp/claude-0/practice.dem");
+  await page.waitForSelector("text=practice.dem");
+  check(/stored privately/.test(await text(page)) && /not analyzed/.test(await text(page)), "scrims: an upload is listed as stored privately and not analyzed");
+  await page.getByRole("button", { name: "Delete practice.dem" }).click();
+  await page.waitForFunction(() => !document.body.innerText.includes("practice.dem"));
+  check(true, "scrims: a file can be deleted");
+  await page.goto(`http://app.localhost:${ON}/dashboard`);
+  check(/Uploads open/.test(await text(page)), "hub (flag on): the Scrim card shows uploads open");
+  await ctx.close();
+}
+
+// --- team member
+{
+  const { ctx, page } = await session("team", OFF);
+  await page.goto(`http://app.localhost:${OFF}/dashboard/team`);
+  const t = await text(page);
+  check(/Mock Squad/.test(t) && /mock_mate_one/.test(t) && /mock_mate_two/.test(t), "team: the roster shows all three members");
+  check(/Roster \(3 of 10\)/.test(t), "team: roster count");
+  await ctx.close();
+}
+
+// --- recruiter or scout
+{
+  const { ctx, page } = await session("scout", OFF);
+  const t = await text(page);
+  check(/Plan\s*Rookie/.test(t) && /Scout plan · Coming soon/.test(t), "scout persona: still Rookie; Scout Desk locked (no entitlement source exists)");
+  check((await page.locator('a[href="/dashboard/scout"]').count()) === 0, "scout persona: no Scout Desk link");
+  await ctx.close();
+}
+
+// --- new user: onboarding starts at the account type step
+{
+  const { ctx, page } = await session("new", OFF);
+  check(/\/onboarding/.test(page.url()), "new user: sent to onboarding");
+  check(/How will you use Victress\?/.test(await text(page)), "onboarding: starts with the account type step");
+  await page.getByRole("button", { name: /Recruiter or scout/ }).click();
+  check(/Pick your name/.test(await text(page)), "onboarding: account type leads to the name step");
+  await ctx.close();
+}
+
+await browser.close();
+console.log(failed ? `\n${failed} SIGNED IN CHECK(S) FAILED` : "\nALL SIGNED IN CHECKS PASSED");
+process.exit(failed ? 1 : 0);
