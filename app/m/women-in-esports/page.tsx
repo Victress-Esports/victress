@@ -75,7 +75,7 @@ export default function WomenInEsportsPage() {
                     {e.connectedTo}{" "}
                     <span className="font-semibold text-white">{p.title}</span>
                     <span className="mt-1 block text-xs">
-                      ({p.status === "live" ? h.statusLive : h.statusSoon})
+                      ({p.statusLabel})
                     </span>
                     <span className="mt-3 block text-white">
                       {w.today[a.pillar]}

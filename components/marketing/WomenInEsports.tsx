@@ -48,9 +48,7 @@ export function WomenInEsports() {
                   <span className="font-semibold text-white">{p.title}</span>
                   <span className="mt-1 block text-xs">
                     (
-                    {p.status === "live"
-                      ? copy.home.statusLive
-                      : copy.home.statusSoon}
+                    {p.statusLabel}
                     )
                   </span>
                 </p>

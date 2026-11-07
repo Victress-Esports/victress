@@ -48,7 +48,7 @@ export default function About() {
               <div className="flex flex-wrap items-center gap-3">
                 <h3 className="font-display text-xl font-bold">{p.title}</h3>
                 <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs font-semibold text-signal">
-                  {p.status === "live" ? copy.home.statusLive : copy.home.statusSoon}
+                  {p.statusLabel}
                 </span>
               </div>
               <p className="mt-2 text-mute">

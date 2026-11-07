@@ -67,7 +67,7 @@ export default function Platform() {
 
       {h.pillars.map((pillar, i) => {
         const Visual = visuals[pillar.id as keyof typeof visuals];
-        const live = pillar.status === "live";
+        const hasAccount = pillar.id === "resume";
         const detail = p.products[pillar.id as keyof typeof p.products];
         return (
           <section
@@ -88,9 +88,9 @@ export default function Platform() {
                     {pillar.title}
                   </h2>
                   <span
-                    className={`mt-4 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${live ? "bg-crimson text-white" : "bg-surface-2 text-coral"}`}
+                    className={`mt-4 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${pillar.status === "dev" ? "bg-crimson text-white" : "bg-surface-2 text-coral"}`}
                   >
-                    {live ? h.statusLive : h.statusSoon}
+                    {pillar.statusLabel}
                   </span>
                   <p className="mt-4 max-w-md text-lg text-mute">
                     {pillar.line}
@@ -116,7 +116,7 @@ export default function Platform() {
                     ))}
                   </ul>
                   <div className="mt-8">
-                    {live ? (
+                    {hasAccount ? (
                       <ButtonLink href={appUrl("/login")}>
                         {h.final.cta}
                       </ButtonLink>

@@ -32,12 +32,12 @@ Scripts: `npm run typecheck`, `npm run lint`, `npm run build`, `npm run seo:audi
 
 Never commit `.env.local`. The service role key is server only and must never be `NEXT_PUBLIC_`.
 
-Vercel does not accept `NEXT_PUBLIC_` names for the Supabase variables, so set `SUPABASE_URL`, `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` (Production and Preview scoped separately). `next.config.ts` maps only the URL and the anon key to the `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` names the code reads; the URL and anon key are public by design. The service role key is server only and is never mapped. The build fails with a clear message if the URL or anon key is missing. Locally, the `NEXT_PUBLIC_` names still work as a fallback.
+Vercel does not accept `NEXT_PUBLIC_` names, nor the same name in two environments, so the Supabase variables are split by environment. **Production** (`VERCEL_ENV=production`) reads `SUPABASE_URL`, `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` (the production project). **Preview** (`VERCEL_ENV=preview`) reads `STAGING_SUPABASE_URL`, `STAGING_SUPABASE_ANON_KEY` and `STAGING_SUPABASE_SERVICE_ROLE_KEY` (the staging project) and **never falls back to the production values**; the build fails with a clear message if they are missing, or if a Preview points at the production project. `next.config.ts` maps only the URL and the anon key (public by design) to the names the code reads; the service role key is read at runtime on the server only and is never mapped. Locally, set the `STAGING_` trio to run against staging, or `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` for the mock scripts. `npm run test:env` checks all of this, including that no service role value appears in any built file. The rules live in `lib/supabase/resolve-env.ts`.
 
 | Name | Where to get it |
 |---|---|
-| `SUPABASE_URL`, `SUPABASE_ANON_KEY` | Supabase > Project Settings > API. Public by design. (`NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` work locally as a fallback.) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Same page. Server only. |
+| `SUPABASE_URL`, `SUPABASE_ANON_KEY` (Production) and `STAGING_SUPABASE_URL`, `STAGING_SUPABASE_ANON_KEY` (Preview) | Supabase > Project Settings > API of the matching project. Public by design |
+| `SUPABASE_SERVICE_ROLE_KEY` (Production) and `STAGING_SUPABASE_SERVICE_ROLE_KEY` (Preview) | Same page. Server only. |
 | `RESEND_API_KEY` | resend.com > API Keys. Verify `victressesports.com` as a sending domain. |
 | `RESEND_FROM_EMAIL` | `hello@victressesports.com` |
 | `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET` | Stripe dashboard, test mode only (used from M4) |

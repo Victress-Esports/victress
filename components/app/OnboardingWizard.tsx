@@ -9,7 +9,7 @@ type Step = "type" | "name" | "game" | "role" | "rank";
 type AccountType = "player" | "team" | "recruiter";
 
 const TYPES: { id: AccountType; title: string; line: string }[] = [
-  { id: "player", title: "Player", line: "Build your Player Resume." },
+  { id: "player", title: "Player", line: "Add your games and enter your own stats." },
   { id: "team", title: "Team or coach", line: "Run a roster and follow your team." },
   { id: "recruiter", title: "Recruiter or scout", line: "Scout Desk is not open yet. You can still make a player profile." },
 ];
@@ -92,7 +92,7 @@ export function OnboardingWizard({ games, needsName }: { games: GameConfig[]; ne
     step === "type"
       ? "This sets up your account. It does not give access to anyone else's data."
       : step === "name"
-      ? "That one was taken. Choose another."
+      ? "Choose the name on your account. Use 3 to 20 letters, numbers or underscores."
       : step === "game"
         ? "Where do you compete? You can add more later."
         : step === "role"
@@ -139,7 +139,7 @@ export function OnboardingWizard({ games, needsName }: { games: GameConfig[]; ne
           </label>
           <div className="flex min-h-14 items-center rounded-2xl border border-line bg-surface pl-4 text-lg focus-within:border-white">
             <span className="select-none text-mute" aria-hidden>
-              victress.gg/
+              @
             </span>
             <input
               id="ob-name"

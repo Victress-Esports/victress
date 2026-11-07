@@ -8,6 +8,8 @@ Migrations: `20261107000100_privacy_expand.sql` (adds, breaks nothing) and `2026
 1. Count profiles in production (`select count(*) from public.profiles`). Both migrations abort with `STOP (decision 4)` if any profile exists. If the count is not zero, stop and prepare a plan for founder review.
 2. Confirm the step is explicitly authorized.
 
+> **Status 2026-11-07 (evening): production has data.** 1 auth user and 1 profile (the founder's test account, all consents off). The expand and contract steps below were applied when the database was empty; they cannot be re run (the decision 4 safeguard stops them) and their rollbacks now need a data plan. Do not delete the test account. See [dashboard-migrations-production-plan.md](dashboard-migrations-production-plan.md) for what comes next.
+
 ## Steps
 1. **Expand.** Apply `..000100`. Old application keeps working (verified by `supabase/tests/privacy_expand.sql`). Rollback: drop the new columns, table, functions and restore the previous `handle_new_user()`; no data depends on them yet.
 2. **Switch.** Deploy the application that reads only through the service role functions (`lib/privacy.ts`). Needs `SUPABASE_SERVICE_ROLE_KEY` set server side in Vercel. `SHARING_ENABLED` and `DIRECTORY_ENABLED` stay unset (off). Rollback: redeploy the previous build (expand left the old reads intact).
@@ -57,8 +59,14 @@ Production recorded the expand step as version **`20261107052543`** (name `priva
 | `20261107000200_privacy_contract.sql` | `20261107054445` | `privacy_contract` |
 | (statement from `docs/proposals/rls-auto-enable-revoke.md`, no repository migration file) | `20261107055545` | `revoke_rls_auto_enable_public_execute` |
 | `20261107000500_longer_invite_codes.sql` | `20261107060917` | `longer_invite_codes` |
+| `20261107000620_waitlist_service_role_grants.sql` | `20261107204332` | `waitlist_service_role_grants` |
+| `20261107000300_dashboard_foundation.sql` + `20261107000310_upload_allowlist.sql` (one transaction) | `20261107212657` | `dashboard_foundation_with_allowlist` |
+| `20261107000400_scrim_matches.sql` | `20261107212711` | `scrim_matches` |
+| `20261107000600_invite_info_service_grant.sql` | `20261107212726` | `invite_info_service_grant` |
 
-Not applied: `20261107000300_dashboard_foundation.sql` and anything after it (`..000310`, `..000400`). Content matches; only the version numbers differ (production stamps the time of application). The `rls_auto_enable` revoke exists only as a statement in its proposal, not as a repository migration file. See the bookkeeping note above before using any tool that compares versions.
+Applied out of repository order on 2026-11-07 (founder approved, one call, read only verification after): `20261107000620_waitlist_service_role_grants.sql`. It sits after the unapplied dashboard files in repository order but is independent of them (it touches only `public.waitlist`). The offset between a repository file number and its production version is therefore not constant: production stamps the time of application.
+
+Applied 2026-11-07 after rolled back production dry runs (founder approval): `..000300` and `..000310` together, `..000400`, `..000600`. Not applied: `..000610` (waits for the invite lookup code, PR #25, to be deployed). Content matches; only the version numbers differ (production stamps the time of application). The `rls_auto_enable` revoke exists only as a statement in its proposal, not as a repository migration file. See the bookkeeping note above before using any tool that compares versions.
 
 ## Dashboard foundation (migrations `20261107000300_dashboard_foundation.sql` and `20261107000310_upload_allowlist.sql`)
 

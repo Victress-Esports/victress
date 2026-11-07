@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
+import { ComingSoonNote } from "@/components/app/ComingSoonNote";
 import { MatchLog, type MatchRow } from "@/components/app/MatchLog";
 import { ProvenanceTag } from "@/components/app/ProvenanceTag";
 import { ScrimUploader, type UploadRow } from "@/components/app/ScrimUploader";
 import { Section } from "@/components/ui/form";
 import { PROVENANCE, PROVENANCE_ORDER } from "@/content/provenance";
 import { scrimUploadsEnabled } from "@/lib/dashboard";
+import { isMissingTable } from "@/lib/db-errors";
 import { loadMe } from "@/lib/me";
 import { privateMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = privateMetadata("Scrim Intelligence | Victress", "Store private practice files. Automated analysis is coming soon.");
+export const metadata: Metadata = privateMetadata("Scrim Intelligence | Victress", "Match log, practice file storage and automated analysis are coming soon.");
 
 export default async function ScrimsPage() {
   const { sb, user, games } = await loadMe();
@@ -16,13 +18,14 @@ export default async function ScrimsPage() {
   // Only approved design partners can upload. The database enforces this too; this only decides what to show.
   const { data: approved } = flagOn ? await sb.rpc("upload_allowed") : { data: false };
   const enabled = flagOn && approved === true;
-  const { data: matches } = await sb
+  const { data: matches, error: matchesError } = await sb
     .from("scrim_matches")
     .select("id, game, played_on, opponent, result, score, map, note")
     .eq("profile_id", user.id)
     .order("played_on", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(200);
+  const matchLogMissing = isMissingTable(matchesError);
   const { data: uploads } = enabled
     ? await sb.from("scrim_uploads").select("id, game, original_name, size_bytes, created_at").eq("profile_id", user.id).order("created_at", { ascending: false })
     : { data: [] };
@@ -54,8 +57,8 @@ export default async function ScrimsPage() {
         <p className="mt-4 text-sm text-mute">Verification will mean we can show where evidence came from and that it is intact. It never judges how good a player is.</p>
       </Section>
 
-      <Section title="Match log" line="Record your practice matches. Private to you, and entered by you, so every entry is Self-reported.">
-        <MatchLog rows={(matches ?? []) as MatchRow[]} games={games.map((g) => g.game)} />
+      <Section title="Match log" line={matchLogMissing ? "Coming soon" : "Record your practice matches. Private to you, and entered by you, so every entry is Self-reported."}>
+        {matchLogMissing ? <ComingSoonNote what="The match log" /> : <MatchLog rows={(matches ?? []) as MatchRow[]} games={games.map((g) => g.game)} />}
       </Section>
 
       <Section title="Your practice files" line="Demo and replay files, stored privately.">
@@ -65,7 +68,7 @@ export default async function ScrimsPage() {
           <p className="rounded-xl border border-line bg-surface-2 px-4 py-3 text-sm text-mute">
             {flagOn
               ? "Uploads are open to approved design partners only. Your account is not on the list."
-              : "Uploads are not open yet. They open for design partners once the privacy foundation is live. Nothing is collected until then."}
+              : "Uploads are not open yet. Nothing is collected."}
           </p>
         )}
       </Section>
