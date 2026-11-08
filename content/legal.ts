@@ -193,7 +193,7 @@ export const termsDoc: LegalDoc = {
     {
       h: "Limits of liability",
       p: [
-        "Victress is provided as it is. To the fullest extent the law allows, Victress LLC is not liable for indirect, incidental or consequential damages, or for lost opportunities, and our total liability for any claim is limited to the greater of what you paid us in the last 12 months or 100 US dollars. Nothing here limits a right you have that the law does not allow us to limit.",
+        "Victress is provided as it is. To the fullest extent the law allows, Victress LLC is not liable for indirect, incidental or consequential damages, or for lost opportunities, and our total liability for any claim is limited to the fees you paid us in the 12 months before the claim, with a minimum of 100 US dollars. Nothing here limits a right you have that the law does not allow us to limit.",
       ],
     },
     {
@@ -224,14 +224,14 @@ export const refundsDoc: LegalDoc = {
     {
       h: "Cancel any time",
       p: [
-        "You can cancel at any time in the billing portal, which you open from the billing page in your dashboard. Your plan stays active until the end of the period you have paid for, then it ends and your account returns to Rookie.",
+        `You can cancel at any time. Until the billing portal exists, send cancellation and refund requests by email to ${CONTACT_EMAIL} from the address on your account. Your plan stays active until the end of the period you have paid for, then it ends and your account returns to Rookie.`,
       ],
     },
     {
       h: "Refunds",
       list: [
         "Monthly plans: we do not give prorated refunds for a partial month. You keep access to the end of the month you paid for.",
-        "Annual plans: you can ask for a full refund within 14 days of your first purchase. Email us from the address on your account and we will refund it.",
+        "Annual plans: you can ask for a full refund within 14 days of your first purchase. Email us from the address on your account and we will refund it. Refund requests go by email until the billing portal exists.",
       ],
     },
     {
