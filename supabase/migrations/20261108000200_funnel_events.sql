@@ -28,3 +28,39 @@ alter table public.funnel_events enable row level security;  -- no policies: no 
 
 revoke all on public.funnel_events from public, anon, authenticated, service_role;
 grant select, insert, delete on public.funnel_events to service_role;
+
+-- Retention: 12 months, then deleted (founder decision 2026-11-08). The function deletes in one statement; a daily job calls it.
+create function public.purge_funnel_events(p_months integer default 12)
+returns bigint
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  n bigint;
+begin
+  if p_months is null or p_months < 1 then
+    raise exception 'invalid retention';
+  end if;
+  delete from public.funnel_events where created_at < now() - make_interval(months => p_months);
+  get diagnostics n = row_count;
+  return n;
+end;
+$$;
+revoke execute on function public.purge_funnel_events(integer) from public, anon, authenticated;
+grant execute on function public.purge_funnel_events(integer) to service_role;
+
+-- Daily schedule with pg_cron (03:17 UTC) where the extension is available. If it is not, this only prints a notice and the
+-- function above must be called another way (docs/analytics/funnel-events.md); nothing else depends on it.
+do $cron$
+begin
+  if exists (select 1 from pg_available_extensions where name = 'pg_cron') then
+    create extension if not exists pg_cron;
+    perform cron.schedule('purge-funnel-events', '17 3 * * *', 'select public.purge_funnel_events(12)');
+  else
+    raise notice 'pg_cron is not available: purge_funnel_events() is not scheduled';
+  end if;
+exception when others then
+  raise notice 'pg_cron schedule not created: %', sqlerrm;
+end
+$cron$;

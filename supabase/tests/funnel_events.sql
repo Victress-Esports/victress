@@ -35,5 +35,20 @@ begin
   delete from public.profiles where id = ua;
   select count(*) into n from public.funnel_events where profile_id = ua;
   r := array_append(r, case when n = 0 then 'PASS events are deleted with the profile' else 'FAIL events survived profile deletion' end);
+  -- retention: rows older than 12 months are deleted by purge_funnel_events, newer rows stay
+  set local role service_role;
+  insert into public.funnel_events (name, props, created_at) values ('registration_started', '{}', now() - interval '13 months'), ('registration_started', '{}', now() - interval '11 months'), ('registration_started', '{}', now());
+  select public.purge_funnel_events(12) into n;
+  r := array_append(r, case when n = 1 then 'PASS purge deletes only rows older than 12 months' else 'FAIL purge deleted ' || n end);
+  begin perform public.purge_funnel_events(0); r := array_append(r, 'FAIL zero month retention accepted'); exception when others then r := array_append(r, 'PASS a retention under 1 month is refused'); end;
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub', ua, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  begin perform public.purge_funnel_events(12); r := array_append(r, 'FAIL a signed in user can purge'); exception when insufficient_privilege then r := array_append(r, 'PASS a signed in user cannot call purge'); end;
+  reset role;
+  set local role anon;
+  begin perform public.purge_funnel_events(12); r := array_append(r, 'FAIL anon can purge'); exception when insufficient_privilege then r := array_append(r, 'PASS anon cannot call purge'); end;
+  reset role;
+
   raise exception E'RESULTS\n%', array_to_string(r, E'\n');
 end $$;

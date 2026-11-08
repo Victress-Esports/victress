@@ -36,7 +36,7 @@ export const privacyDoc: LegalDoc = {
         "Game stats from earlier versions: earlier versions of Victress let players enter game stats. We still hold what was entered. We do not show it to anyone.",
         "Messages you send us: the contact and design partner forms send your details to our email inbox. They are not stored in the Victress database.",
         "Waitlist: your email address and the plan you are interested in.",
-        "Product activity: a short list of events in our own database so we can see whether Victress works for people, such as starting to sign up, finishing sign up, completing a profile, starting a game import, viewing a first analysis, and coming back on a later day. Each event has a name, a date and, once you have an account, your account. We do not record your IP address, device, or the pages you browse in this list, and we share it with no one. Events tied to your account are deleted when you delete your account.",
+        "Product activity: a short list of events in our own database so we can see whether Victress works for people, such as starting to sign up, finishing sign up, completing a profile, starting a game import, viewing a first analysis, and coming back on a later day. Each event has a name, a date and, once you have an account, your account. We do not record your IP address, device, or the pages you browse in this list, and we share it with no one. Events are deleted after 12 months, and sooner if you delete your account.",
         "Basic technical data: our hosting provider records requests to the site (such as your IP address, the page and the time) so the site works and stays secure.",
       ],
     },

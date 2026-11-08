@@ -19,7 +19,7 @@ IP address, device or browser, referrer, page URLs or paths, search text, emails
 
 ## Controls
 - Only the server can read or write the table (row level security with no policies; no grants to anonymous or signed in users). Tested: `supabase/tests/funnel_events.sql`.
-- Events tied to an account are deleted when the account is deleted.
+- **Retention: 12 months.** `purge_funnel_events(12)` deletes older rows (anonymous ones included); a daily pg_cron job at 03:17 UTC calls it. The migration installs the `pg_cron` extension (available on staging, version 1.6.4) and schedules the job, so applying it to production includes enabling that extension. If pg_cron is unavailable the migration only prints a notice and the function must be called another way. Events tied to an account are also deleted when the account is deleted.
 - The anonymous event is limited to 20 per IP address per hour in memory; the address itself is not stored.
 - Failures never reach the player: recording errors are swallowed and logged by error code only.
 
@@ -27,7 +27,6 @@ IP address, device or browser, referrer, page URLs or paths, search text, emails
 "Victress counts a few product events in its own database, such as starting sign up, finishing sign up, completing a profile, starting a game import, viewing a first analysis and returning on a later day. Events carry no IP address, device details or page history, and nothing is shared with advertisers or analytics companies." The privacy page says this (Product activity).
 
 ## Open points
-- **Retention:** no deletion schedule for events beyond account deletion. Anonymous `registration_started` rows have no owner to delete them with. Decide a period (for example 24 months) before production use.
-- **Consent:** these events are first party and minimal, so no banner is used. If you want an opt out for signed in players, it needs a profile setting and a change to `recordFunnelEvent`.
+- **Consent:** these events are first party and minimal, so no banner and no opt out is used (founder decision 2026-11-08).
 - **Reading the funnel:** there is no dashboard. Counts are queried with the service role (for example `select name, count(*) from funnel_events group by 1`).
 - Not covered by a test: the live sign in callback (`registration_completed`) and onboarding hooks, because the mock stack does not simulate the sign in code exchange. The recorder, the events route, the database table and the return visit rule are tested.
