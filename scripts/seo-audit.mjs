@@ -243,7 +243,7 @@ const pages = [
     // three products, how it works, the design partner pilot, one closing button.
     contains: [
       "Turn practice into progress.",
-      "Victress helps competitive esports players turn practice into performance evidence, build a Player Resume and be discovered by teams, coaches and collegiate programs.",
+      "Victress is where competitive esports players build a Player Resume and teams manage their rosters.",
       "Become a Design Partner", "Free 4 to 6 week pilot for one competitive team.", "Sample", "Sign up", "Log in",
       "Three products.", "Scrim Intelligence", "Player Resume", "Scout Desk", "Coming soon",
       "How it works.", "The design partner pilot.", "Applying does not guarantee a place.",
