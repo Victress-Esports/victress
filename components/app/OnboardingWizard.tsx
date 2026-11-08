@@ -9,9 +9,9 @@ type Step = "type" | "name" | "game" | "role" | "rank";
 type AccountType = "player" | "team" | "recruiter";
 
 const TYPES: { id: AccountType; title: string; line: string }[] = [
-  { id: "player", title: "Player", line: "Add your games and enter your own stats." },
+  { id: "player", title: "Player", line: "Add your games, roles and ranks." },
   { id: "team", title: "Team or coach", line: "Run a roster and follow your team." },
-  { id: "recruiter", title: "Recruiter or scout", line: "Scout Desk is not open yet. You can still make a player profile." },
+  { id: "recruiter", title: "Recruiter or scout", line: "Scout Desk is coming soon. You can still create a player profile." },
 ];
 
 const card =

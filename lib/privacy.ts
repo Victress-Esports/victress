@@ -15,13 +15,23 @@ export type FieldKey = (typeof FIELD_KEYS)[number];
 export type Fields = Record<FieldKey, boolean>;
 export const NO_FIELDS: Fields = { display_name: false, avatar: false, bio: false, team: false, stats: false, rank_role: false };
 
-/** Keeps only known keys with boolean values; everything else is off. */
+/**
+ * Keeps only known keys with boolean values; everything else is off.
+ * `stats` is ALWAYS off: Victress does not publish stats players enter themselves (founder decision 2026-11-07). The stored
+ * data and the database columns stay as they are; only what is saved from the app and what is displayed changes.
+ */
 export function cleanFields(input: unknown): Fields {
   const out = { ...NO_FIELDS };
   if (input && typeof input === "object" && !Array.isArray(input)) {
     for (const k of FIELD_KEYS) if ((input as Record<string, unknown>)[k] === true) out[k] = true;
   }
+  out.stats = false;
   return out;
+}
+
+/** Defense in depth: a public or shared payload never carries self-entered stats, whatever the database function returned. */
+export function withoutStats(p: PublicPayload | null): PublicPayload | null {
+  return p ? { ...p, metrics: null, metrics_source: null } : null;
 }
 
 /** 256 bit random token. Only the SHA-256 hash is stored; the token is shown to its owner once. */
@@ -60,12 +70,12 @@ async function rpc<T>(fn: string, args?: Record<string, unknown>): Promise<T | n
 
 export async function sharedProfile(token: string) {
   if (!sharingEnabled() || !TOKEN_SHAPE.test(token)) return null;
-  return rpc<PublicPayload>("shared_profile", { p_hash: hashToken(token) });
+  return withoutStats(await rpc<PublicPayload>("shared_profile", { p_hash: hashToken(token) }));
 }
 
 export async function directoryProfile(handle: string) {
   if (!directoryEnabled()) return null;
-  return rpc<PublicPayload>("directory_profile", { p_handle: handle });
+  return withoutStats(await rpc<PublicPayload>("directory_profile", { p_handle: handle }));
 }
 
 export async function handleAvailable(handle: string) {

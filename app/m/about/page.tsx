@@ -47,13 +47,11 @@ export default function About() {
             <li key={p.id} className="bg-carbon p-6">
               <div className="flex flex-wrap items-center gap-3">
                 <h3 className="font-display text-xl font-bold">{p.title}</h3>
-                <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs font-semibold text-signal">
-                  {p.statusLabel}
-                </span>
+                {p.soon ? (
+                  <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs font-semibold text-signal">{copy.home.soonLabel}</span>
+                ) : null}
               </div>
-              <p className="mt-2 text-mute">
-                {p.line} {p.note}
-              </p>
+              <p className="mt-2 text-mute">{p.line}</p>
             </li>
           ))}
         </ul>
@@ -77,30 +75,18 @@ export default function About() {
         <p className="mt-4 text-lg text-mute">{a.value}</p>
       </section>
 
-      <section aria-labelledby="evidence" className="mt-14">
-        <h2 id="evidence" className={h2}>
-          {a.evidenceTitle}
-        </h2>
-        <p className="mt-4 text-lg text-mute">{a.evidence}</p>
-      </section>
-
       <section aria-labelledby="now" className="mt-14">
         <h2 id="now" className={h2}>
           {a.nowTitle}
         </h2>
         <ul className={list}>
-          {a.now.map((s) => (
-            <li key={s}>{s}</li>
-          ))}
-        </ul>
-      </section>
-      <section aria-labelledby="planned" className="mt-10">
-        <h2 id="planned" className={h2}>
-          {a.plannedTitle}
-        </h2>
-        <ul className={list}>
-          {a.planned.map((s) => (
-            <li key={s}>{s}</li>
+          {a.offers.map((o) => (
+            <li key={o.text}>
+              {o.text}
+              {o.soon ? (
+                <span className="ml-2 rounded-full bg-surface-2 px-2.5 py-0.5 text-xs font-semibold text-signal">{copy.home.soonLabel}</span>
+              ) : null}
+            </li>
           ))}
         </ul>
       </section>

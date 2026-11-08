@@ -12,7 +12,7 @@ type Fields = Record<"display_name" | "avatar" | "bio" | "team" | "stats" | "ran
 type Settings = { directory_listed: boolean; search_indexable: boolean; show_on_leaderboards: boolean; public_fields: Fields };
 type Full = {
   handle: string; displayName: string | null; avatarUrl: string | null; bio: string | null; teamName: string | null;
-  game: string | null; role: string | null; rank: string | null; stats: { label: string; value: string }[]; appHost: string;
+  game: string | null; role: string | null; rank: string | null; appHost: string;
 };
 
 const LABELS: { key: keyof Fields; label: string }[] = [
@@ -21,7 +21,6 @@ const LABELS: { key: keyof Fields; label: string }[] = [
   { key: "bio", label: "Bio" },
   { key: "team", label: "Team" },
   { key: "rank_role", label: "Role and rank" },
-  { key: "stats", label: "Stats (Self-reported)" },
 ];
 
 /** Chooses which resume fields can be seen, using the same consent settings as /dashboard/privacy, with a live preview. */
@@ -84,7 +83,6 @@ export function ResumeVisibility({ initial, full }: { initial: Settings; full: F
           role={f.rank_role ? full.role : null}
           rank={f.rank_role ? full.rank : null}
           teamName={f.team ? full.teamName : null}
-          stats={f.stats ? full.stats : []}
           appHost={full.appHost}
         />
         {f.bio && full.bio ? <p className="mt-3 text-sm text-mute">{full.bio}</p> : null}

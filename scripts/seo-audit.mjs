@@ -238,37 +238,36 @@ const pages = [
     host: MARKETING,
     path: "/",
     index: true,
-    types: ["Organization", "WebSite", "WebApplication", "FAQPage"],
-    // Official messaging pair, and everything a crawler needs to understand the product, present in the server-rendered HTML.
+    types: ["Organization", "WebSite", "WebApplication"],
+    // Above the fold: the tagline once (the headline), one sentence, ONE button with one small line, one labeled sample. Below it: the
+    // three products, how it works, the design partner pilot, one closing button.
     contains: [
       "Turn practice into progress.",
-      "Performance intelligence and player development infrastructure for competitive esports.", "Explore the Platform", "Become a Design Partner", "Three products, one pathway.",
-      "Scrim Intelligence", "Player Resume", "Scout Desk", "In development", "Get started", "Log in",
-      "Women in Esports", "Victress is called Victress for a purpose.", "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment.",
-      "VALORANT", "Counter-Strike 2", "Rocket League", "League of Legends", "Apex Legends", "Overwatch 2",
-      "What is Victress?", "How can recruiters discover players?", "Self-reported", "Coming soon", "Sample",
+      "Victress is where competitive esports players build a Player Resume and teams manage their rosters.",
+      "Become a Design Partner", "Free 4 to 6 week pilot for one competitive team.", "Sample", "Sign up", "Log in",
+      "Three products.", "Scrim Intelligence", "Player Resume", "Scout Desk", "Coming soon",
+      "How it works.", "The design partner pilot.", "Applying does not guarantee a place.",
+      "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment.",
     ],
     // Approved homepage values. The wings are the logo (nav and footer) and a faint cropped backdrop; the full-size art file itself must not be a hero visual.
     exact: {
       title: "Esports Player Development and Recruitment | Victress",
       description: "Esports player development and recruitment for players, teams, coaches and collegiate programs. Create an account with source labeled stats and manage rosters.",
     },
-    notContains: ["wings-480", "wings-720", "/brand/wings.webp", "Claim your name", "Available now", "shareable player profile", "share one link"],
+    notContains: ["wings-480", "wings-720", "/brand/wings.webp", "Claim your name", "Available now", "shareable player profile", "share one link", "Explore the Platform", "Get started"],
   },
   mk(MARKETING, "/pricing", true, ["FAQPage", "BreadcrumbList"]),
   mk(MARKETING, "/teams", true, ["BreadcrumbList"]),
   mk(MARKETING, "/about", true, ["BreadcrumbList"]),
   { host: MARKETING, path: "/partnerships", index: true, types: ["BreadcrumbList"], contains: ["mailto:hello@victressesports.com", "Collegiate esports programs", "Tournament organizers"] },
-  { host: MARKETING, path: "/contact", index: true, types: ["BreadcrumbList"], contains: ["mailto:hello@victressesports.com", "Teams and organizations", "Individual players", "Join Early Access", "Apply for Design Partner"] },
-  { host: MARKETING, path: "/platform", index: true, types: ["BreadcrumbList"], contains: ["Practice", "Performance Evidence", "Development", "Recognition", "Opportunity", "Scrim Intelligence", "Player Resume", "Scout Desk", "Available today", "Planned", "Every number shows where it came from.", "Self-reported"] },
-  { host: MARKETING, path: "/women-in-esports", index: true, types: ["BreadcrumbList"], contains: ["Women in Esports", "Victress is called Victress for a purpose.", "None of them is live yet.", "In development", "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment."] },
+  { host: MARKETING, path: "/contact", index: true, types: ["BreadcrumbList"], contains: ["mailto:hello@victressesports.com", "Teams and organizations", "Individual players", "Request access", "Apply for Design Partner"] },
+  { host: MARKETING, path: "/platform", index: true, types: ["BreadcrumbList"], contains: ["Practice", "Performance Evidence", "Development", "Recognition", "Opportunity", "Scrim Intelligence", "Player Resume", "Scout Desk", "Coming soon"] },
+  { host: MARKETING, path: "/women-in-esports", index: true, types: ["BreadcrumbList"], contains: ["Women in Esports", "Victress is called Victress for a purpose.", "Delivered through", "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment."] },
   { host: MARKETING, path: "/design-partner", index: true, types: ["BreadcrumbList"], contains: ["Founding Design Partner pilot", "4 to 6 week", "What partners receive", "What we ask", "Applying does not guarantee a place.", "Active women", "Game Changers teams", "Collegiate programs"] },
-  mk(MARKETING, "/privacy", true, ["BreadcrumbList"]),
-  { host: MARKETING, path: "/terms", index: true, types: ["BreadcrumbList"], contains: ["at least 13 years old"] },
+  { host: MARKETING, path: "/privacy", index: true, types: ["BreadcrumbList"], contains: ["What we collect", "Who we share it with", "We do not sell your data", "private by default", "hello@victressesports.com", "at least 13"] },
+  { host: MARKETING, path: "/refunds", index: true, types: ["BreadcrumbList"], contains: ["Cancel any time", "14 days", "7 day grace period", "$7.99 per month", "$75 per year", "$49 per month", "$249 per month", "per roster", "hello@victressesports.com"] },
+  { host: MARKETING, path: "/terms", index: true, types: ["BreadcrumbList"], contains: ["at least 13 years old", "parent or guardian", "State of Utah", "Verification", "Stripe", "hello@victressesports.com", "Report"] },
   mk(APP, "/", true),
-  // A board is indexable only once it has 10 real players: on the live site (no players yet) every board is noindex.
-  mk(APP, "/leaderboard/valorant", !LIVE, ["BreadcrumbList"]),
-  mk(APP, "/leaderboard/rocket-league", false, ["BreadcrumbList"]),
   ...(LIVE
     ? []
     : [
@@ -291,16 +290,16 @@ if (!LIVE) {
   ok(!/"(email|rank|role|stats)"/.test(JSON.stringify(ld)), "private/unmarked fields leaked into JSON-LD");
 }
 
-const mPaths = ["/", "/platform", "/women-in-esports", "/design-partner", "/pricing", "/teams", "/partnerships", "/about", "/contact", "/privacy", "/terms"];
-const aPrivate = ["/dashboard", "/dashboard/profile", "/dashboard/stats", "/dashboard/team", "/onboarding", "/login", "/auth/callback", "/auth/signout", "/join/abc123", "/api/waitlist", "/api/handle-check"];
+const mPaths = ["/", "/platform", "/women-in-esports", "/design-partner", "/pricing", "/teams", "/partnerships", "/about", "/contact", "/privacy", "/terms", "/refunds"];
+const aPrivate = ["/dashboard", "/dashboard/profile", "/dashboard/team", "/onboarding", "/login", "/auth/callback", "/auth/signout", "/join/abc123", "/api/waitlist", "/api/handle-check"];
 await auditSite(MARKETING, APP, mPaths, ["/api/waitlist", "/api/handle-check"]);
 const appUrls = await auditSite(
   APP,
   MARKETING,
-  LIVE ? ["/"] : ["/", "/mock_ace", "/dashboard_fan", "/mock_player_03", "/mock_player_04", "/mock_player_05", "/leaderboard/valorant", "/leaderboard/cs2"],
+  LIVE ? ["/"] : ["/", "/mock_ace", "/dashboard_fan", "/mock_player_03", "/mock_player_04", "/mock_player_05"],
   aPrivate,
 );
-ok(!appUrls.some((u) => /demo_mock|leaderboard\/rocket-league/.test(u.loc)), "demo profile or closed board listed in sitemap");
+ok(!appUrls.some((u) => /demo_mock|leaderboard/.test(u.loc)), "demo profile or a leaderboard listed in sitemap");
 if (!LIVE) {
 // Opt-in only: profiles that never switched the toggle on must not be in the sitemap, even though they are viewable.
 ok(!appUrls.some((u) => /mock_player_(0[6-9]|1[0-2])$/.test(u.loc)), "a profile that has not opted in to search is listed in the sitemap");
@@ -393,13 +392,9 @@ console.log("\n######## HOME FAQ, PRODUCT SCHEMA, llms.txt ########");
   const home = (await get(MARKETING, "/")).body;
   const pricing = (await get(MARKETING, "/pricing")).body;
   const ld = [...home.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => JSON.parse(m[1]));
-  const faq = ld.find((d) => d["@type"] === "FAQPage");
-  console.log(`   home FAQ questions in JSON-LD: ${faq?.mainEntity.length}`);
-  ok(faq?.mainEntity.length === 7, `home FAQPage should have 7 questions, has ${faq?.mainEntity.length}`);
-  const homeQs = new Set(faq.mainEntity.map((q) => q.name));
+  ok(!ld.some((d) => d["@type"] === "FAQPage"), "the home page no longer carries a FAQPage (it has no FAQ section)");
   const pricingFaq = [...pricing.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => JSON.parse(m[1])).find((d) => d["@type"] === "FAQPage");
-  for (const q of pricingFaq.mainEntity) ok(!homeQs.has(q.name), `question duplicated on home and pricing: ${q.name}`);
-  for (const q of faq.mainEntity) ok(home.includes(">" + q.name.replace(/'/g, "&#x27;") + "<") || home.includes(q.name), `FAQ question is in the JSON-LD but not visible on the page: ${q.name}`);
+  ok(!!pricingFaq && pricingFaq.mainEntity.length >= 3, "the pricing page keeps its FAQPage");
   const app = ld.flatMap((d) => d["@graph"] ?? []).find((n) => n["@type"] === "WebApplication");
   console.log(`   WebApplication: ${app?.url}, offers ${JSON.stringify(app?.offers)}`);
   ok(app?.url === "https://victress.gg" && app.offers.price === "0", "WebApplication should point at victress.gg and only offer the free plan");
@@ -408,7 +403,7 @@ console.log("\n######## HOME FAQ, PRODUCT SCHEMA, llms.txt ########");
   console.log(`   /llms.txt -> ${llms.status} ${llms.headers["content-type"]}, ${llms.body.length} chars`);
   ok(llms.status === 200 && /text\/plain/.test(llms.headers["content-type"] ?? ""), "llms.txt should be 200 text/plain");
   ok(!/turn practice into progress/i.test(llms.body.slice(0, 600)) && /esports player development and recruitment platform/i.test(llms.body.slice(0, 300)), "llms.txt must open with the plain description, not the tagline");
-  ok(/Coming soon/.test(llms.body) && /Self-reported/.test(llms.body) && /private by default and are not indexed by search engines/.test(llms.body), "llms.txt must separate planned from live features and state the profile privacy rule");
+  ok(/Coming soon/.test(llms.body) && !/Self-reported|self reported/i.test(llms.body) && /private by default and are not indexed by search engines/.test(llms.body), "llms.txt must label unbuilt items Coming soon, mention no self-reported stats and state the profile privacy rule");
   ok(!/Perform\. Compete|performance into progress|Your stats\. Your profile|ounding club|privacy-friendly analytics/.test(llms.body), "llms.txt contains a retired slogan or an unapproved claim");
   // Structure: Women in Esports has its own "Why Victress exists" section, Player Resume is stated as available now, no internal references.
   const section = (name) => llms.body.split(/^## /m).find((s) => s.startsWith(name + "\n")) ?? "";
@@ -416,9 +411,7 @@ console.log("\n######## HOME FAQ, PRODUCT SCHEMA, llms.txt ########");
   console.log(`   /llms.txt sections: ${headings.join(" | ")}`);
   ok(headings[0] === "Why Victress exists", `llms.txt: "Why Victress exists" should be the first section, got "${headings[0]}"`);
   ok(/Women in Esports/.test(section("Why Victress exists")) && !/Victress Women in Esports/.test(llms.body), "llms.txt: the Why Victress exists section must contain Women in Esports (never Victress Women in Esports)");
-  ok(!/Women in Esports/.test(section("Coming soon (not available yet)")), "llms.txt: Women in Esports must not be listed under Coming soon");
-  ok(!/Player Resume \(available now\)/.test(llms.body) && /Player Resume \(in development\)/.test(llms.body), "llms.txt: Player Resume must be stated as in development, not available now");
-  ok(/Profiles are private by default; public directory and sharing links are disabled during the initial pilot phase\./.test(section("What works today")) && !/shareable by link|shareable profile/i.test(llms.body.replace(/Player Resume \(in development\): a shareable player profile/,"")), "llms.txt: What works today must say profiles are private by default and sharing is disabled, and not claim sharing by link");
+  ok(/Scrim Intelligence[^\n]*Coming soon/.test(llms.body) && /Scout Desk[^\n]*Coming soon/.test(llms.body), "llms.txt: Scrim Intelligence and Scout Desk each carry one Coming soon label");
   ok(!/strategy section|docs\/strategy/i.test(llms.body), "llms.txt must not refer to the internal strategy document");
   ok((await get(APP, "/llms.txt")).status === 404, "llms.txt should not be served on the application domain");
   const robots = parseRobots((await get(MARKETING, "/robots.txt")).body);
@@ -436,6 +429,72 @@ for (const [h, p] of [[APP, "/pricing"], [APP, "/teams"], [APP, "/about"], [APP,
   const home = (await get(MARKETING, "/")).body;
   ok(!/victress\.gg/.test((home.match(/<link rel="canonical"[^>]*>/) ?? [""])[0]), "marketing home canonical points at victress.gg");
   ok(!/victress\.gg/.test(meta(home, "property", "og:url") ?? ""), "marketing home og:url points at victress.gg");
+}
+
+
+console.log("\n######## STATUS WORDING, SELF-ENTERED STATS AND THE HOME HERO ########");
+{
+  // Founder decisions, 2026-11-07. (1) No status language anywhere: pages say what Victress is and does in plain present tense; an
+  // unbuilt item carries one plain "Coming soon" label. (2) Victress does not publish stats players enter themselves.
+  const FORBIDDEN = [/in development/i, /under development/i, /being built/i, /\bbeta\b/i, /\bearly\b/i, /pilot stage/i, /pilot phase/i, /initial pilot/i, /\bplanned\b/i, /work in progress/i, /not available yet/i, /not open yet/i, /not built/i, /in testing/i, /available now/i, /legal review/i, /\bcounsel\b/i, /pending/i, /draft text/i];
+  const STATS = [/self[- ]reported/i, /your own stats/i, /enter your (own )?stats/i, /add (your )?stats/i, /stats you (enter|made)/i, /every number shows where it came from/i, /entered by players/i];
+  // content/pricing.ts holds founder approved verbatim plan text that still says "Track your stats, share your progress" and "share it with teams".
+  // It is reported below as a known conflict and not edited without approval.
+  const KNOWN_PRICING = /Track your stats, share your progress[^.]*\.|share it with teams/gi;
+  const visibleText = (html) => decode(html.replace(/<(script|style)[\s\S]*?<\/\1>/g, " ").replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ");
+  const sources = [];
+  for (const host of [MARKETING, APP]) {
+    for (const path of host === MARKETING ? mPaths : ["/", "/login"]) sources.push([`${host}${path}`, (await get(host, path)).body]);
+  }
+  const llmsBody = (await get(MARKETING, "/llms.txt")).body;
+  let knownPricing = 0;
+  for (const [label, html] of [...sources, ["llms.txt", llmsBody]]) {
+    const raw = label === "llms.txt" ? llmsBody : visibleText(html);
+    if (/pricing/.test(label)) knownPricing += (raw.match(KNOWN_PRICING) ?? []).length;
+    const text = raw.replace(KNOWN_PRICING, " ");
+    const jsonld = label === "llms.txt" ? "" : [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => m[1]).join(" ").replace(/"slogan":"[^"]*"/g, "");
+    for (const re of FORBIDDEN) ok(!re.test(text) && !re.test(jsonld), `${label} contains status wording ${re}`);
+    for (const re of STATS) ok(!re.test(text) && !re.test(jsonld), `${label} mentions stats players enter ${re}`);
+  }
+  if (knownPricing) console.log(`   KNOWN CONFLICT (not a failure): ${knownPricing} approved verbatim pricing phrase(s) in content/pricing.ts mention players tracking or sharing stats. Needs the founder's approval to change.`);
+
+  // Public profile pages show no self-entered stat, even for a player whose record holds stats and who listed everything (mock data).
+  if (!LIVE) {
+    for (const path of ["/mock_ace", "/dashboard_fan", "/mock_player_03"]) {
+      const r = await get(APP, path);
+      if (r.status !== 200) continue;
+      const t = visibleText(r.body);
+      ok(!/self[- ]reported|average combat score|\bACS\b|K\/D|win rate|premier rating|\bADR\b/i.test(t), `${APP}${path} shows a stat`);
+      ok(!/"(metrics|stat|stats)"/i.test(r.body.replace(/<script[^>]*>[\s\S]*?<\/script>/g, "")) , `${APP}${path} carries stat data in the page`);
+    }
+  }
+
+  // The same rules for emails, social cards, email sending code and the sitemap/profile code that run outside the pages.
+  const { readFileSync, readdirSync } = await import("node:fs");
+  const files = [...readdirSync("emails").map((f) => `emails/${f}`), "app/api/og/route.tsx", "lib/email.ts"];
+  for (const f of files) {
+    const src = readFileSync(f, "utf8").replace(/\/\*[\s\S]*?\*\/|^\s*\/\/.*$/gm, " ");
+    for (const re of FORBIDDEN) ok(!re.test(src), `${f} contains status wording ${re}`);
+    for (const re of STATS) ok(!re.test(src), `${f} mentions stats players enter ${re}`);
+  }
+
+  // Home: one idea above the fold. The headline is the only place the tagline appears; ONE button; a labeled sample; no secondary actions.
+  const home = (await get(MARKETING, "/")).body;
+  const text = visibleText(home);
+  ok((text.match(/turn practice into progress/gi) ?? []).length === 1, "the tagline must appear exactly once on the home page (the headline)");
+  ok((home.match(/<h1[\s>]/g) ?? []).length === 1 && /<h1[^>]*>\s*Turn practice into progress\.\s*<\/h1>/.test(home), "the home page has one h1: the tagline");
+  const hero = home.slice(home.indexOf("<section"), home.indexOf("</section>"));
+  const heroLinks = [...hero.matchAll(/<a\b[^>]*href="([^"]*)"/g)].map((m) => m[1]);
+  ok(heroLinks.length === 1 && heroLinks[0] === "/design-partner", `the hero has exactly one link, to /design-partner (found ${JSON.stringify(heroLinks)})`);
+  ok(!/<button\b/.test(hero), "the hero has no buttons besides the one link");
+  ok(/Sample/.test(hero) && /Free 4 to 6 week pilot for one competitive team\./.test(hero), "the hero shows the sample label and the one small line under the button");
+  ok(!/\b(badge|counter)\b/i.test(hero), "the hero has no badges or counters");
+  const header = home.slice(home.indexOf("<header"), home.indexOf("</header>"));
+  const navCtas = [...header.matchAll(/<a\b[^>]*href="([^"]*)"[^>]*>\s*Sign up\s*<\/a>/g)].map((m) => m[1]);
+  ok(navCtas.length >= 1 && navCtas.every((h) => /^https:\/\/victress\.gg/.test(h) || /__site\/app/.test(h)), `the nav has a Sign up button that goes to victress.gg (found ${JSON.stringify(navCtas)})`);
+  ok(!/Become a Design Partner/.test(header) && !/href="\/design-partner"/.test(header), "the nav does not repeat the hero action (Become a Design Partner)");
+  const order = ["Three products.", "How it works.", "The design partner pilot."].map((t) => home.indexOf(t));
+  ok(order.every((i) => i > 0) && order[0] < order[1] && order[1] < order[2] && home.lastIndexOf("Become a Design Partner") > order[2], "below the fold the sections run in order: products, how it works, the pilot, one closing button");
 }
 
 console.log(`\n${checks} checks run, ${failures} failed${LIVE ? " (live production)" : ""}`);

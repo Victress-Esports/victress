@@ -23,16 +23,7 @@ export async function profileEntries(page: number): Promise<UrlEntry[]> {
   return ((data ?? []) as { handle: string; updated_at: string }[]).map((p) => ({ loc: `${appBase}/${p.handle}`, lastmod: new Date(p.updated_at).toISOString() }));
 }
 
-/** Leaderboards only enter the sitemap once they are open (10+ real players); closed boards are noindex. */
+/** No leaderboard is published (they are built on stats players enter, which Victress does not publish), so none is listed. */
 export async function openBoardEntries(): Promise<UrlEntry[]> {
-  if (!configured()) return [];
-  const db = supabaseAdmin()!;
-  const counts = await Promise.all(
-    GAME_LIST.map(async (g) => {
-      const { data, error } = await db.rpc("board_player_count", { p_game: g.id, p_include_demo: false });
-      if (error) throw new Error(error.message);
-      return { g, n: data ?? 0 };
-    }),
-  );
-  return counts.filter((c) => c.n >= MIN_PLAYERS).map((c) => ({ loc: `${appBase}/leaderboard/${c.g.slug}` }));
+  return [];
 }

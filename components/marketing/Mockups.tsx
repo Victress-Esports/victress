@@ -48,7 +48,6 @@ export function ProfileCardMock() {
           </div>
         ))}
       </dl>
-      <p className="mt-4 text-xs text-mute">Self-reported stats</p>
     </Frame>
   );
 }

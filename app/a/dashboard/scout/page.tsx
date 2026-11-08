@@ -13,7 +13,7 @@ export const metadata: Metadata = privateMetadata("Scout Desk | Victress", "Stru
 /**
  * Scout Desk: a gated shell. It reads no player data. Discovery, rosters and contact are not built, and are disabled for all
  * players pending qualified legal review, organization verification capacity and safety operations. The page only explains
- * what is planned, why it is closed, and what protects players.
+ * what it is and what protects players.
  */
 export default async function ScoutDesk() {
   await loadMe();
@@ -30,40 +30,25 @@ export default async function ScoutDesk() {
         <StatusChip>Coming soon</StatusChip>
       </div>
 
-      {state === "plan" ? (
-        <Section title="Part of the Scout plan" line={`You are on the ${planName(tier)} plan.`}>
-          <p className="text-mute">
-            Player discovery belongs to the Scout plan only. The Scout plan is Coming soon and is not available to buy yet, so there is nothing to upgrade to
-            today.
-          </p>
+      <Section title="Scout plan" line={`You are on the ${planName(tier)} plan.`}>
+        <p className="text-mute">Scout plan only. Scout Desk is part of the Scout plan.</p>
+        {state === "plan" ? (
           <Link href={marketingUrl("/pricing")} className={buttonClass("secondary", "mt-4")}>
             See plans
           </Link>
-        </Section>
-      ) : (
-        <Section title="Scout Desk is not open" line="Your plan includes it, but discovery is not available yet.">
-          <p className="text-mute">It opens only after organization verification and the required legal and safety review are in place.</p>
-        </Section>
-      )}
-
-      <Section title="Why it is closed" line="Players come first.">
-        <ul className="flex list-disc flex-col gap-2 pl-5 text-mute">
-          <li>Recruiter discovery and contact are switched off for every player until a qualified legal review is complete.</li>
-          <li>Organizations will be verified before they can use it. Individual scouts are not part of the first release.</li>
-          <li>Reporting, blocking and review need to be in place before players are visible to people they do not know.</li>
-        </ul>
+        ) : null}
       </Section>
 
-      <Section title="What players control" line="Described as design commitments. None of this is live while Scout Desk is closed.">
+      <Section title="What players control" line="The rules Scout Desk follows.">
         <ul className="flex list-disc flex-col gap-2 pl-5 text-mute">
           <li>A player appears only if they chose to be listed and chose which fields to show. Nobody is listed by default.</li>
           <li>Contact details and private identity are never shown without the player&apos;s consent.</li>
-          <li>Performance is shown in context, such as role and team, and every number shows its source: Self-reported, API or Demo parsed.</li>
+          <li>Performance is shown in context, such as role and team, and every number shows its source.</li>
           <li>Verification means where evidence came from and that it is intact. It never says how good a player is.</li>
         </ul>
       </Section>
 
-      <Section title="What it will be" line="Planned. Not built.">
+      <Section title="What it does">
         <dl className="grid gap-4 sm:grid-cols-3">
           <div>
             <dt className="font-semibold">Discovery</dt>

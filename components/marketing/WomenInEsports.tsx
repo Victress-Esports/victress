@@ -4,8 +4,8 @@ import { copy } from "@/content/copy";
 
 /**
  * Women in Esports: an intentional shared value commitment (strategy section 4), delivered through the same three pillars
- * (docs/strategy/victress-business-purpose.md, section 4). Each focus area names the pillar that delivers it and
- * repeats that pillar's real status, so nothing here reads as a live program or an offer. The About page carries
+ * (docs/strategy/victress-business-purpose.md, section 4). Each focus area names the pillar that delivers it, with one
+ * "Coming soon" label where the pillar is not built, so nothing here reads as a live program or an offer. The About page carries
  * the fuller explanation.
  */
 export function WomenInEsports() {
@@ -46,11 +46,9 @@ export function WomenInEsports() {
                 <p className="mt-6 border-t border-line pt-4 text-sm text-mute">
                   {e.connectedTo}{" "}
                   <span className="font-semibold text-white">{p.title}</span>
-                  <span className="mt-1 block text-xs">
-                    (
-                    {p.statusLabel}
-                    )
-                  </span>
+                  {p.soon ? (
+                    <span className="ml-2 rounded-full bg-surface-2 px-2.5 py-0.5 text-xs font-semibold text-signal">{copy.home.soonLabel}</span>
+                  ) : null}
                 </p>
               </li>
             );
