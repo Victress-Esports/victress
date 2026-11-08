@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import { ScoutSample, ScrimSample } from "@/components/marketing/PillarVisuals";
 import { ProfileMoment } from "@/components/marketing/ProfileMoment";
-import { WaitlistButton } from "@/components/marketing/WaitlistButton";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -17,13 +15,8 @@ export const metadata: Metadata = pageMetadata({
   image: "home",
 });
 
-// Every visual is a labeled Sample; the two unbuilt products are also labeled Coming soon.
-const visuals = {
-  scrim: ScrimSample,
-  resume: ProfileMoment,
-  scout: ScoutSample,
-};
-const waitlist = { scrim: "scrims", scout: "scout" } as const;
+// Only the product that exists gets a visual (a labeled Sample). Unbuilt products show one line and one "Coming soon" label.
+const visuals: Record<string, (() => React.JSX.Element) | undefined> = { resume: ProfileMoment };
 
 export default function Platform() {
   const p = copy.platform;
@@ -66,7 +59,7 @@ export default function Platform() {
       </section>
 
       {h.pillars.map((pillar, i) => {
-        const Visual = visuals[pillar.id as keyof typeof visuals];
+        const Visual = visuals[pillar.id];
         const hasAccount = pillar.id === "resume";
         const detail = p.products[pillar.id as keyof typeof p.products];
         return (
@@ -78,7 +71,7 @@ export default function Platform() {
           >
             <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
               <div
-                className={`grid items-center gap-12 lg:grid-cols-2 ${i % 2 ? "lg:[&>*:first-child]:order-2" : ""}`}
+                className={`grid items-center gap-12 ${Visual ? "lg:grid-cols-2" : ""} ${i % 2 ? "lg:[&>*:first-child]:order-2" : ""}`}
               >
                 <div>
                   <h2
@@ -87,73 +80,39 @@ export default function Platform() {
                   >
                     {pillar.title}
                   </h2>
-                  <span
-                    className={`mt-4 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${pillar.status === "dev" ? "bg-crimson text-white" : "bg-surface-2 text-coral"}`}
-                  >
-                    {pillar.statusLabel}
-                  </span>
+                  {pillar.soon ? (
+                    <span className="mt-4 inline-flex rounded-full bg-surface-2 px-3 py-1 text-xs font-semibold text-coral">{h.soonLabel}</span>
+                  ) : null}
                   <p className="mt-4 max-w-md text-lg text-mute">
                     {pillar.line}
                   </p>
-                  <h3 className="mt-8 text-sm font-semibold uppercase tracking-wider text-mute">
-                    {p.todayTitle}
-                  </h3>
-                  {detail.today.length ? (
-                    <ul className="mt-2 list-disc space-y-1 pl-5 text-mute">
-                      {detail.today.map((t) => (
+                  {detail.points.length ? (
+                    <ul className="mt-6 list-disc space-y-1 pl-5 text-mute">
+                      {detail.points.map((t) => (
                         <li key={t}>{t}</li>
                       ))}
                     </ul>
-                  ) : (
-                    <p className="mt-2 text-mute">{p.nothingToday}</p>
-                  )}
-                  <h3 className="mt-6 text-sm font-semibold uppercase tracking-wider text-mute">
-                    {p.plannedTitle}
-                  </h3>
-                  <ul className="mt-2 list-disc space-y-1 pl-5 text-mute">
-                    {detail.planned.map((t) => (
-                      <li key={t}>{t}</li>
-                    ))}
-                  </ul>
-                  <div className="mt-8">
-                    {hasAccount ? (
-                      <ButtonLink href={appUrl("/login")}>
-                        {h.final.cta}
-                      </ButtonLink>
-                    ) : (
-                      <WaitlistButton
-                        interest={waitlist[pillar.id as keyof typeof waitlist]}
-                        label={h.soonCta}
-                      />
-                    )}
+                  ) : null}
+                  {hasAccount ? (
+                    <div className="mt-8">
+                      <ButtonLink href={appUrl("/login")}>{h.final.cta}</ButtonLink>
+                    </div>
+                  ) : null}
+                </div>
+                {Visual ? (
+                  <div className="flex justify-center">
+                    <Visual />
                   </div>
-                </div>
-                <div className="flex justify-center">
-                  <Visual />
-                </div>
+                ) : null}
               </div>
             </div>
           </section>
         );
       })}
 
-      <section
-        aria-labelledby="provenance-title"
-        className="border-t border-line"
-      >
+      <section className="border-t border-line">
         <div className="mx-auto max-w-3xl px-4 py-20 sm:px-6">
-          <Card>
-            <h2
-              id="provenance-title"
-              className="font-display text-3xl font-bold"
-            >
-              {p.provenanceTitle}
-            </h2>
-            <p className="mt-4 text-lg text-mute">{p.provenance}</p>
-          </Card>
-          <div className="mt-10">
-            <ButtonLink href="/design-partner">{p.cta}</ButtonLink>
-          </div>
+          <ButtonLink href="/design-partner">{p.cta}</ButtonLink>
         </div>
       </section>
     </div>

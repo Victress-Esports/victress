@@ -89,42 +89,8 @@ export async function setPrimaryGameAction(game: string): Promise<Result> {
   return error || data !== "ok" ? fail() : { ok: true };
 }
 
-// ---------------------------------------------------------------- stats (manual, Self-reported)
-
-export async function addStatEntryAction(input: {
-  game: string;
-  season: string;
-  metrics: Record<string, string>;
-}): Promise<Result> {
-  const { sb, user } = await requireUser();
-  const cfg = getGame(input?.game);
-  if (!cfg) return fail();
-  const season = String(input.season ?? "").trim().slice(0, 40) || "Current";
-
-  const metrics: Record<string, number> = {};
-  for (const f of cfg.stats) {
-    const raw = String(input.metrics?.[f.key] ?? "").trim();
-    if (raw === "") continue;
-    const n = Number(raw);
-    if (!Number.isFinite(n) || n < f.min || n > f.max) return fail(`${f.label} must be between ${f.min} and ${f.max}.`);
-    metrics[f.key] = Number(n.toFixed(f.decimals === 0 ? 0 : Math.max(f.decimals, 2)));
-  }
-  if (Object.keys(metrics).length === 0) return fail("Enter at least one stat.");
-
-  // Stats belong to a game on the player's profile.
-  const { data: owned } = await sb.from("player_games").select("game").eq("profile_id", user.id).eq("game", cfg.id).maybeSingle();
-  if (!owned) return fail("Add this game to your profile first.");
-
-  const { error } = await sb.from("stat_entries").insert({ profile_id: user.id, game: cfg.id, season, metrics });
-  return error ? fail() : { ok: true, message: "Stats saved." };
-}
-
-export async function deleteStatEntryAction(id: string): Promise<Result> {
-  const { sb, user } = await requireUser();
-  if (!z.string().uuid().safeParse(id).success) return fail();
-  const { error } = await sb.from("stat_entries").delete().eq("id", id).eq("profile_id", user.id);
-  return error ? fail() : { ok: true };
-}
+// Stats players enter themselves are no longer collected or published (founder decision 2026-11-07). The stat_entries table and
+// any rows already saved are left untouched; nothing in the app reads or displays them.
 
 // ---------------------------------------------------------------- teams
 

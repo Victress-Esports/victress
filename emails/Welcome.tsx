@@ -8,8 +8,7 @@ export default function Welcome({ handle = "yourname" }: { handle?: string }) {
       <Text style={h1}>Welcome to Victress.</Text>
       <Text style={p}>Your account is ready, and your name is {handle}.</Text>
       <Text style={p}>
-        Your profile is private. Public profiles and sharing links are not open yet, so only you can see it. You can add your games and enter your
-        own stats from your dashboard. Stats you enter are labeled Self-reported.
+        Your profile is private by default, so only you can see it. Add your games, roles and ranks from your dashboard.
       </Text>
       <Button
         href={`${appUrl}/dashboard`}

@@ -3,7 +3,6 @@ import { cookies, headers } from "next/headers";
 import Link from "next/link";
 import { Footer, Nav } from "@/components/marketing/Chrome";
 import { buttonClass } from "@/components/ui/Button";
-import { launchGame } from "@/content/games";
 import { seo } from "@/content/seo";
 import { siteFor } from "@/lib/hosts";
 import { privateMetadata } from "@/lib/seo";
@@ -42,9 +41,6 @@ export default async function NotFound() {
       <div className="mt-2 flex flex-wrap gap-3">
         <Link href="/" className={buttonClass("primary")}>
           Claim your name
-        </Link>
-        <Link href={`/leaderboard/${launchGame().slug}`} className={buttonClass("secondary")}>
-          Leaderboards
         </Link>
       </div>
     </main>

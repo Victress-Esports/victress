@@ -25,7 +25,6 @@ const FIELD_LABELS: { key: keyof Fields; label: string }[] = [
   { key: "bio", label: "Bio" },
   { key: "team", label: "Team" },
   { key: "rank_role", label: "Role and rank" },
-  { key: "stats", label: "Stats (Self-reported)" },
 ];
 
 const fmt = (d: string) => new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -143,7 +142,7 @@ export function PrivacyControls({
       <Section title="Public profile" line="Off by default. Your account email and private details are never shown here.">
         {off ? (
           <p className="mb-3 rounded-xl border border-line bg-surface-2 px-4 py-3 text-sm text-mute">
-            Public profiles and leaderboards are not available yet. Your profile stays private. You can prepare your choices now.
+            Public profiles are switched off. Your profile stays private. You can prepare your choices now.
           </p>
         ) : null}
         <div className="divide-y divide-line">
@@ -162,14 +161,6 @@ export function PrivacyControls({
             onChange={(v) => setS({ ...s, search_indexable: v })}
             label="Allow search engines to list it"
             help="Needs a public profile. Pages already listed drop out the next time they re-crawl."
-          />
-          <Switch
-            id="board"
-            on={s.show_on_leaderboards}
-            disabled={off && !s.show_on_leaderboards}
-            onChange={(v) => setS({ ...s, show_on_leaderboards: v })}
-            label="Show me on leaderboards"
-            help="Shows your name and the stats you made public for the game's board."
           />
         </div>
         <h3 className="mt-5 font-semibold">What a public profile shows</h3>

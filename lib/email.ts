@@ -54,7 +54,7 @@ export async function sendContactAcknowledgement(to: string, kind: "organization
   const what =
     kind === "organization"
       ? "your Design Partner pilot application"
-      : "your early access request";
+      : "your access request";
   const extra =
     kind === "organization"
       ? "\n\nApplying does not guarantee a place in the pilot."
@@ -70,7 +70,7 @@ export async function sendContactAcknowledgement(to: string, kind: "organization
 }
 
 /**
- * Sends a Design Partner application or an early access request to the Victress inbox. The submitter's address is the
+ * Sends a Design Partner application or an access request to the Victress inbox. The submitter's address is the
  * Reply-To, so replying goes to them. Plain text only (no HTML to inject into). Nothing is stored.
  * Throws when email is not configured or Resend refuses it, so the form never reports success it did not achieve.
  */
@@ -78,7 +78,7 @@ export async function sendContactMessage(msg: { kind: "organization" | "player";
   const resend = client();
   if (!resend) throw new Error("email not configured");
   const org = msg.fields.find(([k]) => k === "Organization")?.[1];
-  const subject = msg.kind === "organization" ? `Design partner application${org ? `: ${oneLine(org).slice(0, 80)}` : ""}` : "Early access request from a player";
+  const subject = msg.kind === "organization" ? `Design partner application${org ? `: ${oneLine(org).slice(0, 80)}` : ""}` : "Access request from a player";
   const text = msg.fields.map(([k, v]) => `${k}: ${v}`).join("\n\n");
   const { error } = await resend.emails.send({
     from: `Victress <${from()}>`,

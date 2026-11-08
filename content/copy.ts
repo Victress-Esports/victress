@@ -1,5 +1,6 @@
 // All marketing copy lives here. Rules: short headlines, plain language, no paragraph over 2 sentences.
-// Never claim a feature is live until it is. Anything unbuilt says "Coming soon" or "Planned".
+// Present tense, plain words. Never describe an unbuilt feature as available: where a page must mention one, it carries one plain "Coming soon" label next to it.
+// No status language anywhere (in development, being built, beta, early, pilot stage, planned) and nothing about stats players enter themselves.
 export const CONTACT_EMAIL = "hello@victressesports.com";
 
 export const copy = {
@@ -13,17 +14,17 @@ export const copy = {
     links: [
       { href: "/platform", label: "Platform" },
       { href: "/women-in-esports", label: "Women in Esports" },
-      { href: "/design-partner", label: "Design Partner" },
       { href: "/pricing", label: "Pricing" },
     ],
     // Also listed in the phone menu (and, with the footer links, at the bottom of every page).
     more: [
+      { href: "/design-partner", label: "Design Partner" },
       { href: "/teams", label: "For teams" },
       { href: "/about", label: "About" },
       { href: "/partnerships", label: "Partnerships" },
       { href: "/contact", label: "Contact" },
     ],
-    cta: "Get started",
+    cta: "Sign up",
     login: "Log in",
     menuOpen: "Open menu",
     menuClose: "Close menu",
@@ -44,95 +45,56 @@ export const copy = {
   },
 
   home: {
+    // Above the fold: the headline (the tagline, used once), one sentence, ONE button, one small line, one labeled sample.
     hero: {
       title: "Turn practice into progress.",
       sentence:
-        "Performance intelligence and player development infrastructure for competitive esports.",
-      primary: "Explore the Platform",
-      secondary: "Become a Design Partner",
+        "Victress is where competitive esports players build a Player Resume and teams manage their rosters.",
+      primary: "Become a Design Partner",
+      note: "Free 4 to 6 week pilot for one competitive team.",
     },
-    productsTitle: "Three products, one pathway.",
-    productsLine:
-      "Each one is labeled with what is available today and what is coming.",
-    learnMore: "Learn more",
-    // The three pillars. `statusLabel` is the chip: Coming soon, In development or Planned. Nothing is "Available now" until it works for real users.
+    // 1. The three products, one line each. A product that is not built carries one plain "Coming soon" label.
+    productsTitle: "Three products.",
+    // `soon` puts one plain "Coming soon" label next to the product; nothing else about status.
     pillars: [
       {
         id: "scrim",
         title: "Scrim Intelligence",
-        status: "soon" as const,
-        statusLabel: "Coming soon",
-        line: "Upload private scrim demo or replay files for automatic performance statistics.",
-        note: "Not available yet.",
+        soon: true,
+        line: "Turn private practice into performance information.",
       },
       {
         id: "resume",
         title: "Player Resume",
-        status: "dev" as const,
-        statusLabel: "In development",
-        line: "A player profile that shows your games, roles, ranks and stats. Today you can create an account and enter your own stats, labeled Self-reported.",
-        note: "A shareable Player Resume and verified scrim stats are not available yet.",
+        soon: false,
+        line: "Your games, roles, ranks, tournaments and highlights in one resume you control.",
       },
       {
         id: "scout",
         title: "Scout Desk",
-        status: "soon" as const,
-        statusLabel: "Planned",
-        line: "Player discovery and evaluation for teams, coaches and collegiate programs.",
-        note: "Not available yet.",
+        soon: true,
+        line: "Structured discovery and evaluation for teams, coaches and collegiate programs.",
       },
     ],
-    games: {
-      title: "Supported games",
-      line: "Roles and ranks match each game.",
-    },
-    teams: {
-      title: "Manage your roster.",
-      line: "Start a team, invite players with a link and see everyone's game and rank.",
-      soon: "Shared scrim review is coming soon.",
-      cta: "Start your team",
-    },
-    // Understanding the platform, not buying a plan (the pricing page has its own FAQ).
-    // Only describe what exists today; anything unbuilt says so.
-    faqTitle: "Questions, answered.",
-    faq: [
-      {
-        q: "What is Victress?",
-        a: "An esports player development and recruitment platform. Today you can create an account, enter your own stats and manage a team roster. The Player Resume is in development. Scrim analysis and recruiting tools are planned.",
-      },
-      {
-        q: "Which esports games does Victress support?",
-        a: "VALORANT, Counter-Strike 2, Rocket League, League of Legends, Apex Legends and Overwatch 2.",
-      },
-      {
-        q: "How does Victress track player performance?",
-        a: "You enter your stats and Victress keeps your history, labeled Self-reported. Automatic stats from scrim files are not available yet.",
-      },
-      {
-        q: "Can players create competitive profiles?",
-        a: "You can create an account and add your games, roles and ranks. Profiles are private by default. Public profiles and sharing links are disabled during the initial pilot phase.",
-      },
-      {
-        q: "Can teams manage their players?",
-        a: "Yes. Start a team, share an invite link, and see your roster's games and ranks. Shared scrim review is coming soon.",
-      },
-      {
-        q: "How can recruiters discover players?",
-        a: "Scout Desk is coming soon and is not available yet. Join the waitlist.",
-      },
-      {
-        q: "Is Victress free to use?",
-        a: "Yes. Rookie is free forever. Pro, Team and Scout are coming soon.",
-      },
+    soonLabel: "Coming soon",
+    learnMore: "Learn more",
+    // 2. How it works, three short steps (each one is something a player can do on Victress).
+    howTitle: "How it works.",
+    steps: [
+      { title: "Create your account", line: "Add your games, roles and ranks." },
+      { title: "Build your Player Resume", line: "Add your tournaments and highlights." },
+      { title: "Start a team", line: "Invite players with a link." },
     ],
-    soonCta: "Join the waitlist",
+    // 3. The design partner pilot (terms are in designPartner below). 4. One closing button.
+    pilotTitle: "The design partner pilot.",
+    closing: { cta: "Become a Design Partner" },
     final: { title: "Get started.", cta: "Get started", login: "Log in" },
     sharedValueLink: "About Women in Esports",
   },
 
   // Women in Esports (never "Victress Women in Esports"): an intentional shared value commitment, not a limit on who Victress serves (docs/strategy/victress-business-purpose.md).
   // It is delivered through the same three pillars, not a separate product, program, company or fourth pillar.
-  // Every line must stay true today: name each pillar's real status and never imply a live program or offer.
+  // Every line must stay true today and never imply a live program or offer.
   // Do not create another initiative name.
   womenInEsports: {
     title: "Women in Esports",
@@ -158,7 +120,7 @@ export const copy = {
     ],
     connectedTo: "Delivered through",
     note: "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment.",
-    more: "Read why Victress exists",
+    more: "Read about Women in Esports",
     cta: "Get in touch",
     subject: "Women in Esports",
   },
@@ -195,43 +157,22 @@ export const copy = {
         product: "Scout Desk",
       },
     ],
-    todayTitle: "Available today",
-    plannedTitle: "Planned",
-    nothingToday: "Nothing yet. This product is in development.",
+    // What each live product does. Unbuilt products show the home.pillars line and one "Coming soon" label, nothing more.
     products: {
-      scrim: {
-        today: [] as string[],
-        planned: [
-          "Automatic statistics from uploaded scrim demo or replay files.",
-          "Match history and development trends.",
-          "Comparisons between players and across a team.",
-        ],
-      },
+      scrim: { points: [] as string[] },
       resume: {
-        today: [
-          "A player account with your games, roles and ranks.",
-          "Self-reported stats for six games, labeled Self-reported.",
-        ],
-        planned: [
-          "A shareable Player Resume, in development.",
-          "Verified scrim stats shown with their source.",
-          "Tournament placements and highlights.",
+        points: [
+          "Your games, roles and ranks in one place.",
+          "Tournament history and highlights.",
+          "Privacy controls: your profile is private by default.",
         ],
       },
-      scout: {
-        today: [] as string[],
-        planned: [
-          "Player discovery and evaluation for teams, coaches and collegiate programs.",
-        ],
-      },
+      scout: { points: [] as string[] },
     },
-    provenanceTitle: "Every number shows where it came from.",
-    provenance:
-      "Today every stat on Victress is Self-reported, which means the player entered it. As automatic game data arrives, it will be labeled by source. Verification will mean we can show where evidence came from and that it is intact. It will not be presented as a judgment of how good a player is.",
     cta: "Become a Design Partner",
   },
 
-  // /women-in-esports. Everything about privacy and safety is a commitment in development, never a live feature.
+  // /women-in-esports. Principles in present tense; no claim of a live program, offer or feature that does not exist.
   womenPage: {
     title: "Women in Esports.",
     whyTitle: "Why this matters.",
@@ -240,31 +181,23 @@ export const copy = {
       "Victress is built to improve how competitive talent is documented, developed, evaluated and connected to opportunity. This initiative applies that work to those barriers. It is not a separate product. It uses the same three Victress products.",
     ],
     areasTitle: "Three areas, three products.",
-    today: {
-      resume: "Today: an account with self-reported stats. The Player Resume is in development.",
-      scrim: "Today: not available yet.",
-      scout: "Today: not available yet.",
-    },
-    commitmentsTitle: "What we are building toward.",
-    commitmentsLine:
-      "These are commitments in design. None of them is live yet.",
-    inDevelopment: "In development",
+    commitmentsTitle: "How we approach it.",
     commitments: [
       {
         title: "Data integrity",
-        line: "Every stat will show its source. Verified will mean the evidence is intact, not that a player is good or bad.",
+        line: "Evidence shows its source. Verification means the evidence is intact, not that a player is good or bad.",
       },
       {
         title: "Contextual evaluation",
-        line: "Performance will be shown in context, such as role and team, so numbers inform decisions instead of replacing them.",
+        line: "Performance is shown in context, such as role and team, so numbers inform decisions instead of replacing them.",
       },
       {
         title: "Privacy controls",
-        line: "Players will decide who sees their profile and when. Contact details will be shared only with the player's consent.",
+        line: "Players decide who sees their profile and when. Contact details are shared only with the player's consent.",
       },
       {
         title: "Safety",
-        line: "Reporting, blocking and review will be in place before features that expose players to strangers launch.",
+        line: "Reporting, blocking and review are in place before features that expose players to strangers launch.",
       },
     ],
     pilotTitle: "A first step.",
@@ -278,12 +211,11 @@ export const copy = {
   designPartner: {
     title: "Founding Design Partner pilot.",
     line: "A 4 to 6 week pilot for teams that help shape Victress.",
-    status:
-      "Scrim Intelligence and file uploads are in development. Priority access applies to Phase 1 features as they become ready, and the pilot is shaped around what is available. Applying does not guarantee a place.",
+    status: "Applying does not guarantee a place.",
     receiveTitle: "What partners receive",
     receive: [
-      "Free, priority access to Phase 1 Scrim Intelligence and Player Resume features during the 4 to 6 week pilot.",
-      "Structured performance analytics.",
+      "Free, priority access to Player Resume and Scrim Intelligence (Coming soon) during the 4 to 6 week pilot.",
+      "Structured performance analytics (Coming soon).",
       "Direct input into product development.",
     ],
     expectedTitle: "What we ask",
@@ -309,9 +241,8 @@ export const copy = {
     orgLine: "Apply for the Founding Design Partner pilot.",
     orgSubmit: "Apply for Design Partner",
     playerTitle: "Individual players",
-    playerLine:
-      "Join early access. We will email you when access opens to players.",
-    playerSubmit: "Join Early Access",
+    playerLine: "Request access as a player. We will email you.",
+    playerSubmit: "Request access",
     emailLine: "Prefer email? Write to",
   },
 
@@ -357,13 +288,8 @@ export const copy = {
         a: "VALORANT, CS2, Rocket League, League of Legends, Apex Legends and Overwatch 2.",
       },
       {
-        q: "Where do my stats come from?",
-        a: "You enter them. They're labeled Self-reported.",
-      },
-      { q: "When do paid plans start?", a: "Not yet. Join the waitlist." },
-      {
         q: "Can my team use Victress?",
-        a: "Yes. You can start a team and invite players on the free plan today. The paid Team plan is coming soon.",
+        a: "Yes. You can start a team and invite players on the free plan.",
       },
     ],
   },
@@ -386,7 +312,7 @@ export const copy = {
       },
       {
         title: "Shared scrim review.",
-        line: "Review scrim performance together once scrim analysis is available.",
+        line: "Review scrim performance together.",
         soon: true,
       },
       {
@@ -410,7 +336,7 @@ export const copy = {
     intro:
       "Competitive esports has enormous talent and ambition, but the road from practice to opportunity is fragmented. Players practice without always getting useful feedback. Their achievements are scattered across platforms and screenshots. Teams and recruiters often rely on informal networks to find talent.",
     story:
-      "Victress is building the infrastructure to change that: competitive development that is more measurable, talent that is easier to see, evaluation that is more transparent, and opportunities that are more accessible.",
+      "Victress provides infrastructure for competitive development that is measurable, talent that is easy to see, evaluation that is transparent, and opportunities that are accessible.",
     pathTitle: "From practice to opportunity.",
     path: [
       { title: "Practice", line: "Private scrims and team training." },
@@ -424,25 +350,19 @@ export const copy = {
     women: [
       "Victress is called Victress for a purpose. Women who compete in esports face barriers that include harassment, limited access to competitive networks, informal gatekeeping and difficulty getting their achievements recognized.",
       "We are not building a separate product for this. We are building the same infrastructure for everyone, and designing it to address those barriers: a Player Resume for visibility, Scrim Intelligence for development, and Scout Desk for opportunity.",
-      "Today the Player Resume is available. Scrim Intelligence and Scout Desk are being built. Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment.",
+      "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment.",
     ],
     valueTitle: "Good for players. Good for the business.",
     value:
       "Victress is a technology business built on Creating Shared Value. The products that help players develop, get seen and find opportunities are the same products teams and recruiters pay for. We succeed commercially by making the competitive ecosystem work better.",
-    evidenceTitle: "How we handle evidence.",
-    evidence:
-      "Every stat shows where it came from. Self-reported means the player entered it. As automatic game data arrives, it will be labeled by source. Verification will mean we can show where the evidence came from and that it is intact. It will not be presented as a judgment of how good a player is.",
-    nowTitle: "Available now",
-    now: [
-      "A player account with your games, roles and ranks.",
-      "Self-reported stats for six games, labeled Self-reported.",
-      "Team rosters with invite links.",
-    ],
-    plannedTitle: "Planned",
-    planned: [
-      "Scrim Intelligence: automatic statistics from uploaded scrim demo or replay files.",
-      "Verified scrim stats on the Player Resume.",
-      "Scout Desk: player discovery and evaluation for teams, coaches and collegiate programs.",
+    nowTitle: "What Victress does",
+    // `soon` puts one plain "Coming soon" label next to the item.
+    offers: [
+      { text: "Player accounts with your games, roles and ranks.", soon: false },
+      { text: "Team rosters with invite links.", soon: false },
+      { text: "A profile that is private by default, so you choose what to share.", soon: false },
+      { text: "Scrim Intelligence: private practice into performance information.", soon: true },
+      { text: "Scout Desk: discovery and evaluation for teams, coaches and collegiate programs.", soon: true },
     ],
     cta: "Get started",
   },
@@ -457,7 +377,7 @@ export const copy = {
       },
       {
         title: "Competitive teams",
-        line: "Roster management and, once available, shared scrim review.",
+        line: "Roster management and shared scrim review.",
       },
       {
         title: "Tournament organizers",
@@ -471,7 +391,7 @@ export const copy = {
 
   waitlist: {
     title: "Join the waitlist.",
-    line: "We'll email you once, when it's ready.",
+    line: "We'll email you once.",
     emailLabel: "Email address",
     emailPlaceholder: "you@school.edu",
     submit: "Join",
@@ -519,8 +439,7 @@ export const copy = {
       updated: "Placeholder. Final text is pending legal review.",
       body: [
         "You must be at least 13 years old to use Victress.",
-        "Use Victress fairly and only share stats that are yours.",
-        "Self-reported stats are labeled as such and are not verified.",
+        "Use Victress fairly and only share information that is yours.",
         "We may update these terms and will tell you about material changes.",
       ],
     },

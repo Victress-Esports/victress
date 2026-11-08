@@ -19,7 +19,7 @@ const matchSchema = z.object({
 });
 
 /**
- * Logs a practice match the player played. Everything is entered by the player, so it is Self-reported (source = manual,
+ * Logs a practice match the player played. Private to the player, never published (source = manual,
  * enforced by the database). Opponent is a team or group name only. Private to the owner.
  */
 export async function addMatchAction(input: z.input<typeof matchSchema>): Promise<Result> {
