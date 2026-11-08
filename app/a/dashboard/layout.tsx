@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DashboardNav } from "@/components/app/DashboardNav";
 import { Logo } from "@/components/brand/Logo";
+import { RIOT_LEGAL_NOTICE } from "@/content/riot";
 import { buttonClass } from "@/components/ui/Button";
 import { requireUser } from "@/lib/auth";
 
@@ -24,6 +25,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <main id="main" className="mt-8">
         {children}
       </main>
+      <footer className="mt-12 border-t border-line pt-6 text-xs text-mute">{RIOT_LEGAL_NOTICE}</footer>
     </div>
   );
 }

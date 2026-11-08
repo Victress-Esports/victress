@@ -84,13 +84,18 @@ export function parseRiotId(input: string): { gameName: string; tagLine: string 
   return NAME_RE.test(gameName) && TAG_RE.test(tagLine) ? { gameName, tagLine } : null;
 }
 
-/** Queue ids used by Riot's Match API. Anything not listed is "other" and kept, never guessed. Verify against Riot's queues.json before relying on it. */
-export type QueueKind = "ranked" | "normal" | "custom" | "practice" | "other";
+/**
+ * Queue kinds, from the ids in Riot's published queues.json (see ./queues.ts).
+ *  ranked: 420 Ranked Solo, 440 Ranked Flex.
+ *  normal: 400 Draft Pick, 430 Blind Pick, 480 Swiftplay, 490 Quickplay.
+ *  custom: 0 (custom games; Practice Tool games are not listed separately by Riot, so they land here too).
+ * Everything else (ARAM, Arena, bots, rotating modes, tutorials, retired queues) is "other" and keeps its Riot label.
+ */
+export type QueueKind = "ranked" | "normal" | "custom" | "other";
 export function queueKind(queueId: number): QueueKind {
-  if (queueId === 420 || queueId === 440) return "ranked"; // Ranked Solo/Duo, Ranked Flex
-  if (queueId === 400 || queueId === 430 || queueId === 490) return "normal"; // Draft, Blind, Quickplay
-  if (queueId === 0) return "custom"; // custom games report queueId 0
-  if (queueId === 3140) return "practice"; // Practice Tool
+  if (queueId === 420 || queueId === 440) return "ranked";
+  if (queueId === 400 || queueId === 430 || queueId === 480 || queueId === 490) return "normal";
+  if (queueId === 0) return "custom";
   return "other";
 }
 

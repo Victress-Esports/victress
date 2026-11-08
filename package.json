@@ -11,7 +11,7 @@
     "assets": "node scripts/make-wings.mjs && node scripts/make-icons.mjs",
     "seo:audit": "node scripts/seo-audit.mjs",
     "test:env": "node scripts/env-test.mjs",
-    "test:riot": "node scripts/riot-test.mjs",
+    "test:riot": "node scripts/riot-test.mjs && node scripts/riot-import-test.mjs",
     "riot:check": "node scripts/riot-check.mjs"
   },
   "dependencies": {

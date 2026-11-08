@@ -3,6 +3,8 @@ import { ComingSoonNote } from "@/components/app/ComingSoonNote";
 import { MatchLog, type MatchRow } from "@/components/app/MatchLog";
 import { ProvenanceTag } from "@/components/app/ProvenanceTag";
 import { ScrimUploader, type UploadRow } from "@/components/app/ScrimUploader";
+import Link from "next/link";
+import { buttonClass } from "@/components/ui/Button";
 import { Section } from "@/components/ui/form";
 import { PROVENANCE, PROVENANCE_ORDER } from "@/content/provenance";
 import { scrimUploadsEnabled } from "@/lib/dashboard";
@@ -56,6 +58,12 @@ export default async function ScrimsPage() {
         </ul>
         <p className="mt-4 text-sm text-mute">Verification will mean we can show where evidence came from and that it is intact. It never judges how good a player is.</p>
       </Section>
+
+      {enabled ? (
+        <Section title="League of Legends" line="Import your match history through the Riot API. Private to you.">
+          <Link href="/dashboard/scrims/lol" className={buttonClass("secondary")}>Open League of Legends imports</Link>
+        </Section>
+      ) : null}
 
       <Section title="Match log" line={matchLogMissing ? "Coming soon" : "Record your practice matches. Private to you, and entered by you, so every entry is Self-reported."}>
         {matchLogMissing ? <ComingSoonNote what="The match log" /> : <MatchLog rows={(matches ?? []) as MatchRow[]} games={games.map((g) => g.game)} />}
