@@ -38,8 +38,8 @@ const text = async (page) => (await page.locator("body").innerText()).replace(/\
   let t = await text(page);
   check(page.url().endsWith("/dashboard"), "rookie: lands on the hub");
   check(/Dashboard/.test(t) && /Plan\s*Rookie/.test(t), "hub: plan shows Rookie");
-  check((t.match(/Not open yet/g) || []).length >= 4, "hub: all four features show Not open yet");
-  check(/Scout plan · Coming soon/.test(t), "hub: Scout Desk is locked to the Scout plan and Coming soon");
+  check(!/Not open yet|In development|Available now|Planned|Self-reported/i.test(t), "hub: no status banners and no self-reported stats wording");
+  check(/Scout Desk/.test(t) && (t.match(/Coming soon/g) || []).length === 1, "hub: Scout Desk carries exactly one Coming soon label");
   check((await page.locator('a[href="/dashboard/scout"]').count()) === 1, "hub: the Scout Desk card links to the locked page");
   for (const [href, label] of [["/dashboard/resume", "Player Resume"], ["/dashboard/scrims", "Scrim Intelligence"], ["/dashboard/privacy", "Privacy and sharing"]])
     check((await page.locator(`a[href="${href}"]`).count()) > 0, `hub: card links to ${label}`);
@@ -54,7 +54,7 @@ const text = async (page) => (await page.locator("body").innerText()).replace(/\
   // resume
   await page.goto(`http://app.localhost:${OFF}/dashboard/resume`);
   t = await text(page);
-  check(/Self-reported/.test(t) && /Coming soon/.test(t), "resume: stats are labeled Self-reported; automated sources Coming soon");
+  check(!/Self-reported|Add or update stats|Every stat/i.test(t), "resume: no self-reported stats section and no way to add stats");
   await page.fill("#t-name", "Spring Open");
   await page.fill("#t-place", "3rd");
   await page.getByRole("button", { name: "Add tournament" }).click();
@@ -99,12 +99,17 @@ const text = async (page) => (await page.locator("body").innerText()).replace(/\
   await page.waitForTimeout(600);
   check((await page.getByRole("button", { name: "Remove Counter-Strike 2" }).count()) === 0, "resume: a game can be removed");
 
+  // stats are retired: the page redirects, nothing links to it
+  await page.goto(`http://app.localhost:${OFF}/dashboard/stats`);
+  check(/\/dashboard$/.test(page.url()), "stats: /dashboard/stats redirects to the dashboard");
+  await page.goto(`http://app.localhost:${OFF}/dashboard`);
+  check((await page.locator('a[href="/dashboard/stats"], a[href="/leaderboard"]').count()) === 0, "dashboard: no link to stats or leaderboards");
   // scrims, uploads off
   await page.goto(`http://app.localhost:${OFF}/dashboard/scrims`);
   t = await text(page);
   check(/Automated analysis\s*Coming soon/.test(t), "scrims: automated analysis is Coming soon");
   check(/Uploads are not open yet/.test(t) && (await page.locator('input[type="file"]').count()) === 0, "scrims: no uploader while the flag is off");
-  check(/Self-reported/.test(t) && /API/.test(t) && /Demo parsed/.test(t), "scrims: all three provenance labels are explained");
+  check(!/Where every number comes from|Self-reported/i.test(t) && /Automated analysis\s*Coming soon/.test(t), "scrims: no provenance paragraph; analysis carries one Coming soon label");
   check(!/\d+(\.\d+)?\s*(ACS|K\/D)/i.test(t), "scrims: no stats are shown");
   // match log
   check(/Match log/.test(t) && /No matches logged yet/.test(t), "scrims: the match log starts empty");
@@ -140,7 +145,7 @@ const text = async (page) => (await page.locator("body").innerText()).replace(/\
   const t0 = await text(page);
   check(/approved design partners only/i.test(t0) && (await page.locator('input[type="file"]').count()) === 0, "scrims (flag on, not approved): no uploader; says approved design partners only");
   await page.goto(`http://app.localhost:${ON}/dashboard`);
-  check(/Uploads: approved partners only/.test(await text(page)), "hub (flag on, not approved): does not claim uploads are open");
+  check(!/Uploads open/.test(await text(page)), "hub (flag on, not approved): does not claim uploads are open");
   // Calling Storage and the table directly with this user's own session token (what a determined user could do).
   const cookie = (await ctx.cookies()).find((c) => c.name.startsWith("sb-"));
   const token = JSON.parse(Buffer.from(cookie.value.replace(/^base64-/, ""), "base64url").toString()).access_token;
@@ -172,7 +177,7 @@ const text = async (page) => (await page.locator("body").innerText()).replace(/\
   await page.waitForFunction(() => !document.body.innerText.includes("practice.dem"));
   check(true, "scrims: a file can be deleted");
   await page.goto(`http://app.localhost:${ON}/dashboard`);
-  check(/Uploads open/.test(await text(page)), "hub (flag on, approved partner): the Scrim card shows uploads open");
+  check(/Scrims/.test(await text(page)), "hub (flag on, approved partner): the Scrims card is there");
   // Even an approved partner cannot write the row (or size_bytes) themselves: only the server action records uploads.
   const cookie = (await ctx.cookies()).find((c) => c.name.startsWith("sb-"));
   const token = JSON.parse(Buffer.from(cookie.value.replace(/^base64-/, ""), "base64url").toString()).access_token;
@@ -196,13 +201,13 @@ const text = async (page) => (await page.locator("body").innerText()).replace(/\
 {
   const { ctx, page } = await session("scout", OFF);
   const t = await text(page);
-  check(/Plan\s*Rookie/.test(t) && /Scout plan · Coming soon/.test(t), "scout persona: still Rookie; Scout Desk locked (no entitlement source exists)");
+  check(/Plan\s*Rookie/.test(t) && /Scout Desk/.test(t) && /Coming soon/.test(t), "scout persona: still Rookie; Scout Desk shows Coming soon (no entitlement source exists)");
   await page.goto(`http://app.localhost:${OFF}/dashboard/scout`);
   const sd = await text(page);
-  check(/Scout Desk/.test(sd) && /Part of the Scout plan/.test(sd) && /Coming soon/.test(sd), "scout persona: Scout Desk shows the locked, Coming soon page");
-  check(/nothing to upgrade to today/.test(sd), "scout persona: no upgrade is offered while the plan cannot be bought");
+  check(/Scout Desk/.test(sd) && /Scout plan only/.test(sd) && /Coming soon/.test(sd), "scout persona: Scout Desk is Scout plan only and Coming soon");
+  check(!/Planned|In development|Not built/i.test(sd), "scout persona: no status wording on the Scout Desk page");
   check(!/mock_|Mock Ace|Private Pat|@example/.test(sd), "scout persona: the page shows no player data or contact details");
-  check(/Self-reported, API or Demo parsed/.test(sd) && /never says how good a player is/.test(sd), "scout persona: provenance and verification limits are stated");
+  check(/never says how good a player is/.test(sd), "scout persona: the verification limit is stated");
   check((await page.locator("main input, main textarea, main form, main select").count()) === 0, "scout persona: no search, filter or contact controls exist");
   await ctx.close();
 }

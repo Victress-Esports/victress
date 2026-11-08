@@ -4,15 +4,13 @@ import { StatusChip } from "@/components/app/StatusChip";
 import { buttonClass } from "@/components/ui/Button";
 import { Section } from "@/components/ui/form";
 import { seo } from "@/content/seo";
-import { scrimUploadsEnabled } from "@/lib/dashboard";
-import { billingEnabled, canUseScoutDesk, currentTier, planName } from "@/lib/entitlements";
+import { currentTier, planName } from "@/lib/entitlements";
 import { loadMe } from "@/lib/me";
-import { directoryEnabled, sharingEnabled } from "@/lib/privacy";
 import { privateMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = privateMetadata(seo.app.dashboard.title, seo.app.dashboard.description);
 
-function ModuleCard({ href, title, line, chip }: { href?: string; title: string; line: string; chip: React.ReactNode }) {
+function ModuleCard({ href, title, line, chip }: { href?: string; title: string; line: string; chip: React.ReactNode | null }) {
   const body = (
     <>
       <div className="flex items-start justify-between gap-3">
@@ -33,22 +31,16 @@ function ModuleCard({ href, title, line, chip }: { href?: string; title: string;
 }
 
 export default async function Dashboard() {
-  const { sb, user, profile, games, entries, team } = await loadMe();
+  const { user, profile, games, team } = await loadMe();
   const tier = await currentTier();
-  const uploads = scrimUploadsEnabled();
-  const { data: approvedPartner } = uploads ? await sb.rpc("upload_allowed") : { data: false };
-  const sharing = sharingEnabled();
-  const directory = directoryEnabled();
   const listed = profile.directory_listed;
 
   const next =
     games.length === 0
       ? { text: "Add the game you play to start your Player Resume.", href: "/dashboard/profile", label: "Add a game" }
-      : entries.length === 0
-        ? { text: "Add your first stats. They show as Self-reported.", href: "/dashboard/stats", label: "Add stats" }
-        : !team
-          ? { text: "Play on a roster or run a club? Start or join a team.", href: "/dashboard/team", label: "Team" }
-          : null;
+      : !team
+        ? { text: "Play on a roster or run a club? Start or join a team.", href: "/dashboard/team", label: "Team" }
+        : null;
 
   return (
     <div className="flex flex-col gap-6">
@@ -63,24 +55,6 @@ export default async function Dashboard() {
         </div>
       </div>
 
-      <section aria-label="Feature status" className="rounded-3xl border border-line bg-surface p-5">
-        <h2 className="font-display text-xl font-bold">What is switched on</h2>
-        <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-          {[
-            ["Public profiles and leaderboards", directory],
-            ["Private sharing links", sharing],
-            ["Scrim file uploads", uploads],
-            ["Paid plans and billing", billingEnabled()],
-          ].map(([label, on]) => (
-            <li key={label as string} className="flex items-center justify-between gap-3 rounded-xl border border-line bg-surface-2 px-4 py-2.5">
-              <span className="text-sm font-semibold">{label as string}</span>
-              <StatusChip tone={on ? "on" : "muted"}>{on ? "On" : "Not open yet"}</StatusChip>
-            </li>
-          ))}
-        </ul>
-        <p className="mt-3 text-sm text-mute">Your profile is private. Public profiles, sharing links and leaderboards are not open yet.</p>
-      </section>
-
       {next ? (
         <div className="rounded-2xl border border-dashed border-line p-5">
           <p className="text-mute">{next.text}</p>
@@ -91,36 +65,16 @@ export default async function Dashboard() {
       ) : null}
 
       <section aria-label="Modules" className="grid gap-4 sm:grid-cols-2">
-        <ModuleCard
-          href="/dashboard/resume"
-          title="Player Resume"
-          line="Your games, roles, ranks and stats, with each number labeled by source. Tournaments and highlights are in development."
-          chip={<StatusChip>In development</StatusChip>}
-        />
-        <ModuleCard
-          href="/dashboard/scrims"
-          title="Scrim Intelligence"
-          line="Match logs, private practice files and automated analysis are in development. Not available yet."
-          chip={<StatusChip>{uploads ? (approvedPartner === true ? "Uploads open" : "Uploads: approved partners only") : "In development"}</StatusChip>}
-        />
-        <ModuleCard
-          href="/dashboard/privacy"
-          title="Privacy and sharing"
-          line="Your profile is private. Public profiles and sharing links are not open yet."
-          chip={<StatusChip>Coming soon</StatusChip>}
-        />
+        <ModuleCard href="/dashboard/resume" title="Player Resume" line="Your games, roles, ranks, tournaments and highlights." chip={null} />
+        <ModuleCard href="/dashboard/scrims" title="Scrims" line="Log your practice matches." chip={null} />
+        <ModuleCard href="/dashboard/privacy" title="Privacy" line="Your profile is private by default. You choose what to share." chip={null} />
+        <ModuleCard href="/dashboard/team" title="Team" line="Create a team, invite players with a link, and see your roster." chip={null} />
         <ModuleCard
           href="/dashboard/scout"
           title="Scout Desk"
-          line={
-            canUseScoutDesk(tier)
-              ? "Included in your plan. Discovery is not open yet."
-              : "Player discovery is part of the Scout plan. Coming soon, and not open to any plan yet."
-          }
-          chip={<StatusChip>Scout plan · Coming soon</StatusChip>}
+          line="Discovery and evaluation for teams, coaches and collegiate programs."
+          chip={<StatusChip>Coming soon</StatusChip>}
         />
-        <ModuleCard href="/dashboard/team" title="Team" line="Create a team, invite players with a link, and see your roster." chip={<StatusChip tone="on">Available now</StatusChip>} />
-        <ModuleCard href="/dashboard/stats" title="Stats" line="Enter your own stats. They are shown as Self-reported." chip={<StatusChip tone="on">Available now</StatusChip>} />
       </section>
 
       <Section title="Your identity, kept separate" line="Three different things, with different rules.">
@@ -133,7 +87,7 @@ export default async function Dashboard() {
             <dt className="font-semibold">Public player identity</dt>
             <dd className="mt-1 text-sm text-mute">
               Your name <span className="text-white">{profile.handle}</span>.{" "}
-              {listed ? "Listed publicly, with only the fields you chose." : "Private. Public profiles and sharing links are not open yet."}{" "}
+              {listed ? "Listed publicly, with only the fields you chose." : "Private. You choose what to share."}{" "}
               <Link href="/dashboard/privacy" className="inline-block py-1 underline">
                 Change
               </Link>

@@ -37,21 +37,25 @@ export const seo = {
     },
     contact: {
       title: "Contact the Team | Victress",
-      description: "Contact Victress: apply to the design partner pilot, request early access as a player, or email the team.",
+      description: "Contact Victress: apply to the design partner pilot, request access as a player, or email the team.",
     },
     privacy: {
       title: "Privacy Policy | Victress",
-      description: "How Victress handles your email and the profile details you choose to share. Draft text, pending legal review.",
+      description: "What Victress collects, why, who sees it and how you control it. Profiles are private by default and we do not sell your data.",
+    },
+    refunds: {
+      title: "Cancellation and Refunds | Victress",
+      description: "How to cancel a paid plan, when refunds apply, and what happens if a payment fails.",
     },
     terms: {
       title: "Terms of Use | Victress",
-      description: "The rules for using Victress: you must be 13 or older, and self-reported stats are labeled and not verified. Draft text, pending legal review.",
+      description: "The rules for using Victress: who can use it, acceptable use, reporting abuse, payments and how accounts end.",
     },
   },
   app: {
     home: {
       title: "Create an Esports Player Account | Victress",
-      description: "Create a Victress account, pick your name, add your games and enter your own stats. Profiles are private by default.",
+      description: "Create a Victress account, pick your name and add your games, roles and ranks. Profiles are private by default.",
     },
     login: {
       title: "Sign In | Victress",
@@ -69,10 +73,6 @@ export const seo = {
       title: "Edit profile | Victress",
       description: "Update your photo, bio, games and name.",
     },
-    stats: {
-      title: "Your stats | Victress",
-      description: "Add and review your self-reported stats.",
-    },
     team: {
       title: "Team | Victress",
       description: "Start a team, share an invite link and manage your roster.",
@@ -88,18 +88,12 @@ export const seo = {
   },
 } as const;
 
-/** Leaderboard pages are built per game. */
-export const leaderboardSeo = (gameName: string) => ({
-  title: `${gameName} leaderboard | Victress`,
-  description: `${gameName} leaderboard on Victress. Stats are entered by players and labeled Self-reported.`,
-});
-
 /** Public profile pages. Never longer than the limits, whatever the player typed. */
 export function profileSeo(p: { name: string | null; handle: string; facts: string; bio?: string | null }) {
   // No display name, or a name that is just the handle: "@handle on Victress" says it once.
   const full = p.name && p.name !== p.handle ? `${p.name} (@${p.handle}) on Victress` : `@${p.handle} on Victress`;
   const title = full.length <= 60 ? full : `@${p.handle} on Victress`;
-  const base = p.facts ? `${p.facts}. Self-reported stats.` : "Player profile on Victress.";
+  const base = p.facts ? `${p.facts}.` : "Player profile on Victress.";
   const description = clip(p.bio ? `${base} ${p.bio}` : base, 160);
   return { title, description };
 }

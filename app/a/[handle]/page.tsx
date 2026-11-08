@@ -11,7 +11,7 @@ import { profileSeo } from "@/content/seo";
 import { checkHandle } from "@/lib/handles";
 import { profilePage } from "@/lib/jsonld";
 import { directoryProfile } from "@/lib/privacy";
-import { appHost, statRows } from "@/lib/profiles";
+import { appHost } from "@/lib/profiles";
 import { pageMetadata } from "@/lib/seo";
 import { APP_URL, marketingUrl } from "@/lib/urls";
 
@@ -28,7 +28,6 @@ async function load(raw: string) {
   if (!profile) return null;
   return {
     profile,
-    stats: statRows(profile.game, profile.metrics),
     games: profile.games,
     alsoPlays: profile.games.filter((g) => !g.is_primary),
     updatedAt: profile.updated_at,
@@ -60,7 +59,7 @@ export async function generateMetadata({ params }: { params: Promise<{ handle: s
 export default async function PublicProfile({ params }: { params: Promise<{ handle: string }> }) {
   const found = await load((await params).handle);
   if (!found) notFound();
-  const { profile, stats, alsoPlays, games, updatedAt } = found;
+  const { profile, alsoPlays, games, updatedAt } = found;
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-5xl flex-col px-4 py-8 sm:px-6">
@@ -90,7 +89,6 @@ export default async function PublicProfile({ params }: { params: Promise<{ hand
           role={profile.role}
           rank={profile.rank}
           teamName={profile.team_name}
-          stats={stats}
           alsoPlays={alsoPlays}
           isDemo={!!profile.is_demo}
           appHost={appHost()}

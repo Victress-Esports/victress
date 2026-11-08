@@ -9,7 +9,6 @@ export interface ProfileCardProps {
   role: string | null;
   rank: string | null;
   teamName: string | null;
-  stats: { label: string; value: string }[];
   /** Other games on the profile (not the primary one). */
   alsoPlays?: { game: string; role: string | null; rank: string | null }[];
   isDemo?: boolean;
@@ -68,19 +67,6 @@ export function ProfileCard(p: ProfileCardProps) {
         </p>
       ) : null}
 
-      {p.stats.length ? (
-        <>
-          <dl className="mt-3 grid grid-cols-2 gap-3">
-            {p.stats.map((s) => (
-              <div key={s.label} className="rounded-xl bg-surface-2 px-4 py-3">
-                <dt className="text-xs text-mute">{s.label}</dt>
-                <dd className="tnum mt-1 text-2xl font-bold">{s.value}</dd>
-              </div>
-            ))}
-          </dl>
-          <p className="mt-4 text-xs text-mute">Self-reported stats</p>
-        </>
-      ) : null}
     </article>
   );
 }

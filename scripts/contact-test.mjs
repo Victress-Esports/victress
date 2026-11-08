@@ -34,7 +34,7 @@ check(!!ack && ack.reply_to === "hello@victressesports.com" || JSON.stringify(ac
 sent.length = 0;
 r = await post({ kind: "player", name: "Sam", email: "sam@example.test", game: "VALORANT", message: "" });
 check(r.status === 200, "a player request returns ok");
-check(sent.some((m) => /early access request/.test(m.text ?? "")), "the player acknowledgement names the early access request");
+check(sent.some((m) => /access request/.test(m.text ?? "")), "the player acknowledgement names the access request");
 
 sent.length = 0; failAck = true;
 r = await post({ kind: "player", name: "Lee", email: "lee@example.test", game: "", message: "" });

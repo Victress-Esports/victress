@@ -1,24 +1,20 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { ComingSoonNote } from "@/components/app/ComingSoonNote";
 import { GamesManager } from "@/components/app/GamesManager";
 import { ProfileForm } from "@/components/app/ProfileForm";
-import { ProvenanceTag } from "@/components/app/ProvenanceTag";
 import { HighlightSection, TournamentSection, type HighlightRow, type TournamentRow } from "@/components/app/ResumeSections";
 import { ResumeVisibility } from "@/components/app/ResumeVisibility";
-import { buttonClass } from "@/components/ui/Button";
 import { Section } from "@/components/ui/form";
-import { getGame } from "@/content/games";
 import { isMissingTable } from "@/lib/db-errors";
 import { cleanFields } from "@/lib/privacy";
 import { loadMe } from "@/lib/me";
-import { appHost, statRows } from "@/lib/profiles";
+import { appHost } from "@/lib/profiles";
 import { privateMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = privateMetadata("Player Resume | Victress", "Your games and self-reported stats. Tournaments, highlights and sharing are coming soon.");
+export const metadata: Metadata = privateMetadata("Player Resume | Victress", "Your games, roles, ranks, tournaments and highlights.");
 
 export default async function ResumePage() {
-  const { sb, user, profile, games, entries, team } = await loadMe();
+  const { sb, user, profile, games, team } = await loadMe();
   const [{ data: tournaments, error: tournamentsError }, { data: highlights, error: highlightsError }] = await Promise.all([
     sb
       .from("tournament_entries")
@@ -32,10 +28,6 @@ export default async function ResumePage() {
   // The tables behind these two sections come from a migration that may not be applied yet: say so instead of showing forms that cannot save.
   const resumeExtrasMissing = isMissingTable(tournamentsError) || isMissingTable(highlightsError);
 
-  // Newest entry per game (entries are newest first).
-  const latest = new Map<string, (typeof entries)[number]>();
-  for (const e of entries) if (!latest.has(e.game)) latest.set(e.game, e);
-  const primaryRows = statRows(profile.game, latest.get(profile.game ?? "")?.metrics);
   const gameIds = games.map((g) => g.game);
 
   return (
@@ -51,43 +43,6 @@ export default async function ResumePage() {
 
       <Section title="Games, role and rank" line="Add every game you play and mark one as primary. Your primary game shows first.">
         <GamesManager games={games} />
-      </Section>
-
-      <Section title="Stats" line="Each stat shows where it came from.">
-        {[...latest.values()].length ? (
-          <div className="flex flex-col gap-4">
-            {[...latest.values()].map((e) => {
-              const rows = statRows(e.game, e.metrics);
-              return (
-                <div key={e.id} className="rounded-2xl border border-line bg-surface-2 p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="font-semibold">
-                      {getGame(e.game)?.name ?? e.game} · {e.season}
-                    </p>
-                    <ProvenanceTag source="self_reported" />
-                  </div>
-                  <dl className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                    {rows.map((r) => (
-                      <div key={r.label}>
-                        <dt className="text-xs text-mute">{r.label}</dt>
-                        <dd className="tnum text-lg font-bold">{r.value}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="text-mute">No stats yet.</p>
-        )}
-        <p className="mt-4 text-sm text-mute">
-          Every stat here is Self-reported: you entered it. Stats from a game API or from parsed demos will appear with their own source label once
-          automated analysis exists. Coming soon.
-        </p>
-        <Link href="/dashboard/stats" className={buttonClass("secondary", "mt-4")}>
-          Add or update stats
-        </Link>
       </Section>
 
       <Section title="Tournament history" line={resumeExtrasMissing ? "Coming soon" : "Events you have played. Private for now."}>
@@ -115,7 +70,6 @@ export default async function ResumePage() {
             game: profile.game,
             role: profile.role,
             rank: profile.rank,
-            stats: primaryRows,
             appHost: appHost(),
           }}
         />

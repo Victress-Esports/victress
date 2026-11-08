@@ -3,11 +3,10 @@ import { ImageResponse } from "next/og";
 // Generic social cards (1200x630). `page` is an allow-list key, so nobody can print arbitrary text on our image.
 const CARDS: Record<string, { kicker: string; title: string; line: string }> = {
   home: { kicker: "VICTRESS", title: "Turn practice into progress.", line: "An esports player development and recruitment platform." },
-  pricing: { kicker: "VICTRESS PRICING", title: "Free to start.", line: "Pro, Team and Scout are coming soon." },
+  pricing: { kicker: "VICTRESS PRICING", title: "Free to start.", line: "Plans for esports players, teams and coaches." },
   teams: { kicker: "VICTRESS FOR TEAMS", title: "Run your club in one place.", line: "One invite link. One roster." },
-  about: { kicker: "ABOUT VICTRESS", title: "Show the work.", line: "A profile you own, built on stats you enter." },
-  app: { kicker: "VICTRESS", title: "Claim your name.", line: "Your account. Your own stats." },
-  leaderboard: { kicker: "VICTRESS LEADERBOARDS", title: "Know where you stand.", line: "Self-reported stats, per game." },
+  about: { kicker: "ABOUT VICTRESS", title: "Show the work.", line: "A profile you own." },
+  app: { kicker: "VICTRESS", title: "Claim your name.", line: "Your account. Your name." },
 };
 
 export async function GET(req: Request) {

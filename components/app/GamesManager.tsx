@@ -31,7 +31,7 @@ export function GamesManager({ games }: { games: PlayerGame[] }) {
 
   return (
     <div className="flex flex-col gap-5">
-      {games.length === 0 ? <p className="text-mute">Add a game to start tracking stats.</p> : null}
+      {games.length === 0 ? <p className="text-mute">Add the games you play.</p> : null}
 
       <ul className="flex flex-col gap-3">
         {games.map((pg) => {
