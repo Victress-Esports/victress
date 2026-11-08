@@ -1,10 +1,11 @@
-"""Part 2: NA1 Challenger ladder -> 5 players (with puuid) -> last 4 match-v5 matches each.
+"""Part 2: NA1 Challenger ladder -> 5 players (with puuid) -> last 4 match-v5 matches each (ranked solo, queue 420; matches under 5 minutes are dropped).
 Internal testing only. No names or PUUIDs are printed or saved; players are labelled P1..P5."""
 import json
 from common import ENV, DATA, get
 
 KEY = ENV.get("RIOT_API_KEY")
 H = "X-Riot-Token"
+MIN_SECONDS = 300  # drop matches under 5 minutes
 NA = "https://na1.api.riotgames.com"
 AM = "https://americas.api.riotgames.com"
 
@@ -18,12 +19,17 @@ out, cache = [], {}
 for n, e in enumerate(picked, 1):
     label = f"P{n}"
     puuid = e["puuid"]
-    ids = get(f"{AM}/lol/match/v5/matches/by-puuid/{puuid}/ids?queue=420&count=4", H, KEY)
-    matches = []
+    ids = get(f"{AM}/lol/match/v5/matches/by-puuid/{puuid}/ids?queue=420&count=8", H, KEY)
+    matches, dropped = [], 0
     for mid in ids:
+        if len(matches) == 4:
+            break
         if mid not in cache:
             cache[mid] = get(f"{AM}/lol/match/v5/matches/{mid}", H, KEY)
         info = cache[mid]["info"]
+        if info.get("gameDuration", 0) < MIN_SECONDS:  # remake / very early surrender
+            dropped += 1
+            continue
         me = next(p for p in info["participants"] if p["puuid"] == puuid)
         matches.append({
             "match_id": mid, "queue_id": info.get("queueId"), "duration_s": info.get("gameDuration"),
@@ -32,7 +38,7 @@ for n, e in enumerate(picked, 1):
             "cs": me["totalMinionsKilled"] + me.get("neutralMinionsKilled", 0),
             "gold": me["goldEarned"], "damage_to_champions": me["totalDamageDealtToChampions"],
         })
-    out.append({"player": label, "tier": ladder.get("tier"), "lp": e.get("leaguePoints"), "matches": matches})
+    out.append({"player": label, "tier": ladder.get("tier"), "lp": e.get("leaguePoints"), "dropped_under_5min": dropped, "matches": matches})
 
 (DATA / "lol").mkdir(exist_ok=True)
 (DATA / "lol" / "challenger_sample.json").write_text(json.dumps(out, indent=1))
@@ -42,5 +48,6 @@ for p in out:
     for m in p["matches"]:
         print(f"{p['player']:<7}{m['match_id']:<16}{m['champion']:<13}{(m['position'] or '-'):<8}"
               f"{'W' if m['win'] else 'L':<4}{m['kills']}/{m['deaths']}/{m['assists']:<6}{m['cs']:>4}{m['gold']:>7}{m['damage_to_champions']:>8}")
-print(f"\nplayers: {len(out)}, matches: {sum(len(p['matches']) for p in out)}, unique match details pulled: {len(cache)}")
+print(f"\ndropped as under 5 minutes: {sum(p['dropped_under_5min'] for p in out)}")
+print(f"players: {len(out)}, matches: {sum(len(p['matches']) for p in out)}, unique match details pulled: {len(cache)}")
 print("saved: scrim-tests/data/lol/challenger_sample.json (gitignored)")

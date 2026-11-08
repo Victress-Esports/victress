@@ -1,6 +1,6 @@
 # Proposal: Scrim Intelligence (private practice into performance information)
 
-**Status: PROPOSAL. Nothing in this document is built, approved or proven.** No first integration is approved. Parsing feasibility has **not** been proven for any game. Real demos or replays have not been supplied yet. Per the project principles, research and architecture are presented for approval before any major integration, and all six games stay in the architecture: VALORANT, Counter-Strike 2, Rocket League, League of Legends, Apex Legends and Overwatch 2.
+**Status: PROPOSAL. Nothing in this document is built or proven.** The owner approved the integration order on 2026-11-08: **Rocket League first, Counter-Strike 2 second, League of Legends via the Riot API.** That approval covers building and validating only. Parsing feasibility has **not** been proven for any game, and Rocket League parsing is not claimed to work until the frame data accuracy test in `scrim-tests/` passes on 50 or more real replay files. Real Counter-Strike 2 demos have not been supplied yet. Per the project principles, research and architecture are presented for approval before any major integration, and all six games stay in the architecture: VALORANT, Counter-Strike 2, Rocket League, League of Legends, Apex Legends and Overwatch 2.
 
 Everything about game file formats, third party parsers, publisher policies and plan limits below is **background knowledge that has not been checked against current official sources**. It is labeled **UNVERIFIED** where it matters, and section 9 lists how each unknown gets resolved before anything is promised. Do not copy any of it into public copy.
 
@@ -22,21 +22,21 @@ Everything about game file formats, third party parsers, publisher policies and 
 ## 3. Candidate games, ranked
 Ranking criteria, in this order: **(a) demo or replay availability to players** (can a player get a file at all), **(b) parser reliability** (is there a maintained parser and does it survive game updates), **(c) feasibility for Victress** (effort, hosting, legal), **(d) pilot demand** (who in the design partner pilot plays it). Criteria (a) to (c) below are UNVERIFIED background; criterion (d) is **unknown** until the pilot roster is known.
 
-| Rank (provisional) | Game | (a) File availability | (b) Parser reliability | (c) Feasibility notes | (d) Pilot demand |
+| Approved order | Game | (a) File availability | (b) Parser reliability | (c) Feasibility notes | (d) Pilot demand |
 |---|---|---|---|---|---|
-| 1 | Counter-Strike 2 | Players can record or download `.dem` files from private servers and some match services. UNVERIFIED which sources still allow download after the CS2 move | Open source parsers exist (UNVERIFIED current maintenance and CS2 coverage). Format changes with game updates are a known risk | Mature ecosystem; files are large (tens to hundreds of MB, UNVERIFIED) | Unknown |
-| 2 | Rocket League | Local `.replay` files for matches, including private matches (UNVERIFIED) | Community parsers exist (UNVERIFIED reliability across patches) | Smaller files; per player stats are well defined | Unknown |
+| 1 | Rocket League | Local `.replay` files for matches, including private matches (UNVERIFIED) | Community parsers exist (UNVERIFIED reliability across patches) | Smaller files; per player stats are well defined | Unknown |
+| 2 | Counter-Strike 2 | Players can record or download `.dem` files from private servers and some match services. UNVERIFIED which sources still allow download after the CS2 move | Open source parsers exist (UNVERIFIED current maintenance and CS2 coverage). Format changes with game updates are a known risk | Mature ecosystem; files are large (tens to hundreds of MB, UNVERIFIED) | Unknown |
 | 3 | League of Legends | Local replay files exist in the client (UNVERIFIED format and what Riot permits third parties to do with them) | Parsing is community maintained and tied to patches (UNVERIFIED) | Publisher policy risk: needs reading Riot's terms | Unknown |
 | 4 | VALORANT | UNVERIFIED: no player exportable demo or replay file known to the author. If true, a file pipeline is not possible and only an official API path could apply, which for private scrim data is unlikely | n/a if no files | The Game Changers audience named in the design partner pilot plays VALORANT, so demand may be highest where the file route is weakest. This is the central tension of the proposal | Possibly high (pilot copy names Game Changers). Unknown for the actual roster |
 | 5 | Overwatch 2 | UNVERIFIED: in-game replay viewing exists but no known exportable file | n/a if no files | Likely not feasible without a publisher API | Unknown |
 | 6 | Apex Legends | UNVERIFIED: no player exportable replay known | n/a if no files | Likely not feasible without a publisher API | Unknown |
 
-What this ranking is not: an approval, a promise, or a statement that any parser works. It decides which game to **research first**, nothing else. Real demo availability, parser reliability, technical feasibility and pilot demand decide the first integration (project principle); CS2 is only one candidate.
+What this order is not: a promise or a statement that any parser works. The owner approved Rocket League first, Counter-Strike 2 second and League of Legends via the Riot API (2026-11-08). Real demo availability, parser reliability and technical feasibility are still validated with real files, and the Rocket League accuracy test in `scrim-tests/` is the first of those checks.
 
 If VALORANT is the pilot's main game and no file path exists, Scrim Intelligence for that segment is the **match log the player enters** (built, Self-reported) and, later, whatever an official API allows. That would be said plainly, not hidden.
 
 ## 4. What real files the founder must supply
-Nothing is validated without real files. For each candidate game that is researched (start with one):
+Nothing is validated without real files. For each game that is validated (start with Rocket League):
 - **10 to 20 files** per game: a mix of private practice matches (the actual use case) and ordinary matches.
 - From **at least 3 different players or teams**, on **at least 2 game versions** (patches), so version drift is tested.
 - For each file: the **ground truth**, such as a final scoreboard screenshot or the in-game match summary, the game version and date, and which in-game identity is which person. Parser output is compared to this.

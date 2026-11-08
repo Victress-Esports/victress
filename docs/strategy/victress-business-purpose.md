@@ -468,4 +468,8 @@ Victress does not view social impact as something separate from building a succe
 
 The business serves esports. The shared-value strategy helps make esports more accessible, connected, and opportunity-driven—including for women who have historically faced additional barriers to advancement.
 
+## Addendum, 2026-11-08: Approved integration order
+
+The owner approved the order in which Scrim Intelligence integrations are built and validated: **Rocket League first, Counter-Strike 2 second, and League of Legends through the Riot API.** All six games (VALORANT, Counter-Strike 2, Rocket League, League of Legends, Apex Legends, Overwatch 2) remain in the architecture. This approval covers building and validating the integrations only. Victress does not claim that Rocket League parsing works until the frame data accuracy test in `scrim-tests/` passes on 50 or more real replay files, and does not claim any integration works until it is implemented and tested. This addendum does not change the text of version 2 above.
+
 **Victress — Turn practice into progress.**
