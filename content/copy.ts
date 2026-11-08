@@ -49,7 +49,7 @@ export const copy = {
     hero: {
       title: "Turn practice into progress.",
       sentence:
-        "Victress helps competitive esports players turn practice into performance evidence, build a Player Resume and be discovered by teams, coaches and collegiate programs.",
+        "Victress is where competitive esports players build a Player Resume and teams manage their rosters.",
       primary: "Become a Design Partner",
       note: "Free 4 to 6 week pilot for one competitive team.",
     },
