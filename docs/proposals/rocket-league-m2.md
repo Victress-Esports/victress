@@ -1,6 +1,6 @@
 # M2: Rocket League replay import and validation harness
 
-Status 2026-11-08: **the importer client exists; no replay has been downloaded or parsed; nothing works yet and nothing may be claimed.** The pass rate is unknown because the harness has not run.
+Status 2026-11-08: the harness ran once on 50 real public replays: **39 of 50 matched exactly (78.0%)**. Nothing may be called working. See `docs/validation/rocket-league-2026-11-08-analysis.md`.
 
 ## What exists
 - `lib/ballchasing/core.ts`: ballchasing API client (public replays only, raw token in the `Authorization` header, list and detail calls paced under 2 per second and 480 per hour, downloads at least 1.1 seconds apart and under 190 per hour, 429 and 5xx backoff, 20 MB file cap, no token in errors). `node scripts/ballchasing-test.mjs`: 15 checks pass against a stub.

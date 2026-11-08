@@ -1,5 +1,5 @@
 // Tests lib/ballchasing/core.ts with a stub fetch and fake clock (no network, no token).  node scripts/ballchasing-test.mjs
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -27,4 +27,13 @@ for (const [s, code] of [[404, "not_found"], [401, "auth"], [403, "auth"], [418,
 { const k = clock(); const l = new Limiter(k, [[1, 1100], [190, 3_600_000]]); for (let i = 0; i < 5; i++) await l.acquire(); check(k.now() >= 4400, "downloads are spaced at least 1.1 seconds apart"); }
 { const k = clock(); const l = new Limiter(k, [[2, 1000], [480, 3_600_000]]); const t = []; for (let i = 0; i < 600; i++) { await l.acquire(); t.push(k.now()); } const hour = t.filter((x) => x > t[599] - 3_600_000).length; check(hour <= 480, `600 list calls never exceed 480 in an hour (max seen ${hour})`); }
 { let e; try { createBallchasingClient({ token: "" }); } catch (x) { e = x; } check(e?.code === "auth", "no token: client refuses to start"); }
+{ const calls = []; const c = createBallchasingClient({ token: TOKEN, clock: clock(), fetch: async (u, i) => { calls.push([u, i]); return json({ id: ID }); } });
+  await c.uploadReplay(new Uint8Array([1, 2, 3]));
+  check(calls[0][0].includes("/v2/upload?visibility=private") && calls[0][1].method === "POST" && calls[0][1].body instanceof FormData, "uploadReplay defaults to visibility=private");
+  await c.uploadReplay(new Uint8Array([1]), "unlisted");
+  check(calls[1][0].includes("visibility=unlisted"), "another visibility only when asked for explicitly");
+  let e; try { await c.uploadReplay(new Uint8Array(0)); } catch (x) { e = x; } check(e?.code === "too_large", "empty upload refused"); }
+{ const walk = (d, o = []) => { for (const f of readdirSync(d)) { if (["node_modules", ".next", ".git", "target"].includes(f)) continue; const p = join(d, f); statSync(p).isDirectory() ? walk(p, o) : /\.(tsx?|jsx?)$/.test(f) && o.push(p); } return o; };
+  const users = [...walk("app"), ...walk("components"), ...walk("lib")].filter((f) => !f.includes("lib/ballchasing/") && /uploadReplay|lib\/ballchasing/.test(readFileSync(f, "utf8")));
+  check(users.length === 0, `no page, component, action or route uses the ballchasing client or uploadReplay (found: ${users.join(", ") || "none"})`); }
 console.log(failed ? `\n${failed} FAILED` : "\nall passed"); process.exit(failed ? 1 : 0);

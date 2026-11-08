@@ -43,12 +43,12 @@ export function createBallchasingClient(opts: { token: string; fetch?: typeof fe
   const api = new Limiter(clock, [[2, 1000], [480, 3_600_000]]);
   const files = new Limiter(clock, [[1, 1100], [190, 3_600_000]]);
 
-  async function call(limiter: Limiter, path: string, query?: URLSearchParams): Promise<Response> {
+  async function call(limiter: Limiter, path: string, query?: URLSearchParams, init?: { method: "POST"; body: FormData }): Promise<Response> {
     const url = `https://ballchasing.com/api${path}${query?.size ? `?${query}` : ""}`;
     for (let attempt = 0; ; attempt++) {
       await limiter.acquire();
       let res: Response;
-      try { res = await doFetch(url, { headers: { Authorization: opts.token }, signal: AbortSignal.timeout(30_000), cache: "no-store" }); }
+      try { res = await doFetch(url, { ...init, headers: { Authorization: opts.token }, signal: AbortSignal.timeout(30_000), cache: "no-store" }); }
       catch { if (attempt >= maxRetries) throw new BcError("unavailable", "ballchasing did not answer."); await clock.sleep(500 * 2 ** attempt); continue; }
       if (res.ok) return res;
       if (res.status === 429) { if (attempt >= maxRetries) throw new BcError("rate_limited", "ballchasing is limiting requests. Try again later.", 429); await clock.sleep(2000 * 2 ** attempt); continue; }
@@ -77,6 +77,17 @@ export function createBallchasingClient(opts: { token: string; fetch?: typeof fe
     async details(id: string): Promise<Record<string, unknown>> {
       if (!UUID.test(id)) throw new BcError("invalid_input", "Invalid replay id.");
       return (await call(api, `/replays/${id}`)).json();
+    },
+    /**
+     * Uploads a replay to ballchasing. Visibility defaults to "private" and callers must pass another value explicitly.
+     * Not used by any user screen in M2: no page, action or route calls this (tested). It exists for the validation tooling only.
+     */
+    async uploadReplay(file: Uint8Array, visibility: "private" | "unlisted" | "public" = "private"): Promise<{ id: string; location?: string }> {
+      if (file.length === 0 || file.length > MAX_REPLAY_BYTES) throw new BcError("too_large", "Replay file is empty or too large.");
+      const form = new FormData();
+      form.append("file", new Blob([file as BlobPart]), "upload.replay");
+      const res = await call(files, "/v2/upload", new URLSearchParams({ visibility }), { method: "POST", body: form });
+      return (await res.json()) as { id: string; location?: string };
     },
     /** The original .replay file. Refuses anything over MAX_REPLAY_BYTES. */
     async download(id: string): Promise<Uint8Array> {

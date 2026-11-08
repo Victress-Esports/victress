@@ -17,26 +17,7 @@ const COUNT = Number(arg("count", 50)), SEED = Number(arg("seed", 1)), OUT = arg
 const BIN = arg("bin", "tools/rlparse/target/release/rlparse");
 if (!existsSync(BIN)) { console.error(`parser not built: cargo build --release --manifest-path tools/rlparse/Cargo.toml`); process.exit(2); }
 
-export const FIELDS = ["score", "goals", "assists", "saves", "shots"];
-const n0 = (v) => (typeof v === "number" ? v : 0);
-
-/** Pure comparison. Returns { pass, causes: string[] }. Missing network values are zero (the game never updated them). */
-export function compare(parsed) {
-  if (parsed.error) return { pass: false, causes: ["parse_error"] };
-  const { header: h, network: n } = parsed;
-  const causes = [];
-  if (n0(h.team0_score) !== n0(n.team0_score) || n0(h.team1_score) !== n0(n.team1_score)) causes.push("team_score");
-  if (!h.players.length) causes.push("no_header_players");
-  if (h.players.length !== n.players.length) causes.push("player_count");
-  const pool = n.players.map((p) => ({ ...p, used: false }));
-  for (const hp of h.players) {
-    const m = pool.find((p) => !p.used && p.name === hp.name && p.team === hp.team);
-    if (!m) { causes.push("player_not_found"); continue; }
-    m.used = true;
-    for (const f of FIELDS) if (n0(hp[f]) !== n0(m[f])) causes.push(`field_${f}`);
-  }
-  return { pass: causes.length === 0, causes: [...new Set(causes)] };
-}
+import { compare } from "./rl-compare.mjs";
 
 export function runParser(path) {
   const r = spawnSync(BIN, [path], { encoding: "utf8", maxBuffer: 256 * 1024 * 1024, timeout: 120_000 });
