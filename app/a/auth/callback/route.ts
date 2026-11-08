@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { PLACEHOLDER_HANDLE, safeNext } from "@/lib/auth";
 import { sendWelcome } from "@/lib/email";
+import { recordFunnelEvent } from "@/lib/funnel";
 import { checkHandle } from "@/lib/handles";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -20,6 +21,9 @@ export async function GET(req: Request) {
     data: { user },
   } = await sb.auth.getUser();
   if (!user) return fail();
+
+  // First sign in of a new account (created in the last 10 minutes). The database records this once per player.
+  if (Date.now() - new Date(user.created_at).getTime() < 10 * 60_000) await recordFunnelEvent("registration_completed", user.id);
 
   const store = await cookies();
   const cookieClaim = store.get("v_claim")?.value;

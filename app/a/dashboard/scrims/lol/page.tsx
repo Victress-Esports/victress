@@ -6,6 +6,7 @@ import { MiniChart } from "@/components/app/MiniChart";
 import { ProvenanceTag } from "@/components/app/ProvenanceTag";
 import { Section } from "@/components/ui/form";
 import { requireUser } from "@/lib/auth";
+import { recordFunnelEvent } from "@/lib/funnel";
 import { scrimUploadsEnabled } from "@/lib/dashboard";
 import { privateMetadata } from "@/lib/seo";
 import { riotClient } from "@/lib/riot";
@@ -36,6 +37,7 @@ export default async function LolPage({ searchParams }: { searchParams: Promise<
   const all = (rows ?? []) as Row[];
   const shown = all.filter((r) => kind === "all" || r.queue_kind === kind);
   const trend = computeTrend(all, kind);
+  if (trend) await recordFunnelEvent("first_analysis_viewed", user.id, { game: "LOL" });
   const configured = riotClient() !== null;
 
   return (

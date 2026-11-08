@@ -7,6 +7,7 @@ import { MiniChart } from "@/components/app/MiniChart";
 import { ProvenanceTag } from "@/components/app/ProvenanceTag";
 import { Section } from "@/components/ui/form";
 import { requireUser } from "@/lib/auth";
+import { recordFunnelEvent } from "@/lib/funnel";
 import { scrimUploadsEnabled } from "@/lib/dashboard";
 import { privateMetadata } from "@/lib/seo";
 import type { CompactTimeline, Slot } from "@/lib/riot/normalize";
@@ -27,6 +28,7 @@ export default async function LolMatchPage({ params }: { params: Promise<{ id: s
   const { sb, user } = await requireUser();
   const { data } = await sb.from("game_matches").select("id, queue_label, queue_kind, played_at, duration_seconds, game_version, result, me, participants, objectives, timeline").eq("id", id).eq("profile_id", user.id).eq("game", "LOL").maybeSingle();
   if (!data) notFound();
+  await recordFunnelEvent("first_analysis_viewed", user.id, { game: "LOL" });
   const m = data as unknown as Detail;
   const minutes = m.duration_seconds / 60;
   const myTeam = m.me.team;

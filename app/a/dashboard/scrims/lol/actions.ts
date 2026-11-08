@@ -5,6 +5,7 @@ import { z } from "zod";
 import type { Result } from "@/app/a/dashboard/actions";
 import { requireUser } from "@/lib/auth";
 import { scrimUploadsEnabled } from "@/lib/dashboard";
+import { recordFunnelEvent } from "@/lib/funnel";
 import { parseRiotId, RIOT_ROUTES } from "@/lib/riot/core";
 import { runLolImport } from "@/lib/riot/import";
 import { rateLimit } from "@/lib/ratelimit";
@@ -32,6 +33,7 @@ export async function importLolAction(input: z.input<typeof schema>): Promise<Re
   if (!rateLimit(`lol-import:${g.user.id}`, 6, 60 * 60_000)) return fail("You have imported several times in the last hour. Try again later.");
   const admin = supabaseAdmin();
   if (!admin) return fail();
+  await recordFunnelEvent("first_import_started", g.user.id, { game: "LOL" });
   const r = await runLolImport(admin, g.user.id, id, p.data.route as never, p.data.count);
   revalidatePath("/dashboard/scrims/lol");
   return { ok: r.ok, message: r.message };

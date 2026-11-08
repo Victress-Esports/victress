@@ -121,6 +121,13 @@ export type Database = {
         Update: { error_code?: string | null; error_message?: string | null; failed_matches?: number; finished_at?: string; imported?: number; skipped_custom?: number; skipped_existing?: number; status?: "queued" | "running" | "succeeded" | "failed" };
         Relationships: [];
       };
+      // Migration 20261108000200. No client access at all; the server records events with the service role.
+      funnel_events: {
+        Row: { created_at: string; day: string; id: number; name: "registration_started" | "registration_completed" | "profile_completed" | "first_import_started" | "first_analysis_viewed" | "return_visit"; profile_id: string | null; props: Json };
+        Insert: { name: "registration_started" | "registration_completed" | "profile_completed" | "first_import_started" | "first_analysis_viewed" | "return_visit"; profile_id?: string | null; props?: Json };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
       player_games: {
         Row: { created_at: string; game: string; is_primary: boolean; profile_id: string; rank: string | null; role: string | null };
         Insert: { created_at?: string; game: string; is_primary?: boolean; profile_id: string; rank?: string | null; role?: string | null };

@@ -4,12 +4,14 @@ import { Logo } from "@/components/brand/Logo";
 import { RIOT_LEGAL_NOTICE } from "@/content/riot";
 import { buttonClass } from "@/components/ui/Button";
 import { requireUser } from "@/lib/auth";
+import { recordReturnVisit } from "@/lib/funnel";
 import { marketingUrl } from "@/lib/urls";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  await requireUser();
+  const { user } = await requireUser();
+  await recordReturnVisit(user.id, user.created_at);
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
       <header className="flex items-center justify-between">
