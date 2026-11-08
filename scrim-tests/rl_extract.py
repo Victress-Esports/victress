@@ -67,6 +67,11 @@ def extract(path):
             an, att, aid = objs[u["object_id"]], u["attribute"], u["actor_id"]
             if an == "Engine.PlayerReplicationInfo:PlayerName":
                 pri.setdefault(aid, {"name": None, "team_actor": None})["name"] = att["String"]
+            elif an == "Engine.PlayerReplicationInfo:UniqueId":
+                rid_ = (att["UniqueId"].get("remote_id") or {})
+                v_ = next(iter(rid_.values()), None) if isinstance(rid_, dict) else None
+                if isinstance(v_, (str, int)):
+                    pri.setdefault(aid, {"name": None, "team_actor": None})["uid"] = str(v_)   # platform id, links renamed players
             elif an == "TAGame.PRI_TA:MatchGoals" and pri.get(aid, {}).get("name"):
                 n_ = pri[aid]["name"]; counter_goals[n_] = max(counter_goals.get(n_, 0), att["Int"])   # check b1 (game's own counter)
             elif an == "Engine.PlayerReplicationInfo:Team":
@@ -160,7 +165,7 @@ def extract(path):
     diag = {"car_spawns": len(all_cars), "boost_spawns": len(all_boosts),
             "boost_used_unattributed_pct": sum(b["used"] for b in all_boosts if not (b.get("car_rec") and "name" in b["car_rec"])) * 100.0 / 255.0,
             "boost_used_total_pct": sum(b["used"] for b in all_boosts) * 100.0 / 255.0}
-    return {"goals": goals, "events": events, "players": players, "total_time": frames[-1]["time"] - frames[0]["time"], "counter_goals": counter_goals, "diag": diag}
+    return {"goals": goals, "events": events, "players": players, "total_time": frames[-1]["time"] - frames[0]["time"], "counter_goals": counter_goals, "uids": {p["name"]: p["uid"] for p in pri.values() if p.get("name") and p.get("uid")}, "diag": diag}
 
 
 def run(path):

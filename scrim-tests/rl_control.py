@@ -12,8 +12,8 @@ L = {rid: load(rid) for rid in ids}
 raw_header = {rid: json.loads(subprocess.run(["rrrocket", str(RL / "files" / f"{rid}.replay")], capture_output=True, check=True).stdout) for rid in ids}
 
 # Baselines: replays that are clean under each check, so every injected fault is the only thing wrong
-def goals_clean(rid): r = check_goals(L[rid]["expected"], L[rid]["derived"], L[rid]["header"]); return not r["team"] and not r["B"]
-def header_clean(rid): return not check_header_stats(L[rid]["expected"], raw_header[rid], L[rid]["header"])
+def goals_clean(rid): r = check_goals(L[rid]["expected"], L[rid]["derived"], L[rid]["roster"]); return not r["team"] and not r["B"]
+def header_clean(rid): return not check_header_stats(L[rid]["expected"], raw_header[rid], L[rid]["roster"])
 clean_goals = [r for r in ids if goals_clean(r)]
 clean_hdr = [r for r in ids if header_clean(r)]
 pick = clean_goals[:5]
@@ -29,14 +29,14 @@ def report(name, injected, caught, note=""):
 c = 0
 for rid in pick:
     e = copy.deepcopy(L[rid]["expected"]); e["players"][0]["goals"] = (e["players"][0]["goals"] or 0) + 1
-    r = check_goals(e, L[rid]["derived"], L[rid]["header"]); c += bool(r["B"])
+    r = check_goals(e, L[rid]["derived"], L[rid]["roster"]); c += bool(r["B"])
 report("C1 scoreboard: one player's goals +1 (strict b)", len(pick), c)
 
 # C2 scoreboard corruption: team goals +1
 c = 0
 for rid in pick:
     e = copy.deepcopy(L[rid]["expected"]); e["team_goals"]["blue"] += 1
-    c += bool(check_goals(e, L[rid]["derived"], L[rid]["header"])["team"])
+    c += bool(check_goals(e, L[rid]["derived"], L[rid]["roster"])["team"])
 report("C2 scoreboard: team goals +1 (strict b)", len(pick), c)
 
 # C3 header stats corruption (a): saves, shots, assists, score each changed in one replay
@@ -44,35 +44,35 @@ c = n = 0
 for k in ("saves", "shots", "assists", "score", "goals"):
     for rid in clean_hdr[:3]:
         e = copy.deepcopy(L[rid]["expected"]); e["players"][1][k] = (e["players"][1][k] or 0) + 1
-        n += 1; c += bool(check_header_stats(e, raw_header[rid], L[rid]["header"]))
+        n += 1; c += bool(check_header_stats(e, raw_header[rid], L[rid]["roster"]))
 report("C3 scoreboard: saves/shots/assists/score/goals +1 (check a)", n, c)
 
 # C4 frame-side corruption: delete a detected goal / flip its scoring team / drop all touch events
 c1 = c2 = c3 = 0
 for rid in pick:
     d = copy.deepcopy(L[rid]["derived"]); del d["goals"][0]
-    c1 += bool(check_goals(L[rid]["expected"], d, L[rid]["header"])["team"])
+    c1 += bool(check_goals(L[rid]["expected"], d, L[rid]["roster"])["team"])
     d = copy.deepcopy(L[rid]["derived"]); g = d["goals"][0]; g["scoring_team"] = "orange" if g["scoring_team"] == "blue" else "blue"
-    c2 += bool(check_goals(L[rid]["expected"], d, L[rid]["header"])["team"])
+    c2 += bool(check_goals(L[rid]["expected"], d, L[rid]["roster"])["team"])
     d = copy.deepcopy(L[rid]["derived"]); d["events"] = []
-    c3 += bool(check_goals(L[rid]["expected"], d, L[rid]["header"])["B"])
+    c3 += bool(check_goals(L[rid]["expected"], d, L[rid]["roster"])["B"])
 report("C4a frames: a detected goal deleted", len(pick), c1)
 report("C4b frames: a goal credited to the wrong team", len(pick), c2)
 report("C4c frames: all touch events removed (scorer lost)", len(pick), c3)
 
 # C5 (c) perturbation: +10 s defensive third, +25% boost used per minute, on 5 replays; flag = |diff| > 5 percent
 def flags(detail, rid, metric_prefix):
-    rows_, _ = check_c(detail, L[rid]["derived"], L[rid]["header"])
+    rows_, _ = check_c(detail, L[rid]["derived"], L[rid]["roster"])
     return [r for r in rows_ if r["metric"].startswith(metric_prefix) and r["pct"] is not None and abs(r["pct"]) > 5]
-pc = list(ids)[:5]
+pc = [rid for rid in ids if not flags(L[rid]["detail"], rid, "time_defensive_third_A")][:5]   # replays with no baseline flag, so a new flag is the injected fault
 base_false = sum(len(flags(L[r]["detail"], r, "time_defensive_third_A")) for r in ids)
 c = 0
 for rid in pc:
-    dt = copy.deepcopy(L[rid]["detail"]); dt["blue"]["players"][0]["stats"]["positioning"]["time_defensive_third"] += 10
+    dt = copy.deepcopy(L[rid]["detail"]); pp = dt["blue"]["players"][0]["stats"]["positioning"]; pp["time_defensive_third"] *= 1.2   # +20 percent, well over the 5 percent flag
     c += any(f["player"] and abs(f["pct"]) > 5 for f in flags(dt, rid, "time_defensive_third_A")) and len(flags(dt, rid, "time_defensive_third_A")) > len(flags(L[rid]["detail"], rid, "time_defensive_third_A"))
-report("C5a (c): ballchasing defensive third +10 s", len(pc), c, f"(untouched flags over all replays: {base_false})")
+report("C5a (c): ballchasing defensive third +20 percent", len(pc), c, f"(untouched flags over all replays: {base_false})")
 def med_abs_pct(detail, rid):
-    rows_, _ = check_c(detail, L[rid]["derived"], L[rid]["header"])
+    rows_, _ = check_c(detail, L[rid]["derived"], L[rid]["roster"])
     v = sorted(abs(r["pct"]) for r in rows_ if r["metric"] == "boost_used_per_min" and r["pct"] is not None)
     return v[len(v) // 2]
 cnt = 0
@@ -87,6 +87,27 @@ report("C5b (c): boost used per min halved, median error shifts 25+ points", len
 # C0 no false alarms: every real file passes the CRC check
 bad = [r for r in ids if subprocess.run(["rrrocket", "-c", "--dry-run", str(RL / "files" / f"{r}.replay")], capture_output=True).returncode != 0]
 report("C0 real files rejected by CRC check (expected 0)", 0, len(bad))
+
+# C7 incomplete header: drop one player from the header's list; the roster must still list them (from frames) as UNAVAILABLE,
+# and the header check must neither fail nor invent a value for them
+from rl_checks import build_roster, unavailable_players
+c7 = n7 = 0
+for rid in clean_hdr[:5]:
+    raw2 = copy.deepcopy(raw_header[rid])
+    real = [i for i, p in enumerate(raw2["properties"]["PlayerStats"]) if sum(L[rid]["derived"]["players"].get(p["Name"], {"A": {"x": 0}})["A"].values()) >= 10]   # a player who actually played
+    gone = raw2["properties"]["PlayerStats"].pop(real[0])["Name"]
+    roster2, _ = build_roster(raw2, L[rid]["derived"])
+    ok = (gone in unavailable_players(L[rid]["expected"], raw2, roster2)) and not check_header_stats(L[rid]["expected"], raw2, roster2)
+    n7 += 1; c7 += ok
+report("C7 header missing a player: listed from frames, marked unavailable, not guessed", n7, c7)
+
+# C8 header stat that does not match must still be caught for a player present in the header
+c8 = 0
+for rid in clean_hdr[:5]:
+    raw2 = copy.deepcopy(raw_header[rid]); raw2["properties"]["PlayerStats"][0]["Score"] += 2
+    roster2, _ = build_roster(raw2, L[rid]["derived"])
+    c8 += bool(check_header_stats(L[rid]["expected"], raw2, roster2))
+report("C8 header score off by 2 (the real discrepancy seen), still caught", 5, c8)
 
 # C6 raw file byte flips: do corrupted replay FILES get noticed by the parser or change the extracted result?
 cdir = RL / "corrupt"; cdir.mkdir(exist_ok=True)

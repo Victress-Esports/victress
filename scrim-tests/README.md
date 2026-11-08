@@ -10,7 +10,7 @@ Parser: `rrrocket` (built from github.com/nickbabcock/rrrocket, `cargo install -
 
 | Step | Script |
 |---|---|
-| list N replays of a playlist, save expected + full stats, download raw files (`ranked-doubles 50`, `ranked-standard 50`, `private 25`) | `rl_fetch.py <playlist> <count>` |
+| list N replays of a playlist, save expected + full stats, download raw files; `--new` skips replays already held, `--size K` keeps private matches with K players per team | `rl_fetch.py <playlist> <count> [--new] [--size K]` |
 | (legacy) original header and counter goal comparison on raw files | `rl_compare.py` |
 | extract gameplay facts from network frames (ball position goals, touches, boost, thirds) | `rl_extract.py` |
 | choose touch parameters on replays 1 to 25, score replays 26 to 50 once | `rl_tune.py` |
@@ -19,7 +19,9 @@ Parser: `rrrocket` (built from github.com/nickbabcock/rrrocket, `cargo install -
 
 Pass bar (CLAUDE.md): header scoreboard stats must match ballchasing exactly; frame derived stats (positioning, boost) must match within 2% median on 100+ files across 2v2 and 3v3. Only stats that pass may be shown to users.
 
-Boost notes: the game samples boost sparsely and pad pickups hide consumption inside the net change. `rl_extract.py` adds it back from firing time (the boost component's active flag) times the drain rate (255/3 per second). Average boost holds the last sample.
+Groups: ranked 2v2 and 3v3 by playlist; private matches by the players who actually played per team (the lobby setting is unreliable). The roster is the players seen in the frame data plus header entries with non zero stats; zero stat lobby members are ignored; a player missing from the header is listed from the frames with scoreboard stats unavailable; a player who changed display name is linked by platform id.
+
+Boost is not shown to users until it has a validated reference. Notes: the game samples boost sparsely and pad pickups hide consumption inside the net change. `rl_extract.py` adds it back from firing time (the boost component's active flag) times the drain rate (255/3 per second). Average boost holds the last sample.
 
 Goal detection (strict b) is informational only; frame goal attribution is not a product requirement.
 

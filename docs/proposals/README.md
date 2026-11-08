@@ -24,6 +24,7 @@ Governing document: [docs/strategy/victress-business-purpose.md](../strategy/vic
 | [Women in Esports wording](core-expression-wording.md) | Every place that says "core expression" or "why Victress exists", with the proposed wording; nothing changed |
 | [Feature flag readiness](feature-flag-readiness.md) | Test evidence per flag (sharing, directory, uploads) and what blocks Preview and production |
 | [Scrim Intelligence](scrim-intelligence.md) | Proposal: pipeline, candidate games ranked (provisional, mostly unverified), the real files the founder must supply, consent for uploaded demos, failure handling, validation plan. **No game approved, parsing not proven** |
+| [Parsed replay match tables](replay-parsed-matches.md) | Proposal for victress-staging only: five tables (`stat_catalog`, `parse_jobs`, `replay_matches`, `replay_match_players`, `replay_player_stats`), the pass bar enforced by RLS, seven decisions. Not applied. Found that staging has a `game_api_imports` migration that is not in the repo |
 | [Reporting, blocking and moderation](reporting-blocking-moderation.md) | Proposal: what exists (nothing), the minimum before each exposure feature, tables, ownership, decisions. Nothing implemented; owner not assigned |
 | [Dashboard migrations production plan](dashboard-migrations-production-plan.md) | Proposal (PR #27): order, dry runs, tested rollback, Pro recommendation, pausing sign ups |
 | [Status of every feature](../status.md) | Built, merged, on production, gated by, blocked by |
