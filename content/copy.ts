@@ -409,6 +409,7 @@ export const copy = {
       { href: "/contact", label: "Contact" },
       { href: "/privacy", label: "Privacy" },
       { href: "/terms", label: "Terms" },
+      { href: "/refunds", label: "Refunds" },
     ],
     rights: "Victress LLC. All rights reserved.",
     trademarks:
@@ -422,26 +423,5 @@ export const copy = {
     terms: "Terms",
     and: "and",
     privacy: "Privacy Policy",
-  },
-
-  legal: {
-    privacy: {
-      title: "Privacy",
-      updated: "Placeholder. Final text is pending legal review.",
-      body: [
-        "We collect your email and the profile details you choose to share.",
-        "We do not use advertising cookies.",
-        "Write to hello@victressesports.com to see or delete your data.",
-      ],
-    },
-    terms: {
-      title: "Terms",
-      updated: "Placeholder. Final text is pending legal review.",
-      body: [
-        "You must be at least 13 years old to use Victress.",
-        "Use Victress fairly and only share information that is yours.",
-        "We may update these terms and will tell you about material changes.",
-      ],
-    },
   },
 };
