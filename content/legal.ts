@@ -31,6 +31,7 @@ export const privacyDoc: LegalDoc = {
         "Your profile: the name you pick, and anything you add such as a display name, bio, profile photo, your games, roles and ranks, tournaments, and links to highlights you host elsewhere.",
         "Your team: a team name and who is on the roster, if you start or join a team. Invite links are codes that let someone join your team.",
         "Your match log: practice matches you record. It is private to you.",
+        "Game imports: if you are approved and connect a Riot ID, we store that Riot ID and the League of Legends matches we fetch for it from Riot's API (results, your numbers, and the other players in each match as anonymous entries with no names). They are private to you. You can delete a match or all of it at any time.",
         "Practice files: if you are approved as a design partner and upload a demo or replay file, it is stored privately with the file name and size.",
         "Game stats from earlier versions: earlier versions of Victress let players enter game stats. We still hold what was entered. We do not show it to anyone.",
         "Messages you send us: the contact and design partner forms send your details to our email inbox. They are not stored in the Victress database.",
