@@ -70,7 +70,7 @@ c = 0
 for rid in pc:
     dt = copy.deepcopy(L[rid]["detail"]); dt["blue"]["players"][0]["stats"]["positioning"]["time_defensive_third"] += 10
     c += any(f["player"] and abs(f["pct"]) > 5 for f in flags(dt, rid, "time_defensive_third_A")) and len(flags(dt, rid, "time_defensive_third_A")) > len(flags(L[rid]["detail"], rid, "time_defensive_third_A"))
-report("C5a (c): ballchasing defensive third +10 s", len(pc), c, f"(untouched flags over all 50 replays: {base_false})")
+report("C5a (c): ballchasing defensive third +10 s", len(pc), c, f"(untouched flags over all replays: {base_false})")
 def med_abs_pct(detail, rid):
     rows_, _ = check_c(detail, L[rid]["derived"], L[rid]["header"])
     v = sorted(abs(r["pct"]) for r in rows_ if r["metric"] == "boost_used_per_min" and r["pct"] is not None)
@@ -82,7 +82,7 @@ for rid in pc:
         p["stats"]["boost"]["bcpm"] *= 0.5     # large fault: ballchasing value halved
     cnt += (med_abs_pct(dt, rid) - med_abs_pct(L[rid]["detail"], rid)) >= 25   # detected if median error shifts by 25+ points
 report("C5b (c): boost used per min halved, median error shifts 25+ points", len(pc), cnt,
-       "(the boost check only detects LARGE faults: untouched players already differ by >5% in 150 of 200 cases)")
+       "(the boost check only detects LARGE faults: boost stats do not yet match ballchasing within 2%)")
 
 # C0 no false alarms: every real file passes the CRC check
 bad = [r for r in ids if subprocess.run(["rrrocket", "-c", "--dry-run", str(RL / "files" / f"{r}.replay")], capture_output=True).returncode != 0]

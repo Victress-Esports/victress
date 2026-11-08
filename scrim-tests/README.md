@@ -10,13 +10,18 @@ Parser: `rrrocket` (built from github.com/nickbabcock/rrrocket, `cargo install -
 
 | Step | Script |
 |---|---|
-| list 50 ranked doubles replays, save expected stats, download raw files | `rl_fetch.py` |
-| save full ballchasing stats (advanced stats for check c) | `rl_fetch_detail.py` |
-| (a) header stats vs scoreboard, (b1) counter based goals | `rl_compare.py` |
+| list N replays of a playlist, save expected + full stats, download raw files (`ranked-doubles 50`, `ranked-standard 50`, `private 25`) | `rl_fetch.py <playlist> <count>` |
+| (legacy) original header and counter goal comparison on raw files | `rl_compare.py` |
 | extract gameplay facts from network frames (ball position goals, touches, boost, thirds) | `rl_extract.py` |
 | choose touch parameters on replays 1 to 25, score replays 26 to 50 once | `rl_tune.py` |
-| strict (b) goals from ball position and (c) boost and thirds vs ballchasing | `rl_checks.py` |
+| unified report: (a) header scoreboard, (b1) counter goals, strict (b) ball position goals, (c) boost and thirds, graded against the pass bar | `rl_checks.py` |
 | corruption controls (the checks must catch deliberate faults) | `rl_control.py` |
+
+Pass bar (CLAUDE.md): header scoreboard stats must match ballchasing exactly; frame derived stats (positioning, boost) must match within 2% median on 100+ files across 2v2 and 3v3. Only stats that pass may be shown to users.
+
+Boost notes: the game samples boost sparsely and pad pickups hide consumption inside the net change. `rl_extract.py` adds it back from firing time (the boost component's active flag) times the drain rate (255/3 per second). Average boost holds the last sample.
+
+Goal detection (strict b) is informational only; frame goal attribution is not a product requirement.
 
 How goals are derived (strict b): ball centre past the goal line inside the goal mouth, in the frame data. The scorer is the last player on the scoring team whose car was near the ball when its velocity changed. The header is not used.
 

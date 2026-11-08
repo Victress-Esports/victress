@@ -138,7 +138,7 @@ Each production step needs its own explicit founder authorization, a fresh profi
 
 - No claim of compliance with COPPA, GDPR, CCPA or any other law or standard, and no claim about the adequacy of Supabase, Vercel, Resend or Stripe for these purposes.
 - No age gate, parental consent mechanism or minor specific handling exists. Collegiate and some competitive players may be minors; this is **Open** for counsel and affects section 3 (other participants in files), section 4 (case study consent) and sign in.
-- No claim that any game integration or parser works. No first integration is approved.
+- No claim that any game integration or parser works. The owner approved the integration order on 2026-11-08 (Rocket League first, Counter-Strike 2 second, League of Legends via the Riot API); that approval covers building and validating only, and the Rocket League pass bar is in CLAUDE.md section 2.
 - No claim that stats are "verified": every stat today is Self-reported. Verification will mean provenance and integrity of evidence, never a judgment of ability.
 - No retention periods, security guarantees or response times are promised to users in this document or the product.
 - No partnerships, funding, coaching, mentorship, scholarships, placements or recruitment are offered or implied.

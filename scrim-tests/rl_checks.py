@@ -144,41 +144,73 @@ def summarize(rows):
     return out
 
 
+def raw_header(rid):
+    f = RL / "rawheader" / f"{rid}.json"
+    if not f.exists():
+        f.parent.mkdir(exist_ok=True, parents=True)
+        f.write_bytes(subprocess.run(["rrrocket", str(RL / "files" / f"{rid}.replay")], capture_output=True, check=True).stdout)
+    return json.loads(f.read_text())
+
+
+GROUPS = [("ranked-doubles", "2v2 ranked doubles"), ("ranked-standard", "3v3 ranked standard"), ("private", "private matches (extra)")]
+BAR_METRICS = ["time_defensive_third_A", "time_neutral_third_A", "time_offensive_third_A", "boost_used_per_min", "avg_boost_amount"]
+BAR_PCT = 2.0
+
+
 def main():
+    manifest = json.loads((RL / "manifest.json").read_text())
     ids = sorted(p.stem for p in (RL / "derived").glob("*.json"))
-    ok = {"A": 0, "B": 0, "team": 0}
-    fails, rows, unmapped = [], [], 0
+    per = {g: {"n": 0, "a": 0, "b1": 0, "team": 0, "B": 0, "rows": [], "a_fail": [], "b1_fail": [], "strict_fail": []} for g, _ in GROUPS}
     for rid in ids:
+        g = per[manifest[rid]]
         L = load(rid)
+        g["n"] += 1
+        da = check_header_stats(L["expected"], raw_header(rid), L["header"])
+        g["a"] += not da
+        if da: g["a_fail"].append((rid, da))
+        hdr_goals = {h["name"]: h["goals"] or 0 for h in L["header"]}
+        db1 = [f"{n}: counter={L['derived']['counter_goals'].get(n, 0)} header={v}" for n, v in hdr_goals.items() if L["derived"]["counter_goals"].get(n, 0) != v]
+        g["b1"] += not db1
+        if db1: g["b1_fail"].append((rid, db1))
         r = check_goals(L["expected"], L["derived"], L["header"])
-        for k in ok:
-            ok[k] += not r[k]
-        if any(r.values()):
-            fails.append((rid, r))
+        g["team"] += not r["team"]; g["B"] += not r["B"]
+        if r["team"] or r["B"]: g["strict_fail"].append((rid, r))
         rr, um = check_c(L["detail"], L["derived"], L["header"])
-        rows += [dict(x, id=rid) for x in rr]
-        unmapped += um
-    n = len(ids)
-    print(f"==== STRICT (b): goals from ball position, replays={n} ====")
-    print(f"team goals (count of goal events vs ballchasing):             {ok['team']}/{n} exact")
-    print(f"per player, credit = last toucher overall (own goals excluded): {ok['A']}/{n} exact")
-    print(f"per player, credit = last toucher on the scoring team:          {ok['B']}/{n} exact")
-    for rid, r in fails[:60]:
-        print(f"-- {rid}")
-        for k in ("team", "A", "B"):
-            for x in r[k]:
-                print(f"   [{k}] {x}")
-    print(f"\n==== (c): boost and thirds vs ballchasing advanced stats (players matched: {len({(r['id'], r['player']) for r in rows})}, unmapped: {unmapped}) ====")
-    S = summarize(rows)
-    print(f"{'metric':<28}{'n':>4}{'median|%|':>10}{'mean %':>8}{'p90|%|':>8}{'max|%|':>8}{'med|diff|':>10}{'<=1%':>6}{'<=5%':>6}{'<=10%':>7}")
-    for m, v in S.items():
-        print(f"{m:<28}{v['n']:>4}{v['median_abs_pct']:>10.2f}{v['mean_signed_pct']:>8.2f}{v['p90_abs_pct']:>8.2f}{v['max_abs_pct']:>8.1f}{v['median_abs_diff']:>10.2f}{v['within_1pct']:>6}{v['within_5pct']:>6}{v['within_10pct']:>7}")
-    (RL / "strict_c_results.json").write_text(json.dumps({"replays": n, "strict_pass": ok, "strict_failures": [{"id": i, **r} for i, r in fails],
-                                                         "c_summary": S, "unmapped_players": unmapped}, indent=1))
+        g["rows"] += [dict(x, id=rid) for x in rr]
+    print("==== (a) HEADER scoreboard (goals, saves, shots, assists, score) vs ballchasing: exact match ====")
+    for k, label in GROUPS:
+        g = per[k]; print(f"  {label:<26}{g['a']}/{g['n']}")
+    print("\n==== (b1) frame counter goals (game's MatchGoals counter in the frames) vs header scoreboard ====")
+    for k, label in GROUPS:
+        g = per[k]; print(f"  {label:<26}{g['b1']}/{g['n']}")
+    print("\n==== strict (b) goals from ball position (informational, not a product requirement) ====")
+    for k, label in GROUPS:
+        g = per[k]; print(f"  {label:<26}team goals {g['team']}/{g['n']}   scorer credit {g['B']}/{g['n']}")
+    print(f"\n==== (c) frame derived stats vs ballchasing, median absolute % difference (bar: <= {BAR_PCT}%) ====")
+    sets = [("2v2", per["ranked-doubles"]["rows"]), ("3v3", per["ranked-standard"]["rows"]),
+            ("2v2+3v3", per["ranked-doubles"]["rows"] + per["ranked-standard"]["rows"]), ("private", per["private"]["rows"])]
+    summ = {name: summarize(rows) for name, rows in sets}
+    print(f"{'metric':<26}" + "".join(f"{name:>12}" for name, _ in sets) + f"{'bar (2v2+3v3)':>16}{'<=2% share':>12}")
+    verdict = {}
+    for m in sorted({r['metric'] for _, rows in sets for r in rows}):
+        line = f"{m:<26}"
+        for name, _ in sets:
+            v = summ[name].get(m); line += f"{v['median_abs_pct']:>11.2f}%" if v else f"{'-':>12}"
+        v = summ["2v2+3v3"][m]; ok = v["median_abs_pct"] <= BAR_PCT
+        share = sum(1 for r in sets[2][1] if r["metric"] == m and r["pct"] is not None and abs(r["pct"]) <= BAR_PCT)
+        if m in BAR_METRICS: verdict[m] = ok
+        print(line + f"{('PASS' if ok else 'FAIL') if m in BAR_METRICS else 'info':>16}{share:>8}/{v['n']}")
+    nf = sum(per[k]["n"] for k in ("ranked-doubles", "ranked-standard"))
+    hdr_ok = all(per[k]["a"] == per[k]["n"] for k in ("ranked-doubles", "ranked-standard"))
+    print(f"\n==== PASS BAR (CLAUDE.md): files in 2v2+3v3 = {nf} (need 100+) ====")
+    print(f"  header scoreboard exact on every 2v2 and 3v3 file: {'PASS' if hdr_ok else 'FAIL'}")
+    for m in BAR_METRICS: print(f"  {m:<26}{'PASS' if verdict.get(m) else 'FAIL'}")
+    for k, label in GROUPS:
+        for rid, d in per[k]["a_fail"]: print(f"  header diff {rid[:8]}: {d[:3]}")
+    (RL / "strict_c_results.json").write_text(json.dumps({"groups": {k: {kk: vv for kk, vv in per[k].items() if kk != "rows"} for k, _ in GROUPS},
+        "c_summary": summ, "bar_verdict": verdict, "files_2v2_3v3": nf, "header_exact_all": hdr_ok}, indent=1, default=str))
 
 
-if __name__ == "__main__":
-    main()
 
 
 # ---------------- (a) header vs ballchasing, all five stats (same logic as rl_compare, callable for controls) ----------------
@@ -199,3 +231,7 @@ def check_header_stats(expected, raw_header, header_players):
             if (h.get(hk) or 0) != (e[k] or 0):
                 diffs.append(f"{e['name']} {k}: header={h.get(hk)} expected={e[k]}")
     return diffs
+
+
+if __name__ == "__main__":
+    main()
