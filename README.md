@@ -94,3 +94,12 @@ A preview deployment has one hostname, so both sites live on it. Links between t
 ## Deploy
 
 One Vercel project. Add both `victressesports.com` and `victress.gg` as domains on it, set the env vars above, and deploy. More detail (including Supabase OAuth redirect URLs for both domains) lands with M4.
+
+## Staging API checks (Riot, ballchasing, Rocket League validation)
+
+Server only, off by default, Preview and local only. See `scripts/api-key-check.mjs` and `.env.example`.
+
+- Local replay parser: **rrrocket v0.11.8** (tag `v0.11.8`, commit `c2152bd`), installed with
+  `cargo install --git https://github.com/nickbabcock/rrrocket --tag v0.11.8 --locked`.
+  Set `RRROCKET_BIN` if it is not on `PATH`. Pin to a tag, not HEAD.
+- Node needs `NODE_USE_ENV_PROXY=1` behind an HTTPS proxy.
