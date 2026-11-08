@@ -8,12 +8,12 @@ import type { BcReplay } from "./ballchasing";
 export const STATS = ["goals", "assists", "saves", "shots", "score"] as const;
 export type Stat = (typeof STATS)[number];
 
-export type LocalPlayer = { name: string; team: number; platformId?: string; stats: Record<Stat, number> };
+export type LocalPlayer = { name: string; team: number; platformId?: string; ids: string[]; stats: Record<Stat, number> };
 export type Row = { player: string; stat: Stat | "presence"; ours: number | string | null; ballchasing: number | string | null; match: boolean };
 
 export const rocketLeagueCheckEnabled = () => process.env.RL_VALIDATION_ENABLED === "true";
 
-type RrrocketPlayerStat = { Name?: string; Team?: number; Score?: number; Goals?: number; Assists?: number; Saves?: number; Shots?: number; bBot?: boolean; OnlineID?: string | number };
+type RrrocketPlayerStat = { Platform?: { value?: string }; PlayerID?: { fields?: { Uid?: string; EpicAccountId?: string } }; Name?: string; Team?: number; Score?: number; Goals?: number; Assists?: number; Saves?: number; Shots?: number; bBot?: boolean; OnlineID?: string | number };
 
 // Parses the replay header with the rrrocket CLI (source: stats recorded as demo_parsed).
 export function parseWithRrrocket(replayPath: string, bin = process.env.RRROCKET_BIN || "rrrocket"): LocalPlayer[] {
@@ -26,13 +26,33 @@ export function parseWithRrrocket(replayPath: string, bin = process.env.RRROCKET
       name: String(p.Name),
       team: Number(p.Team ?? -1),
       platformId: p.OnlineID != null ? String(p.OnlineID) : undefined,
+      // Every account id the replay carries (Steam id, Epic id, OnlineID). Empty and "0" are not real ids.
+      ids: [
+        p.OnlineID,
+        p.PlayerID?.fields?.Uid,
+        p.PlayerID?.fields?.EpicAccountId,
+        /Dingo|XboxOne|Switch|NNX/i.test(p.Platform?.value ?? "") && p.OnlineID != null ? leHex(String(p.OnlineID)) : null,
+        /PS4|PsyNet/i.test(p.Platform?.value ?? "") ? p.Name : null,
+      ]
+        .filter((x) => x != null && String(x) !== "" && String(x) !== "0")
+        .map((x) => String(x).toLowerCase()),
       stats: { goals: p.Goals ?? 0, assists: p.Assists ?? 0, saves: p.Saves ?? 0, shots: p.Shots ?? 0, score: p.Score ?? 0 },
     }));
 }
 
+// ballchasing writes Xbox/Switch ids as the 64-bit id in little-endian hex, and uses the name as the PS4 id.
+const leHex = (dec: string) => {
+  try {
+    return BigInt(dec).toString(16).padStart(16, "0").match(/../g)!.reverse().join("");
+  } catch {
+    return "";
+  }
+};
+
 const norm = (s: string) => s.trim().toLowerCase();
 
-export function compare(ours: LocalPlayer[], bc: BcReplay): Row[] {
+// by "name" (default) pairs players by team and name; by "onlineId" pairs them by account id on the same team.
+export function compare(ours: LocalPlayer[], bc: BcReplay, by: "name" | "onlineId" = "name"): Row[] {
   const rows: Row[] = [];
   const theirs = [
     ...bc.blue.players.map((p) => ({ p, team: 0 })),
@@ -40,7 +60,7 @@ export function compare(ours: LocalPlayer[], bc: BcReplay): Row[] {
   ];
   const used = new Set<number>();
   for (const o of ours) {
-    const idx = theirs.findIndex((t, i) => !used.has(i) && t.team === o.team && norm(t.p.name) === norm(o.name));
+    const idx = theirs.findIndex((t, i) => !used.has(i) && t.team === o.team && (by === "name" ? norm(t.p.name) === norm(o.name) : o.ids.includes(String(t.p.id?.id ?? "").toLowerCase())));
     if (idx < 0) {
       rows.push({ player: o.name, stat: "presence", ours: "found", ballchasing: "missing", match: false });
       continue;
