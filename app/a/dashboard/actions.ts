@@ -5,6 +5,7 @@ import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { checkHandle } from "@/lib/handles";
 import { GAME_IDS, getGame } from "@/content/games";
+import { recordProfileCompletedIfDone } from "@/lib/funnel";
 import { savePlayerGame } from "@/lib/player-games";
 
 export type Result = { ok: boolean; message?: string };
@@ -40,14 +41,17 @@ export async function setAvatarAction(url: string | null): Promise<Result> {
 }
 
 export async function changeHandleAction(raw: string): Promise<Result & { status?: string }> {
-  const { sb } = await requireUser();
+  const { sb, user } = await requireUser();
   const { verdict, handle } = checkHandle(String(raw ?? ""));
   if (verdict === "invalid") return { ok: false, status: "invalid", message: "Use 3 to 20 letters, numbers or underscores." };
   if (verdict === "reserved") return { ok: false, status: "reserved", message: "That name isn't available." };
 
   const { data, error } = await sb.rpc("claim_handle", { p_handle: handle });
   if (error || !data) return fail();
-  if (data === "ok") return { ok: true, status: "ok", message: `Your name is now ${handle}.` };
+  if (data === "ok") {
+    await recordProfileCompletedIfDone(sb, user.id);
+    return { ok: true, status: "ok", message: `Your name is now ${handle}.` };
+  }
   if (data === "taken") return { ok: false, status: "taken", message: "That name is taken. Try another." };
   if (data === "cooldown") {
     const { data: at } = await sb.rpc("handle_change_available_at");
@@ -72,7 +76,9 @@ export async function saveGameAction(input: z.input<typeof gameSchema>): Promise
   const cfg = getGame(p.data.game)!;
   const role = p.data.role && cfg.roles.includes(p.data.role) ? p.data.role : null;
   const rank = p.data.rank && cfg.ranks.includes(p.data.rank) ? p.data.rank : null;
-  return (await savePlayerGame(sb, user.id, cfg, role, rank)) ? { ok: true } : fail();
+  if (!(await savePlayerGame(sb, user.id, cfg, role, rank))) return fail();
+  await recordProfileCompletedIfDone(sb, user.id);
+  return { ok: true };
 }
 
 export async function removeGameAction(game: string): Promise<Result> {

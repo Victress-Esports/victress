@@ -12,6 +12,7 @@
     "seo:audit": "node scripts/seo-audit.mjs",
     "test:env": "node scripts/env-test.mjs",
     "test:riot": "node scripts/riot-test.mjs && node scripts/riot-import-test.mjs",
+    "test:funnel": "node scripts/funnel-unit-test.mjs",
     "riot:check": "node scripts/riot-check.mjs"
   },
   "dependencies": {

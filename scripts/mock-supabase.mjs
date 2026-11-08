@@ -71,6 +71,7 @@ const rows = (res, req, list) => {
   json(res, list);
 };
 
+const funnelRows = [];
 http
   .createServer((req, res) => {
     const url = new URL(req.url, "http://x");
@@ -113,6 +114,15 @@ http
       }
       const key = req.headers.apikey || "";
       const service = key === SERVICE_KEY;
+      // Funnel events: the server records them with the service role. GET /dev/funnel lets tests read what was recorded.
+      if (p === "/dev/funnel") return json(res, funnelRows);
+      if (service && p === "/rest/v1/funnel_events" && req.method === "POST") {
+        const row = args;
+        if (funnelRows.some((x) => x.profile_id && x.profile_id === row.profile_id && x.name === row.name && ["registration_completed", "profile_completed", "first_import_started", "first_analysis_viewed"].includes(row.name)))
+          return json(res, { code: "23505", message: "duplicate key" }, 409);
+        funnelRows.push(row);
+        res.writeHead(201); return res.end();
+      }
       // Closed anonymous reads: tables and the privacy functions are not available to the anon key.
       const denied = () => json(res, { code: "42501", message: "permission denied", details: null, hint: null }, 401);
       if (p.startsWith("/rest/v1/") && !p.startsWith("/rest/v1/rpc/team_invite_info") && !service) return denied();

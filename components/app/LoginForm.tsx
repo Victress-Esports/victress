@@ -14,6 +14,11 @@ function remember(claim: string, next: string) {
   if (next) document.cookie = `v_next=${encodeURIComponent(next)}${attrs}`;
 }
 
+/** Counts that someone started signing in. Sends only the method: no identity, no cookie, nothing else. */
+function started(method: "email" | "discord" | "google") {
+  try { void fetch("/api/events", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "registration_started", method }), keepalive: true }); } catch { /* ignore */ }
+}
+
 export function LoginForm({ claim, next }: { claim: string; next: string }) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>("idle");
@@ -24,6 +29,7 @@ export function LoginForm({ claim, next }: { claim: string; next: string }) {
   async function oauth(provider: "discord" | "google") {
     setOauthError(false);
     remember(claim, next);
+    started(provider);
     const { error } = await supabaseBrowser().auth.signInWithOAuth({
       provider,
       options: { redirectTo: redirectTo() },
@@ -35,6 +41,7 @@ export function LoginForm({ claim, next }: { claim: string; next: string }) {
     e.preventDefault();
     setStatus("sending");
     remember(claim, next);
+    started("email");
     const { error } = await supabaseBrowser().auth.signInWithOtp({
       email,
       options: { emailRedirectTo: redirectTo(), data: claim ? { claim } : undefined },
