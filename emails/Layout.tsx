@@ -13,7 +13,7 @@ export function Layout({ preview, children }: { preview: string; children: React
           </Text>
           <Section>{children}</Section>
           <Text style={{ color: "#a7acb4", fontSize: 12, margin: "32px 0 0" }}>
-            Turn practice into progress. · Victress LLC
+            Victress LLC
           </Text>
         </Container>
       </Body>

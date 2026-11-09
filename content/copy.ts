@@ -6,8 +6,6 @@ export const CONTACT_EMAIL = "hello@victressesports.com";
 export const copy = {
   brand: {
     name: "Victress",
-    // The one tagline. Do not stack other slogans under it.
-    tagline: "Turn practice into progress.",
   },
 
   nav: {
@@ -45,16 +43,66 @@ export const copy = {
   },
 
   home: {
-    // Above the fold: the headline (the tagline, used once), one sentence, ONE button, one small line, one labeled sample.
+    // Above the fold: the headline (founder's choice), one sentence, ONE button, one small line, one labeled sample.
     hero: {
-      title: "Turn practice into progress.",
-      sentence:
-        "Victress is where competitive esports players build a Player Resume and teams manage their rosters.",
+      title: "Esports player development and recruitment.",
+      sentence: "Track performance. Build your player profile. Connect with opportunities.",
       primary: "Become a Design Partner",
       note: "Free 4 to 6 week pilot for one competitive team.",
     },
-    // 1. The three products, one line each. A product that is not built carries one plain "Coming soon" label.
-    productsTitle: "Three products.",
+    // 1. Visitor intent (the job to be done): pick a role, see that role's next step. Unbuilt items carry one plain "Coming soon" label.
+    intent: {
+      title: "What brings you to Victress?",
+      options: [
+        {
+          id: "player" as const,
+          kicker: "Player",
+          title: "I'm a player",
+          line: "Build my competitive profile.",
+          link: "Explore player tools",
+        },
+        {
+          id: "team" as const,
+          kicker: "Coach or team",
+          title: "I'm a coach or team",
+          line: "Manage a roster and support player development.",
+          link: "Explore team tools",
+        },
+        {
+          id: "recruiter" as const,
+          kicker: "Recruiter",
+          title: "I'm a recruiter",
+          line: "Discover and evaluate competitive players.",
+          link: "Explore recruiting",
+        },
+      ],
+      player: {
+        title: "Your Player Resume.",
+        line: "Your games, roles, ranks, tournaments and highlights in one resume you control. Free to start.",
+        cta: "Create your Player Resume",
+        steps: ["Create your account", "Add your games, roles and ranks", "Add your tournaments and highlights"],
+      },
+      team: {
+        title: "Bring your roster into one place.",
+        line: "Start a team, invite players with a link, and help shape Scrim Intelligence as a Design Partner.",
+        cta: "Start your team",
+        secondary: "Become a Design Partner",
+        items: [
+          { label: "Team page and roster", soon: false },
+          { label: "A Player Resume for every teammate", soon: false },
+          { label: "Scrim Intelligence", soon: true },
+        ],
+      },
+      recruiter: {
+        title: "Scout Desk.",
+        soon: true,
+        line: "Structured discovery and evaluation for teams, coaches and collegiate programs. Tell us what your recruiting process needs.",
+        cta: "Get in touch",
+        items: ["Player search and filters", "Profile and performance review", "Recruiting workflows for programs"],
+      },
+    },
+    // 2. The three products, one line each. A product that is not built carries one plain "Coming soon" label.
+    productsTitle: "Three products. One connected platform.",
     // `soon` puts one plain "Coming soon" label next to the product; nothing else about status.
     pillars: [
       {
@@ -78,15 +126,14 @@ export const copy = {
     ],
     soonLabel: "Coming soon",
     learnMore: "Learn more",
-    // 2. How it works, three short steps (each one is something a player can do on Victress).
-    howTitle: "How it works.",
-    steps: [
-      { title: "Create your account", line: "Add your games, roles and ranks." },
-      { title: "Build your Player Resume", line: "Add your tournaments and highlights." },
-      { title: "Start a team", line: "Invite players with a link." },
+    // 3. Women in Esports band (uses womenInEsports below). 4. A short About story. 5. One closing button.
+    aboutTitle: "Players put in the work. Now it counts.",
+    aboutLines: [
+      "Every scrim, match and tournament says something about a player. Today most of it ends up scattered across stat sites, screenshots and memory.",
+      "Victress gives that work a home, so players can show what they have done and teams can find the people they need.",
     ],
-    // 3. The design partner pilot (terms are in designPartner below). 4. One closing button.
-    pilotTitle: "The design partner pilot.",
+    aboutFounder: "Founded by Matthew Hill in Salt Lake City, Utah.",
+    aboutMore: "Why Victress exists",
     closing: { cta: "Become a Design Partner" },
     final: { title: "Get started.", cta: "Get started", login: "Log in" },
     sharedValueLink: "About Women in Esports",

@@ -47,7 +47,7 @@ Keep routing, authentication, canonicals and responsibilities separate. Do not a
 - Never commit secrets. The service role key stays server side.
 
 ## 6. Brand
-- Tagline: "Turn practice into progress." One tagline only. Do not stack other slogans.
+- No tagline. "Turn practice into progress." is retired (founder decision, 2026-11-08): do not use it anywhere. Do not add slogans.
 - Preserve the original Victress wings emblem. Never redraw it or replace it with a generic V.
 - Palette: Crimson #CF142B, Signal Red #F34144, Coral #FF635F, Warm Coral #FF847B, Blush #FFA498, Carbon #171717, White #FFFFFF, Cool Gray #5B6068.
 - Premium, restrained, product led. Concise copy, real application previews. No generic gaming visuals, excessive animation, glow or gradients.
