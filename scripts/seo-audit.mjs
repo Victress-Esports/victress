@@ -239,14 +239,14 @@ const pages = [
     path: "/",
     index: true,
     types: ["Organization", "WebSite", "WebApplication"],
-    // Above the fold: the headline, one sentence, ONE button with one small line, one labeled sample. Below it: what brings you
-    // here (role picker), the three products, Women in Esports, About, one closing button.
+    // Apple One style: the name, one short line, one sentence, ONE button with one small line. Below it: what brings you here
+    // (role picker), the three products, simple pricing, Women in Esports, questions and answers.
     contains: [
-      "Esports player development and recruitment.",
+      "Your competitive career. All in one place.",
       "Track performance. Build your player profile. Connect with opportunities.",
-      "Become a Design Partner", "Free 4 to 6 week pilot for one competitive team.", "Sample", "Sign up", "Log in",
+      "Join the Design Partner Pilot", "Claim your Player Resume", "Free 4 to 6 week pilot for teams and programs.", "Sign up", "Log in",
       "What brings you to Victress?", "Three products. One connected platform.", "Scrim Intelligence", "Player Resume", "Scout Desk", "Coming soon",
-      "Women in Esports", "Players put in the work. Now it counts.",
+      "Simple pricing. Start free.", "Women in Esports", "Questions? Answers.",
       "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment.",
     ],
     // Approved homepage values. The wings are the logo (nav and footer) and a faint cropped backdrop; the full-size art file itself must not be a hero visual.
@@ -392,7 +392,7 @@ console.log("\n######## HOME FAQ, PRODUCT SCHEMA, llms.txt ########");
   const home = (await get(MARKETING, "/")).body;
   const pricing = (await get(MARKETING, "/pricing")).body;
   const ld = [...home.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => JSON.parse(m[1]));
-  ok(!ld.some((d) => d["@type"] === "FAQPage"), "the home page no longer carries a FAQPage (it has no FAQ section)");
+  ok(!ld.some((d) => d["@type"] === "FAQPage"), "the home page carries no FAQPage (the pricing page owns it)");
   const pricingFaq = [...pricing.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => JSON.parse(m[1])).find((d) => d["@type"] === "FAQPage");
   ok(!!pricingFaq && pricingFaq.mainEntity.length >= 3, "the pricing page keeps its FAQPage");
   const app = ld.flatMap((d) => d["@graph"] ?? []).find((n) => n["@type"] === "WebApplication");
@@ -478,21 +478,20 @@ console.log("\n######## STATUS WORDING, SELF-ENTERED STATS AND THE HOME HERO ###
     for (const re of STATS) ok(!re.test(src), `${f} mentions stats players enter ${re}`);
   }
 
-  // Home: one idea above the fold. ONE button; a labeled sample; no secondary actions. (The retired tagline is checked on every page above.)
+  // Home: one idea above the fold. Two doorways (pilot for teams, app for players), one small line. (The retired tagline is checked on every page above.)
   const home = (await get(MARKETING, "/")).body;
-  ok((home.match(/<h1[\s>]/g) ?? []).length === 1 && /<h1[^>]*>\s*Esports player development and recruitment\.\s*<\/h1>/.test(home), "the home page has one h1: the headline");
+  ok((home.match(/<h1[\s>]/g) ?? []).length === 1 && /<h1[^>]*>\s*Your competitive career\. All in one place\.\s*<\/h1>/.test(home), "the home page has one h1: the headline");
   const hero = home.slice(home.indexOf("<section"), home.indexOf("</section>"));
   const heroLinks = [...hero.matchAll(/<a\b[^>]*href="([^"]*)"/g)].map((m) => m[1]);
-  ok(heroLinks.length === 1 && heroLinks[0] === "/design-partner", `the hero has exactly one link, to /design-partner (found ${JSON.stringify(heroLinks)})`);
-  ok(!/<button\b/.test(hero), "the hero has no buttons besides the one link");
-  ok(/Sample/.test(hero) && /Free 4 to 6 week pilot for one competitive team\./.test(hero), "the hero shows the sample label and the one small line under the button");
+  ok(heroLinks.length === 2 && heroLinks[0] === "/design-partner" && (/^https:\/\/victress\.gg\/login/.test(heroLinks[1]) || /__site\/app/.test(heroLinks[1])), `the hero has exactly two links: the pilot first, then victress.gg (found ${JSON.stringify(heroLinks)})`);
+  ok(!/<button\b/.test(hero), "the hero has no buttons besides the two links");
+  ok(/Free 4 to 6 week pilot for teams and programs\./.test(hero), "the hero shows the one small line under the buttons");
   ok(!/\b(badge|counter)\b/i.test(hero), "the hero has no badges or counters");
   const header = home.slice(home.indexOf("<header"), home.indexOf("</header>"));
   const navCtas = [...header.matchAll(/<a\b[^>]*href="([^"]*)"[^>]*>\s*Sign up\s*<\/a>/g)].map((m) => m[1]);
   ok(navCtas.length >= 1 && navCtas.every((h) => /^https:\/\/victress\.gg/.test(h) || /__site\/app/.test(h)), `the nav has a Sign up button that goes to victress.gg (found ${JSON.stringify(navCtas)})`);
-  ok(!/Become a Design Partner/.test(header) && !/href="\/design-partner"/.test(header), "the nav does not repeat the hero action (Become a Design Partner)");
-  const order = ["Three products.", "How it works.", "The design partner pilot."].map((t) => home.indexOf(t));
-  ok(order.every((i) => i > 0) && order[0] < order[1] && order[1] < order[2] && home.lastIndexOf("Become a Design Partner") > order[2], "below the fold the sections run in order: products, how it works, the pilot, one closing button");
+  const order = ["What brings you to Victress?", "Three products. One connected platform.", "Simple pricing. Start free.", "id=\"women-title\"", "Questions? Answers."].map((t) => home.indexOf(t));
+  ok(order.every((i, n) => i > 0 && (n === 0 || i > order[n - 1])), "below the fold the sections run in order: role picker, products, pricing, Women in Esports, questions");
 }
 
 console.log(`\n${checks} checks run, ${failures} failed${LIVE ? " (live production)" : ""}`);
