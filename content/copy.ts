@@ -57,21 +57,18 @@ export const copy = {
       options: [
         {
           id: "player" as const,
-          kicker: "Player",
           title: "I'm a player",
           line: "Build my competitive profile.",
           link: "Explore player tools",
         },
         {
           id: "team" as const,
-          kicker: "Coach or team",
           title: "I'm a coach or team",
           line: "Manage a roster and support player development.",
           link: "Explore team tools",
         },
         {
           id: "recruiter" as const,
-          kicker: "Recruiter",
           title: "I'm a recruiter",
           line: "Discover and evaluate competitive players.",
           link: "Explore recruiting",
