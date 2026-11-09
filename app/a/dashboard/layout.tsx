@@ -8,7 +8,9 @@ import { marketingUrl } from "@/lib/urls";
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  await requireUser();
+  const { sb } = await requireUser();
+  // The Partner link is for members only. If the Partner tables are not there yet, or the query fails, the link is simply not shown.
+  const { data: partner } = await sb.from("partner_members").select("org_id").maybeSingle();
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
       <header className="flex items-center justify-between">
@@ -20,7 +22,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         </form>
       </header>
       <div className="mt-6">
-        <DashboardNav />
+        <DashboardNav showPartner={!!partner} />
       </div>
       <main id="main" className="mt-8">
         {children}

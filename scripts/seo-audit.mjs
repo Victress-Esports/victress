@@ -259,7 +259,7 @@ const pages = [
   mk(MARKETING, "/pricing", true, ["FAQPage", "BreadcrumbList"]),
   mk(MARKETING, "/teams", true, ["BreadcrumbList"]),
   mk(MARKETING, "/about", true, ["BreadcrumbList"]),
-  { host: MARKETING, path: "/partnerships", index: true, types: ["BreadcrumbList"], contains: ["mailto:hello@victressesports.com", "Collegiate esports programs", "Tournament organizers"] },
+  { host: MARKETING, path: "/partnerships", index: true, types: ["BreadcrumbList"], contains: ["mailto:hello@victressesports.com", "Collegiate esports programs", "Tournament organizers", "Community Partner", "Supporting Partner", "Anchor Partner", "Become a Partner"] },
   { host: MARKETING, path: "/contact", index: true, types: ["BreadcrumbList"], contains: ["mailto:hello@victressesports.com", "Teams and organizations", "Individual players", "Request access", "Apply for Design Partner"] },
   { host: MARKETING, path: "/platform", index: true, types: ["BreadcrumbList"], contains: ["Practice", "Performance Evidence", "Development", "Recognition", "Opportunity", "Scrim Intelligence", "Player Resume", "Scout Desk", "Coming soon"] },
   { host: MARKETING, path: "/women-in-esports", index: true, types: ["BreadcrumbList"], contains: ["Women in Esports", "Victress is called Victress for a purpose.", "Delivered through", "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment."] },
@@ -291,7 +291,7 @@ if (!LIVE) {
 }
 
 const mPaths = ["/", "/platform", "/women-in-esports", "/design-partner", "/pricing", "/teams", "/partnerships", "/about", "/contact", "/privacy", "/terms", "/refunds"];
-const aPrivate = ["/dashboard", "/dashboard/profile", "/dashboard/team", "/onboarding", "/login", "/auth/callback", "/auth/signout", "/join/abc123", "/api/waitlist", "/api/handle-check"];
+const aPrivate = ["/dashboard", "/dashboard/profile", "/dashboard/team", "/partner", "/dashboard/partner", "/onboarding", "/login", "/auth/callback", "/auth/signout", "/join/abc123", "/api/waitlist", "/api/handle-check"];
 await auditSite(MARKETING, APP, mPaths, ["/api/waitlist", "/api/handle-check"]);
 const appUrls = await auditSite(
   APP,
@@ -312,7 +312,7 @@ ok(appUrls.filter((u) => /\/(mock_|dashboard_fan)/.test(u.loc)).length === 5, `e
 ok(!appUrls.some((u) => /\/(p[0-9a-f]{12})$/.test(u.loc)), "placeholder handle listed in sitemap");
 
 console.log("\n######## PRIVATE ROUTES: noindex headers ########");
-for (const [h, p] of [[APP, "/auth/callback"], [APP, "/login"], [APP, "/dashboard"], [APP, "/dashboard/stats"], [APP, "/onboarding"], [APP, "/join/abc123def"], [APP, "/api/handle-check?handle=abc"], [APP, "/api/waitlist"]]) {
+for (const [h, p] of [[APP, "/auth/callback"], [APP, "/login"], [APP, "/dashboard"], [APP, "/dashboard/stats"], [APP, "/partner"], [APP, "/dashboard/partner"], [APP, "/onboarding"], [APP, "/join/abc123def"], [APP, "/api/handle-check?handle=abc"], [APP, "/api/waitlist"]]) {
   const r = await get(h, p);
   const x = r.headers["x-robots-tag"] ?? "";
   console.log(`   ${p.padEnd(34)} status ${r.status}  x-robots-tag: ${x || "(none)"}`);

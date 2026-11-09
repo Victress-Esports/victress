@@ -3,9 +3,11 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { CONTACT_EMAIL, copy } from "@/content/copy";
+import { PARTNER_PLANS } from "@/content/partner";
 import { seo } from "@/content/seo";
 import { marketingCrumbs } from "@/lib/jsonld";
 import { pageMetadata } from "@/lib/seo";
+import { appUrl } from "@/lib/urls";
 
 export const metadata: Metadata = pageMetadata({
   ...seo.marketing.partnerships,
@@ -39,13 +41,39 @@ export default function Partnerships() {
         is open to women&apos;s rosters, Game Changers teams and collegiate
         programs.
       </p>
-      <ButtonLink
-        href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(p.subject)}`}
-        className="mt-8"
-      >
-        {p.cta}
-      </ButtonLink>
-      <p className="mt-3 text-sm text-mute">{CONTACT_EMAIL}</p>
+      <section className="mt-16" aria-labelledby="partner-plans">
+        <h2 id="partner-plans" className="font-display text-3xl font-bold">
+          Partner with Victress.
+        </h2>
+        <p className="mt-3 max-w-2xl text-mute">
+          Partner is an account for organizations: universities, companies, esports organizations, leagues, community groups and nonprofits. Partners take part in
+          addressing the barriers women competitors face in esports, and see what happened. Partners do not get access to player profiles, scrims or contact details.
+        </p>
+        <ul className="mt-8 grid gap-5 md:grid-cols-3">
+          {PARTNER_PLANS.map((pl) => (
+            <Card as="li" key={pl.id}>
+              <h3 className="font-display text-xl font-bold">{pl.name}</h3>
+              <p className="mt-2">
+                <span className="font-display text-3xl font-bold">{pl.price}</span> <span className="text-mute">{pl.priceLine}</span>
+              </p>
+              <ul className="mt-4 flex list-disc flex-col gap-2 pl-5 text-mute">
+                {pl.includes.map((i) => (
+                  <li key={i}>{i}</li>
+                ))}
+              </ul>
+            </Card>
+          ))}
+        </ul>
+        <ButtonLink href={appUrl("/partner")} className="mt-8">
+          Become a Partner
+        </ButtonLink>
+      </section>
+      <p className="mt-6 text-sm text-mute">
+        Questions about partnering?{" "}
+        <a href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(p.subject)}`} className="inline-block py-1 font-semibold text-white underline underline-offset-2">
+          {CONTACT_EMAIL}
+        </a>
+      </p>
     </div>
   );
 }

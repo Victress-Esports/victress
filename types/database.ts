@@ -144,6 +144,59 @@ export type Database = {
         Update: { joined_at?: string; profile_id?: string; role?: string; team_id?: string };
         Relationships: [];
       };
+      partner_organizations: {
+        // stripe_customer_id, stripe_subscription_id and billing_event_at are not readable by the app roles (column grants).
+        Row: {
+          billing_interval: string | null; created_at: string; id: string; name: string; org_type: string; plan: string;
+          subscription_status: string | null; terms_accepted_at: string; terms_version: string; updated_at: string;
+          verified: boolean; verified_at: string | null; website: string | null;
+        };
+        Insert: never;
+        Update: { name?: string; org_type?: string; website?: string | null };
+        Relationships: [];
+      };
+      partner_members: {
+        Row: { created_at: string; org_id: string; profile_id: string; role: string };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      partner_participation: {
+        Row: { created_at: string; description: string; id: string; org_id: string; status: string; title: string; way: string };
+        Insert: { description: string; org_id: string; title: string; way: string };
+        Update: never;
+        Relationships: [];
+      };
+      partner_opportunities: {
+        Row: {
+          created_at: string; id: string; org_id: string; organization_name: string; published_at: string | null; purpose: string;
+          status: string; support_needed: string; title: string; type: string;
+        };
+        Insert: { org_id: string; purpose: string; support_needed: string; title: string; type: string };
+        Update: never;
+        Relationships: [];
+      };
+      partner_support_offers: {
+        Row: { created_at: string; id: string; message: string; opportunity_id: string; org_id: string; status: string; support_type: string };
+        Insert: { message: string; opportunity_id: string; org_id: string; support_type: string };
+        Update: never;
+        Relationships: [];
+      };
+      partner_impact_records: {
+        Row: {
+          category: string; created_at: string; id: string; occurred_on: string; org_id: string; quantity: number | null;
+          summary: string; title: string; unit: string | null;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      partner_findings: {
+        Row: { area: string; created_at: string; id: string; published_at: string | null; source: string; summary: string; title: string };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       teams: {
         Row: { created_at: string; id: string; invite_code: string; name: string; owner_id: string; slug: string };
         Insert: { created_at?: string; id?: string; invite_code?: string; name: string; owner_id: string; slug: string };
@@ -159,6 +212,22 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      create_partner_org: {
+        Args: { p_name: string; p_type: string; p_website: string | null; p_terms_version: string; p_authorized: boolean };
+        Returns: Json;
+      };
+      partner_org_id: { Args: Record<string, never>; Returns: string | null };
+      partner_is_paid: { Args: { p_org: string }; Returns: boolean };
+      partner_is_owner: { Args: { p_org: string }; Returns: boolean };
+      partner_can_offer_on: { Args: { p_opp: string }; Returns: boolean };
+      partner_ecosystem_summary: { Args: Record<string, never>; Returns: Json };
+      partner_apply_billing: {
+        Args: {
+          p_org: string; p_plan: string | null; p_interval: string | null; p_status: string; p_customer: string | null;
+          p_subscription: string | null; p_ended: boolean; p_event_at: string;
+        };
+        Returns: string;
+      };
       claim_handle: { Args: { p_handle: string }; Returns: string };
       create_team: { Args: { p_name: string }; Returns: Json };
       handle_change_available_at: { Args: Record<string, never>; Returns: string | null };
