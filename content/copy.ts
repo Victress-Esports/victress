@@ -6,8 +6,6 @@ export const CONTACT_EMAIL = "hello@victressesports.com";
 export const copy = {
   brand: {
     name: "Victress",
-    // The one tagline. Do not stack other slogans under it.
-    tagline: "Turn practice into progress.",
   },
 
   nav: {
@@ -45,7 +43,7 @@ export const copy = {
   },
 
   home: {
-    // Above the fold: the headline (founder's choice, not the tagline), one sentence, ONE button, one small line, one labeled sample.
+    // Above the fold: the headline (founder's choice), one sentence, ONE button, one small line, one labeled sample.
     hero: {
       title: "Esports player development and recruitment.",
       sentence: "Track performance. Build your player profile. Connect with opportunities.",

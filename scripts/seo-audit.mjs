@@ -111,7 +111,7 @@ async function auditPage({ host, path, index, types = [], og = true, hidden = fa
   if (index) ok(!/noindex/i.test(robotsMeta + xrt), `indexable page is noindex (${robotsMeta} ${xrt})`);
   else ok(/noindex/i.test(robotsMeta + xrt), "private page is NOT noindex");
 
-  for (const old of ["Perform. Compete. Rise", "Turn performance into progress", "Your stats. Your profile. Your competitive edge", "Founding clubs", "founding clubs", "privacy-friendly analytics", "Elevate", "Vistrielle"]) ok(!html.includes(old), `retired tagline found on page: "${old}"`);
+  for (const old of ["Turn practice into progress", "Perform. Compete. Rise", "Turn performance into progress", "Your stats. Your profile. Your competitive edge", "Founding clubs", "founding clubs", "privacy-friendly analytics", "Elevate", "Vistrielle"]) ok(!html.includes(old), `retired tagline found on page: "${old}"`);
   // Brand rule: no hyphens or em dashes in visible marketing copy (game names and the "Self-reported" label are the exceptions).
   if (host === MARKETING) {
     const visible = html.replace(/<(script|style)[\s\S]*?<\/\1>/g, " ").replace(/<[^>]+>/g, " ").replace(/&[a-z#0-9]+;/gi, " ");
@@ -478,10 +478,8 @@ console.log("\n######## STATUS WORDING, SELF-ENTERED STATS AND THE HOME HERO ###
     for (const re of STATS) ok(!re.test(src), `${f} mentions stats players enter ${re}`);
   }
 
-  // Home: one idea above the fold. The headline is the only place the tagline appears; ONE button; a labeled sample; no secondary actions.
+  // Home: one idea above the fold. ONE button; a labeled sample; no secondary actions. (The retired tagline is checked on every page above.)
   const home = (await get(MARKETING, "/")).body;
-  const text = visibleText(home);
-  ok((text.match(/turn practice into progress/gi) ?? []).length === 1, "the tagline must appear exactly once on the home page (the headline)");
   ok((home.match(/<h1[\s>]/g) ?? []).length === 1 && /<h1[^>]*>\s*Esports player development and recruitment\.\s*<\/h1>/.test(home), "the home page has one h1: the headline");
   const hero = home.slice(home.indexOf("<section"), home.indexOf("</section>"));
   const heroLinks = [...hero.matchAll(/<a\b[^>]*href="([^"]*)"/g)].map((m) => m[1]);
