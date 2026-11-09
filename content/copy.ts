@@ -45,11 +45,10 @@ export const copy = {
   },
 
   home: {
-    // Above the fold: the headline (the tagline, used once), one sentence, ONE button, one small line, one labeled sample.
+    // Above the fold: the headline (founder's choice, not the tagline), one sentence, ONE button, one small line, one labeled sample.
     hero: {
-      title: "Turn practice into progress.",
-      sentence:
-        "Victress is where competitive esports players build a Player Resume and teams manage their rosters.",
+      title: "Esports player development and recruitment.",
+      sentence: "Track performance. Build your player profile. Connect with opportunities.",
       primary: "Become a Design Partner",
       note: "Free 4 to 6 week pilot for one competitive team.",
     },

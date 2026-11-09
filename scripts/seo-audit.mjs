@@ -239,14 +239,14 @@ const pages = [
     path: "/",
     index: true,
     types: ["Organization", "WebSite", "WebApplication"],
-    // Above the fold: the tagline once (the headline), one sentence, ONE button with one small line, one labeled sample. Below it: the
-    // three products, how it works, the design partner pilot, one closing button.
+    // Above the fold: the headline, one sentence, ONE button with one small line, one labeled sample. Below it: what brings you
+    // here (role picker), the three products, Women in Esports, About, one closing button.
     contains: [
-      "Turn practice into progress.",
-      "Victress is where competitive esports players build a Player Resume and teams manage their rosters.",
+      "Esports player development and recruitment.",
+      "Track performance. Build your player profile. Connect with opportunities.",
       "Become a Design Partner", "Free 4 to 6 week pilot for one competitive team.", "Sample", "Sign up", "Log in",
-      "Three products.", "Scrim Intelligence", "Player Resume", "Scout Desk", "Coming soon",
-      "How it works.", "The design partner pilot.", "Applying does not guarantee a place.",
+      "What brings you to Victress?", "Three products. One connected platform.", "Scrim Intelligence", "Player Resume", "Scout Desk", "Coming soon",
+      "Women in Esports", "Players put in the work. Now it counts.",
       "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment.",
     ],
     // Approved homepage values. The wings are the logo (nav and footer) and a faint cropped backdrop; the full-size art file itself must not be a hero visual.
@@ -482,7 +482,7 @@ console.log("\n######## STATUS WORDING, SELF-ENTERED STATS AND THE HOME HERO ###
   const home = (await get(MARKETING, "/")).body;
   const text = visibleText(home);
   ok((text.match(/turn practice into progress/gi) ?? []).length === 1, "the tagline must appear exactly once on the home page (the headline)");
-  ok((home.match(/<h1[\s>]/g) ?? []).length === 1 && /<h1[^>]*>\s*Turn practice into progress\.\s*<\/h1>/.test(home), "the home page has one h1: the tagline");
+  ok((home.match(/<h1[\s>]/g) ?? []).length === 1 && /<h1[^>]*>\s*Esports player development and recruitment\.\s*<\/h1>/.test(home), "the home page has one h1: the headline");
   const hero = home.slice(home.indexOf("<section"), home.indexOf("</section>"));
   const heroLinks = [...hero.matchAll(/<a\b[^>]*href="([^"]*)"/g)].map((m) => m[1]);
   ok(heroLinks.length === 1 && heroLinks[0] === "/design-partner", `the hero has exactly one link, to /design-partner (found ${JSON.stringify(heroLinks)})`);
