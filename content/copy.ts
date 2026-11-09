@@ -43,12 +43,12 @@ export const copy = {
   },
 
   home: {
-    // Above the fold: the headline (founder's choice), one sentence, ONE button, one small line, one labeled sample.
+    // Above the fold (Apple style): the name, one short line, one sentence, ONE button, one small line.
     hero: {
-      title: "Esports player development and recruitment.",
+      title: "Your competitive career. All in one place.",
       sentence: "Track performance. Build your player profile. Connect with opportunities.",
-      primary: "Become a Design Partner",
-      note: "Free 4 to 6 week pilot for one competitive team.",
+      primary: "Try Victress free",
+      note: "Rookie is free forever.",
     },
     // 1. Visitor intent (the job to be done): pick a role, see that role's next step. Unbuilt items carry one plain "Coming soon" label.
     intent: {
@@ -126,15 +126,32 @@ export const copy = {
     ],
     soonLabel: "Coming soon",
     learnMore: "Learn more",
-    // 3. Women in Esports band (uses womenInEsports below). 4. A short About story. 5. One closing button.
-    aboutTitle: "Players put in the work. Now it counts.",
-    aboutLines: [
-      "Every scrim, match and tournament says something about a player. Today most of it ends up scattered across stat sites, screenshots and memory.",
-      "Victress gives that work a home, so players can show what they have done and teams can find the people they need.",
+    // 3. Pricing (approved plans from content/pricing.ts). 4. Women in Esports band. 5. Questions.
+    pricingTitle: "Simple pricing. Start free.",
+    pricingMore: "Compare plans",
+    faqTitle: "Questions? Answers.",
+    faq: [
+      {
+        q: "Who is Victress for?",
+        a: "Competitive esports players, coaches, teams, collegiate programs and recruiters.",
+      },
+      {
+        q: "Is Victress free?",
+        a: "Yes. Rookie is free forever. Paid plans are Coming soon.",
+      },
+      {
+        q: "Which games can I add?",
+        a: "VALORANT, CS2, Rocket League, League of Legends, Apex Legends and Overwatch 2.",
+      },
+      {
+        q: "Can my team use Victress?",
+        a: "Yes. You can start a team and invite players with a link on the free plan.",
+      },
+      {
+        q: "When is Scout Desk available?",
+        a: "Scout Desk is Coming soon. Recruiters and programs can get in touch and tell us what their process needs.",
+      },
     ],
-    aboutFounder: "Founded by Matthew Hill in Salt Lake City, Utah.",
-    aboutMore: "Why Victress exists",
-    closing: { cta: "Become a Design Partner" },
     final: { title: "Get started.", cta: "Get started", login: "Log in" },
     sharedValueLink: "About Women in Esports",
   },
