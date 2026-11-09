@@ -39,7 +39,6 @@ export function IntentPicker({ playerHref, teamHref }: { playerHref: string; tea
                   selected ? "border-crimson bg-surface-2" : "border-line bg-surface hover:border-cool-gray"
                 }`}
               >
-                <span className="text-xs font-semibold uppercase tracking-widest text-coral">{o.kicker}</span>
                 <span className="font-display text-2xl font-bold">{o.title}</span>
                 <span className="text-mute">{o.line}</span>
                 <span className="mt-auto text-sm font-semibold">

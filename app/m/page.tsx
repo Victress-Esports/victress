@@ -37,8 +37,7 @@ export default function Home() {
       <section aria-labelledby="hero-title">
         <div className="mx-auto flex max-w-4xl flex-col items-center px-4 pb-20 pt-16 text-center sm:px-6 sm:pb-28 sm:pt-24">
           <Image src="/brand/wings-emblem-256.webp" alt="" width={96} height={96} priority className="h-20 w-auto sm:h-24" />
-          <p className="mt-6 text-sm font-semibold uppercase tracking-[0.3em] text-mute">{copy.brand.name}</p>
-          <h1 id="hero-title" className="mt-4 font-display text-5xl font-bold leading-[1.05] sm:text-7xl">
+          <h1 id="hero-title" className="mt-8 font-display text-5xl font-bold leading-[1.05] sm:text-7xl">
             {h.hero.title}
           </h1>
           <p className="mt-6 max-w-2xl text-lg text-mute sm:text-xl">{h.hero.sentence}</p>
