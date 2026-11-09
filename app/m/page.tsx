@@ -42,9 +42,12 @@ export default function Home() {
             {h.hero.title}
           </h1>
           <p className="mt-6 max-w-2xl text-lg text-mute sm:text-xl">{h.hero.sentence}</p>
-          <ButtonLink href={appUrl("/login")} className="mt-10">
-            {h.hero.primary}
-          </ButtonLink>
+          <div className="mt-10 flex flex-wrap justify-center gap-3">
+            <ButtonLink href="/design-partner">{h.hero.primary}</ButtonLink>
+            <ButtonLink href={appUrl("/login")} variant="secondary">
+              {h.hero.secondary}
+            </ButtonLink>
+          </div>
           <p className="mt-3 text-sm text-mute">{h.hero.note}</p>
         </div>
       </section>
@@ -64,10 +67,18 @@ export default function Home() {
                   {p.soon ? <span className={soonTag}>{h.soonLabel}</span> : null}
                 </div>
                 <p className="mt-3 text-lg text-mute">{p.line}</p>
-                <Link href={`/platform#${p.id}`} className="mt-auto inline-flex min-h-11 items-center pt-6 text-sm font-semibold underline underline-offset-4 hover:text-coral">
-                  {h.learnMore}
-                  <span className="sr-only">: {p.title}</span>
-                </Link>
+                <div className="mt-auto flex flex-wrap items-center gap-x-5 pt-6">
+                  <Link
+                    href={p.href.startsWith("app:") ? appUrl(p.href.slice(4)) : p.href}
+                    className="inline-flex min-h-11 items-center text-sm font-semibold text-coral hover:text-white"
+                  >
+                    {p.cta} <span aria-hidden>&nbsp;→</span>
+                  </Link>
+                  <Link href={`/platform#${p.id}`} className="inline-flex min-h-11 items-center text-sm text-mute underline underline-offset-4 hover:text-white">
+                    {h.learnMore}
+                    <span className="sr-only">: {p.title}</span>
+                  </Link>
+                </div>
               </li>
             ))}
           </ul>

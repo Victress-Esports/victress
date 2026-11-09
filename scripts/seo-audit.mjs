@@ -244,7 +244,7 @@ const pages = [
     contains: [
       "Your competitive career. All in one place.",
       "Track performance. Build your player profile. Connect with opportunities.",
-      "Try Victress free", "Rookie is free forever.", "Sign up", "Log in",
+      "Join the Design Partner Pilot", "Claim your Player Resume", "Free 4 to 6 week pilot for teams and programs.", "Sign up", "Log in",
       "What brings you to Victress?", "Three products. One connected platform.", "Scrim Intelligence", "Player Resume", "Scout Desk", "Coming soon",
       "Simple pricing. Start free.", "Women in Esports", "Questions? Answers.",
       "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment.",
@@ -478,14 +478,14 @@ console.log("\n######## STATUS WORDING, SELF-ENTERED STATS AND THE HOME HERO ###
     for (const re of STATS) ok(!re.test(src), `${f} mentions stats players enter ${re}`);
   }
 
-  // Home: one idea above the fold. ONE button to the product site, one small line, no secondary actions. (The retired tagline is checked on every page above.)
+  // Home: one idea above the fold. Two doorways (pilot for teams, app for players), one small line. (The retired tagline is checked on every page above.)
   const home = (await get(MARKETING, "/")).body;
   ok((home.match(/<h1[\s>]/g) ?? []).length === 1 && /<h1[^>]*>\s*Your competitive career\. All in one place\.\s*<\/h1>/.test(home), "the home page has one h1: the headline");
   const hero = home.slice(home.indexOf("<section"), home.indexOf("</section>"));
   const heroLinks = [...hero.matchAll(/<a\b[^>]*href="([^"]*)"/g)].map((m) => m[1]);
-  ok(heroLinks.length === 1 && (/^https:\/\/victress\.gg\/login/.test(heroLinks[0]) || /__site\/app/.test(heroLinks[0])), `the hero has exactly one link, to victress.gg (found ${JSON.stringify(heroLinks)})`);
-  ok(!/<button\b/.test(hero), "the hero has no buttons besides the one link");
-  ok(/Rookie is free forever\./.test(hero), "the hero shows the one small line under the button");
+  ok(heroLinks.length === 2 && heroLinks[0] === "/design-partner" && (/^https:\/\/victress\.gg\/login/.test(heroLinks[1]) || /__site\/app/.test(heroLinks[1])), `the hero has exactly two links: the pilot first, then victress.gg (found ${JSON.stringify(heroLinks)})`);
+  ok(!/<button\b/.test(hero), "the hero has no buttons besides the two links");
+  ok(/Free 4 to 6 week pilot for teams and programs\./.test(hero), "the hero shows the one small line under the buttons");
   ok(!/\b(badge|counter)\b/i.test(hero), "the hero has no badges or counters");
   const header = home.slice(home.indexOf("<header"), home.indexOf("</header>"));
   const navCtas = [...header.matchAll(/<a\b[^>]*href="([^"]*)"[^>]*>\s*Sign up\s*<\/a>/g)].map((m) => m[1]);

@@ -43,12 +43,13 @@ export const copy = {
   },
 
   home: {
-    // Above the fold (Apple style): the name, one short line, one sentence, ONE button, one small line.
+    // Above the fold: the name, one short line, one sentence, two doorways (teams to the pilot, players to the app), one small line.
     hero: {
       title: "Your competitive career. All in one place.",
       sentence: "Track performance. Build your player profile. Connect with opportunities.",
-      primary: "Try Victress free",
-      note: "Rookie is free forever.",
+      primary: "Join the Design Partner Pilot",
+      secondary: "Claim your Player Resume",
+      note: "Free 4 to 6 week pilot for teams and programs. Free forever for players.",
     },
     // 1. Visitor intent (the job to be done): pick a role, see that role's next step. Unbuilt items carry one plain "Coming soon" label.
     intent: {
@@ -109,19 +110,25 @@ export const copy = {
         id: "scrim",
         title: "Scrim Intelligence",
         soon: true,
-        line: "Turn private practice into performance information.",
+        line: "Turn your team's practice into insights for player development.",
+        cta: "Explore team features",
+        href: "/design-partner",
       },
       {
         id: "resume",
         title: "Player Resume",
         soon: false,
-        line: "Your games, roles, ranks, tournaments and highlights in one resume you control.",
+        line: "Stop scattering your achievements across screenshots and spreadsheets. Build one competitive profile you control.",
+        cta: "Build your resume",
+        href: "app:/login",
       },
       {
         id: "scout",
         title: "Scout Desk",
         soon: true,
-        line: "Structured discovery and evaluation for teams, coaches and collegiate programs.",
+        line: "Give coaches, collegiate programs and recruiters a structured way to find emerging talent.",
+        cta: "Request recruiter access",
+        href: "/contact",
       },
     ],
     soonLabel: "Coming soon",
