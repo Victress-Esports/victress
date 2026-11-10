@@ -3,21 +3,22 @@
 Updated 2026-11-10. Authoritative references: `CLAUDE.md`, `docs/strategy/victress-business-purpose.md`, the living roadmap artifact, `docs/status.md` (feature table).
 
 ## Current milestone and task
-Milestone 1, Foundation. PR #44 (manual entry removal) is ready for its staging Preview. In progress: age gate and Terms and Privacy acceptance (branch `claude/foundation-consent`).
+Milestone 1, Foundation. Age gate and Terms/Privacy acceptance are built and tested (consent PR open, not merged). Next: account deletion and data export, then consent before game account linking.
 
-## Completed
-- Partnerships marketing page: PR #43, merged and verified live 2026-11-10. PR #42 stays unmerged.
+## Completed and merged (2026-11-10)
+- PR #43 Partnerships page (first version). Superseded by:
+- PR #45 Partnerships redesign per the updated specification. Live, verified.
+- PR #46 Contact: Partnership conversation option (design partner and player forms unchanged). Live, verified.
+- PR #44 Manual scrim log, tournament history and rank entry removed. Live; signed out pages and redirects verified. Signed in pages verified on the mock only (see blockers).
 - Self-reported stats and leaderboards retired earlier (2026-11-07).
-- Manual scrim log, tournament history and rank entry removed: PR #44 (no migration; old values no longer shown).
-- Partnerships redesign per the approved updated specification: PR #45, page only, built and tested, awaiting approval to merge.
 
 ## In progress
-- `claude/foundation-consent`: migration `20261110000100_age_gate_legal_acceptance.sql` (age_confirmations, legal_acceptances; owner only, insert only, under 13 refused by the database) with 23 local Postgres checks passing; full local SQL suite 193 PASS, 0 FAIL. Next: consent page, gate in `requireUser`, version constants, reacceptance, mock test updates. The gate must tolerate the tables being absent until the production migration is approved.
+- Consent PR (`claude/foundation-consent`): `/consent` page, gate in `requireUser` and the sign in callback, versions in `content/legal-versions.ts`, reacceptance when a version changes, under 13 refused (account and files deleted, date not kept). Migration `20261110000100_age_gate_legal_acceptance.sql`: **applied to staging only** (`cmvifuayvqhbfkeskoqi`), not production. The app tolerates the tables being absent, so deploying the code before the production migration does not lock anyone out, but the gate does not take effect until the migration is applied.
 
 ## Foundation requirements still outstanding
 - New responsive design (mobile, tablet, desktop)
-- Age gate (database done, app in progress)
-- Terms and Privacy acceptance (version, timestamp) and reacceptance on change (database done, app in progress)
+- Age gate: done, awaiting merge and production migration approval
+- Terms and Privacy acceptance with version and timestamp, reacceptance on change: done, same
 - Account deletion and data export
 - Consent before game account linking
 - Confirm sign-in, onboarding, teams and invite links on staging
@@ -25,14 +26,13 @@ Milestone 1, Foundation. PR #44 (manual entry removal) is ready for its staging 
 - Steam linking and rrrocket ingestion behind a feature flag
 
 ## Tests
-PR #44:
-Typecheck pass. Lint pass. Build pass. `scripts/signed-in-test.mjs` (mock Supabase, uploads off/on/not approved/approved) all pass, including new checks that the resume has no tournament or rank entry and the scrims page has no match log. `npm run seo:audit`: 1650 checks, 0 failed. Staging flows not yet run.
+Consent branch: tsc, lint, build pass. Local Postgres SQL suite 193 PASS, 0 FAIL (23 consent checks). The same 23 consent checks pass on Supabase staging inside a rolled back transaction; nothing left behind. `scripts/consent-test.mjs` 25 browser checks pass (gate on every signed in page, under 13, the day before the 13th birthday refused, 13 today accepted, acceptance version and timestamp, reacceptance with history kept). `scripts/age-test.mjs` 9 pass. `signed-in-test.mjs` 55 pass, `contact-test.mjs` pass, SEO audit 1651/0 failed, `test:env` pass.
+Merged PRs: all automated checks passed before merge; contact form tested through both forms in a browser.
 
 ## Production
-Only the Partnerships page is authorised and live. No migrations run. Billing flag stays false.
-
-PR #45: tsc, lint, build pass; SEO audit 1648 checks, 0 failed; no horizontal overflow at 1440, 820 and 390 px; no prices in served HTML.
+Live now: PR #43 (superseded), #45, #46, #44. No production migrations have been run. Billing flag stays false. Production still needs, separately approved: migration `20261110000100` (and the earlier dashboard migrations already applied).
 
 ## Blockers needing a decision
-- PR #45 CTA: it links to the existing /contact page, which is worded for the Design Partner pilot. Smallest improvement: add a "Partnership conversation" option to the contact form and API (touches the contact page, so not done without approval).
-- Approvals to merge PR #44 and PR #45 (staging first for #44).
+- Staging is behind main: it lacks `privacy_contract`, `dashboard_foundation`, `upload_allowlist`, `scrim_matches`, invite code migrations and has Partner and game import migrations from other branches. I did not change that. Preview checks on staging need it brought level.
+- I cannot open the Vercel Preview URLs from this environment (network policy blocks vercel.app) and have no staging login, so signed in pages on the real staging project are untested. Smallest action: sign in once on a Preview with a staging test account and click Resume, Scrims, Onboarding; or allow `*.vercel.app` hosts and give me a staging test login.
+- Approval to apply the consent migration to production, then merge the consent PR.

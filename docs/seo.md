@@ -107,9 +107,9 @@ Public profiles are **not indexed by default**. Players turn on **Show my profil
 - The sitemap is cached for up to an hour at the edge, so an opted-out profile can linger in the sitemap for that long. That is harmless: the page itself is `noindex`.
 - Tested in `supabase/tests/seo.sql` (database) and by driving the real toggle in a browser (default off, on, off, and what a visitor and the sitemap see after each flip).
 
-## Minimum age
+## Minimum age and acceptance
 
-The sign-in screen (which is also the signup screen) says "You must be 13 or older to use Victress" and links to the Terms and Privacy Policy. The terms draft starts with the same requirement. This is a notice only: there is no age gate or verification. Have counsel confirm the wording, and whether a checkbox is wanted, before launch.
+The sign-in screen says "You must be 13 or older to use Victress" and links to the Terms and Privacy Policy. On first sign in the app also shows `/consent`: a date of birth (self declared, private, stored once in `age_confirmations`, never editable by the player) and acceptance of the current Terms and Privacy Policy, recorded in `legal_acceptances` with the version and time. Under 13 is refused: the account and its files are deleted and the date is not kept; the database refuses under 13 as well. The versions live in `content/legal-versions.ts`; raising one makes every player accept again (the old acceptances stay as history). This is a self declared age gate, not age verification, and makes no compliance claim. Counsel still reviews the wording. The migration `20261110000100_age_gate_legal_acceptance.sql` must be applied before the gate takes effect; until then the app keeps working without it.
 
 ## Signed in pages in a real browser (local stand-in)
 

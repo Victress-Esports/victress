@@ -15,13 +15,20 @@ export async function deleteAccount(userId: string): Promise<boolean> {
   try {
     for (const bucket of BUCKETS) {
       const { data: files, error } = await admin.storage.from(bucket).list(userId, { limit: 1000 });
-      if (error) return false;
+      if (error) {
+        console.error(`account deletion: listing ${bucket} failed: ${error.message}`);
+        return false;
+      }
       if (files?.length) {
         const { error: rmError } = await admin.storage.from(bucket).remove(files.map((f) => `${userId}/${f.name}`));
-        if (rmError) return false;
+        if (rmError) {
+          console.error(`account deletion: removing from ${bucket} failed: ${rmError.message}`);
+          return false;
+        }
       }
     }
     const { error } = await admin.auth.admin.deleteUser(userId);
+    if (error) console.error(`account deletion: deleting the user failed: ${error.message}`);
     return !error;
   } catch (e) {
     console.error("account deletion failed", e instanceof Error ? e.message : e);
