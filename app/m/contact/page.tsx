@@ -21,6 +21,13 @@ export default function Contact() {
       <h1 className="font-display text-5xl font-bold sm:text-6xl">{c.title}</h1>
       <p className="mt-5 text-xl text-mute">{c.line}</p>
       <div className="mt-12 grid gap-6 lg:grid-cols-2">
+        <Card as="section" aria-labelledby="partner-title" className="lg:col-span-2">
+          <h2 id="partner-title" className="font-display text-2xl font-bold">
+            {c.partnerTitle}
+          </h2>
+          <p className="mt-2 mb-6 text-mute">{c.partnerLine}</p>
+          <ContactForm kind="partnership" id="partner" submitLabel={c.partnerSubmit} />
+        </Card>
         <Card as="section" aria-labelledby="org-title">
           <h2 id="org-title" className="font-display text-2xl font-bold">
             {c.orgTitle}

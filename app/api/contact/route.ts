@@ -21,6 +21,8 @@ const schema = z.discriminatedUnion("kind", [
     teamType: text(80).min(1),
   }),
   z.object({ kind: z.literal("player"), ...base }),
+  // A partnership conversation: who, which organization, and what they would like to talk about.
+  z.object({ kind: z.literal("partnership"), ...base, organization: text(120).min(1) }),
 ]);
 
 export async function POST(req: Request) {
@@ -52,12 +54,19 @@ export async function POST(req: Request) {
           ["Main game", d.game || "not given"],
           ["Message", d.message || "none"],
         ]
-      : [
-          ["Name", d.name],
-          ["Email", d.email],
-          ["Main game", d.game || "not given"],
-          ["Message", d.message || "none"],
-        ];
+      : d.kind === "partnership"
+        ? [
+            ["Name", d.name],
+            ["Email", d.email],
+            ["Organization", d.organization],
+            ["Message", d.message || "none"],
+          ]
+        : [
+            ["Name", d.name],
+            ["Email", d.email],
+            ["Main game", d.game || "not given"],
+            ["Message", d.message || "none"],
+          ];
 
   try {
     await sendContactMessage({ kind: d.kind, replyTo: d.email, fields });
