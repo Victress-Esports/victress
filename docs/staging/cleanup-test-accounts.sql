@@ -30,6 +30,13 @@ union all select 'count: storage objects',     count(*)::text, null from storage
          where owner in (select id from t) or owner_id in (select id::text from t) or split_part(name, '/', 1) in (select id::text from t)
 union all select 'looks like staging (Partner tables exist)', (to_regclass('public.partner_organizations') is not null)::text, null
 union all select 'service_role may delete waitlist rows',     has_table_privilege('service_role','public.waitlist','delete')::text, null
+union all select 'foreign keys to users/profiles/teams: total / composite / not on id / blocking in auth',
+         count(*)::text || ' / ' || count(*) filter (where cardinality(c.conkey) <> 1)::text || ' / '
+         || count(*) filter (where (select string_agg(a.attname, ',' order by k.ord) from unnest(c.confkey) with ordinality k(attnum, ord) join pg_attribute a on a.attrelid = c.confrelid and a.attnum = k.attnum) <> 'id')::text || ' / '
+         || count(*) filter (where n.nspname = 'auth' and c.confdeltype not in ('c','n'))::text,
+         'expected at review: 35 / 0 / 0 / 0'
+         from pg_constraint c join pg_class cl on cl.oid = c.conrelid join pg_namespace n on n.oid = cl.relnamespace
+         where c.contype = 'f' and c.confrelid in ('auth.users'::regclass, 'public.profiles'::regclass, 'public.teams'::regclass)
 union all select 'total auth users in this project',          count(*)::text, null from auth.users;
 
 -- ============================================================================================================================
@@ -91,19 +98,43 @@ begin
       or split_part(name, '/', 1) = any (array(select u::text from unnest(uids) u));
   if n <> 0 then raise exception 'ABORT: % Storage object(s) belong to the test accounts; remove them via the Storage API first. Nothing was changed.', n; end if;
 
-  -- Guard 7: no table other than the expected ones holds rows that reference these users, profiles or teams. This covers every
-  -- cascading table (so the cascade can only remove the expected rows) and the Partner tables whose NO ACTION keys
-  -- would block the delete. Auth's own tables (sessions, identities) are removed by Auth cascades and not counted here.
+  -- Guard 7: account for EVERY foreign key that references auth.users, public.profiles or public.teams. Nothing is skipped:
+  --   * a composite key, or a key that does not point at the referenced table's "id", aborts (this script only counts single
+  --     column keys on id, so anything else needs a human);
+  --   * the seven expected public tables are allowed (their rows are the ones this cleanup removes);
+  --   * Auth's own tables (schema auth) are allowed when they cascade or set null, and abort if a key would block the delete
+  --     and has rows;
+  --   * every other table, in any schema, must hold no rows that reference the test accounts or teams. This covers all other
+  --     cascading tables and the Partner tables whose NO ACTION keys would block the delete.
   for r in
-    select c.conrelid::regclass::text as tbl, a.attname as col, c.confrelid::regclass::text as ref
-    from pg_constraint c join pg_attribute a on a.attrelid = c.conrelid and a.attnum = c.conkey[1]
+    select c.conrelid as relid, n.nspname as sch, cl.relname as tbl, c.confrelid as refid, c.confdeltype as del,
+           cardinality(c.conkey) as ncols,
+           (select string_agg(a.attname, ',' order by k.ord) from unnest(c.conkey) with ordinality k(attnum, ord)
+              join pg_attribute a on a.attrelid = c.conrelid and a.attnum = k.attnum) as cols,
+           (select string_agg(a.attname, ',' order by k.ord) from unnest(c.confkey) with ordinality k(attnum, ord)
+              join pg_attribute a on a.attrelid = c.confrelid and a.attnum = k.attnum) as refcols
+    from pg_constraint c join pg_class cl on cl.oid = c.conrelid join pg_namespace n on n.oid = cl.relnamespace
     where c.contype = 'f' and c.confrelid in ('auth.users'::regclass, 'public.profiles'::regclass, 'public.teams'::regclass)
-      and c.conrelid::regclass::text not like 'auth.%'
-      and c.conrelid::regclass::text not in ('profiles','teams','team_members','age_confirmations','legal_acceptances','highlights','player_games')
+    order by n.nspname, cl.relname, c.conname
   loop
-    execute format('select count(*) from %s where %I = any($1)', r.tbl, r.col) into n
-      using (case when r.ref = 'teams' then team_ids else uids end);
-    if n > 0 then raise exception 'ABORT: % row(s) in % reference the test accounts and are not part of the expected cleanup. Nothing was changed.', n, r.tbl; end if;
+    if r.ncols <> 1 then
+      raise exception 'ABORT: composite foreign key found on %.% (% -> %); this script does not handle composite keys. Nothing was changed.', r.sch, r.tbl, r.cols, r.refcols;
+    end if;
+    if r.refcols <> 'id' then
+      raise exception 'ABORT: foreign key %.%(%) references a column other than id (%). Nothing was changed.', r.sch, r.tbl, r.cols, r.refcols;
+    end if;
+    if r.sch = 'public' and r.tbl in ('profiles','teams','team_members','age_confirmations','legal_acceptances','highlights','player_games') then
+      continue;  -- expected: removed by the cascades, and checked again after deletion
+    end if;
+    if r.sch = 'auth' and r.del in ('c','n') then
+      continue;  -- Auth-owned (sessions, identities and so on): removed or nulled by Auth's own cascades
+    end if;
+    -- anything else (including an Auth table whose key would block the delete): it must hold no rows for these accounts
+    execute format('select count(*) from %I.%I where %I = any($1)', r.sch, r.tbl, r.cols) into n
+      using (case when r.refid = 'public.teams'::regclass then team_ids else uids end);
+    if n > 0 then
+      raise exception 'ABORT: % row(s) in %.% reference the test accounts and are not part of the expected cleanup. Nothing was changed.', n, r.sch, r.tbl;
+    end if;
   end loop;
 
   -- Guard 8: the waitlist deletion runs as the server-only service role, so it must hold the grants from migration 20261110000200.
