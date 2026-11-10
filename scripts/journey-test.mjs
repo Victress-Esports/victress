@@ -29,6 +29,11 @@ async function journey({ role, cardName, expectHeading, expectUrl, steps, expect
   check(cookies.some((c) => c.name === "v_role" && decodeURIComponent(c.value) === role), `${role}: the role is remembered for onboarding`);
   // sign in with the stand-in (a new user), then land in onboarding
   await page.goto(`http://app.localhost:${MOCK}/dev/auth/login?persona=new&to=${encodeURIComponent(APPH)}`);
+  // A first sign in confirms age and accepts the Terms and Privacy Policy before anything else. The role must survive that step.
+  await page.waitForURL(/\/consent/, { timeout: 15000 });
+  await page.fill("#consent-birth", "2000-01-01");
+  await page.check("#consent-accept");
+  await page.getByRole("button", { name: "Continue" }).click();
   await page.waitForURL(/\/onboarding/, { timeout: 15000 });
   const t = await text(page);
   check(!/How will you use Victress/.test(t), `${role}: onboarding does not ask who you are again`);
@@ -141,8 +146,8 @@ await journey({ role: "recruiter", cardName: "Scout or recruiter", expectHeading
 {
   const { execSync } = await import("node:child_process");
   const files = execSync("grep -rl account_type app lib components --include=*.ts --include=*.tsx || true", { encoding: "utf8" }).split("\n").filter(Boolean).sort();
-  const allowed = ["app/a/dashboard/page.tsx", "app/a/onboarding/actions.ts", "components/app/OnboardingWizard.tsx", "lib/roles.ts"];
-  check(files.every((f) => allowed.includes(f)), `account_type is read only for onboarding and a dashboard note (found ${files.join(", ")})`);
+  const allowed = ["app/a/dashboard/page.tsx", "app/a/onboarding/actions.ts", "components/app/OnboardingWizard.tsx", "lib/roles.ts", "lib/account-export.ts"]; // the export only shows the label back to its owner
+  check(files.every((f) => allowed.includes(f)), `account_type is read only for onboarding, a dashboard note and the owner's own export (found ${files.join(", ")})`);
 }
 
 // Navigation: the same short menu everywhere, one action
