@@ -438,25 +438,19 @@ console.log("\n######## STATUS WORDING, SELF-ENTERED STATS AND THE HOME HERO ###
   // unbuilt item carries one plain "Coming soon" label. (2) Victress does not publish stats players enter themselves.
   const FORBIDDEN = [/in development/i, /under development/i, /being built/i, /\bbeta\b/i, /\bearly\b/i, /pilot stage/i, /pilot phase/i, /initial pilot/i, /\bplanned\b/i, /work in progress/i, /not available yet/i, /not open yet/i, /not built/i, /in testing/i, /available now/i, /legal review/i, /\bcounsel\b/i, /pending/i, /draft text/i];
   const STATS = [/self[- ]reported/i, /your own stats/i, /enter your (own )?stats/i, /add (your )?stats/i, /stats you (enter|made)/i, /every number shows where it came from/i, /entered by players/i];
-  // content/pricing.ts holds founder approved verbatim plan text that still says "Track your stats, share your progress" and "share it with teams".
-  // It is reported below as a known conflict and not edited without approval.
-  const KNOWN_PRICING = /Track your stats, share your progress[^.]*\.|share it with teams/gi;
   const visibleText = (html) => decode(html.replace(/<(script|style)[\s\S]*?<\/\1>/g, " ").replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ");
   const sources = [];
   for (const host of [MARKETING, APP]) {
     for (const path of host === MARKETING ? mPaths : ["/", "/login"]) sources.push([`${host}${path}`, (await get(host, path)).body]);
   }
   const llmsBody = (await get(MARKETING, "/llms.txt")).body;
-  let knownPricing = 0;
   for (const [label, html] of [...sources, ["llms.txt", llmsBody]]) {
     const raw = label === "llms.txt" ? llmsBody : visibleText(html);
-    if (/pricing/.test(label)) knownPricing += (raw.match(KNOWN_PRICING) ?? []).length;
-    const text = raw.replace(KNOWN_PRICING, " ");
+    const text = raw; // the plan descriptions are held to the same rules as every other page (updated by the founder 2026-11-10)
     const jsonld = label === "llms.txt" ? "" : [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => m[1]).join(" ").replace(/"slogan":"[^"]*"/g, "");
     for (const re of FORBIDDEN) ok(!re.test(text) && !re.test(jsonld), `${label} contains status wording ${re}`);
     for (const re of STATS) ok(!re.test(text) && !re.test(jsonld), `${label} mentions stats players enter ${re}`);
   }
-  if (knownPricing) console.log(`   KNOWN CONFLICT (not a failure): ${knownPricing} approved verbatim pricing phrase(s) in content/pricing.ts mention players tracking or sharing stats. Needs the founder's approval to change.`);
 
   // Public profile pages show no self-entered stat, even for a player whose record holds stats and who listed everything (mock data).
   if (!LIVE) {

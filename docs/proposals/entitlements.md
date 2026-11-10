@@ -7,8 +7,8 @@ Approved plans, unchanged:
 
 | Plan | Price | Approved audience and description |
 |---|---|---|
-| Rookie | Free | New and aspiring players. "Your competitive profile starts here. Track your stats, share your progress, and build your presence in esports." |
-| Pro | $7.99/month or $75/year | Competitive players. "A clearer view of your performance. Track your progress, build your player profile, and share it with teams." |
+| Rookie | Free | New and aspiring players. "Get your player profile started. Show who you are and what you've done in esports." (updated by the founder 2026-11-10) |
+| Pro | $7.99/month or $75/year | Competitive players. "Take your player profile further. Show more of your experience and get noticed by teams." (updated by the founder 2026-11-10) |
 | Team | $49/month | Competitive teams. "Everything your roster needs in one place. Manage players, follow team progress, and keep your program organized." |
 | Scout | $249/month | Recruiters and collegiate programs. "Find the right players. Explore competitive profiles, compare performance, and organize recruitment prospects." |
 
