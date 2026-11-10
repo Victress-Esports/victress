@@ -7,7 +7,7 @@ import { Field, FormMessage, inputClass } from "@/components/ui/form";
 import { copy } from "@/content/copy";
 import { GAME_LIST } from "@/content/games";
 
-type Kind = "organization" | "player";
+type Kind = "organization" | "player" | "partnership";
 type Status = "idle" | "sending" | "done" | "error" | "invalid";
 
 /**
@@ -80,7 +80,7 @@ export function ContactForm({
           className={inputClass}
         />
       </Field>
-      {kind === "organization" ? (
+      {kind === "organization" || kind === "partnership" ? (
         <>
           <Field id={`${id}-org`} label={f.organization}>
             <input
@@ -92,6 +92,8 @@ export function ContactForm({
               className={inputClass}
             />
           </Field>
+          {kind === "organization" ? (
+          <>
           <Field id={`${id}-role`} label={f.role}>
             <select
               id={`${id}-role`}
@@ -124,8 +126,11 @@ export function ContactForm({
               ))}
             </select>
           </Field>
+          </>
+          ) : null}
         </>
       ) : null}
+      {kind !== "partnership" ? (
       <Field id={`${id}-game`} label={f.game}>
         <select
           id={`${id}-game`}
@@ -140,7 +145,8 @@ export function ContactForm({
           <option>{f.games}</option>
         </select>
       </Field>
-      <Field id={`${id}-message`} label={f.message}>
+      ) : null}
+      <Field id={`${id}-message`} label={kind === "partnership" ? f.partnershipMessage : f.message}>
         <textarea
           id={`${id}-message`}
           name="message"
