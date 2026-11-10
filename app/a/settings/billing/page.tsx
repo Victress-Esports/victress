@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Logo } from "@/components/brand/Logo";
 import { CheckoutButton, PortalButton } from "@/components/app/PlayerBilling";
-import { PLANS, formatUsd } from "@/content/pricing";
-import { requireUser } from "@/lib/auth";
+import { PLANS, SCOUT_BUYER_NOTE, formatUsd } from "@/content/pricing";
 import { grantsPlan, hasTestKey, playerBillingEnabled, GRACE_DAYS } from "@/lib/billing";
 import { currentTier, planName } from "@/lib/entitlements";
 import { privateMetadata } from "@/lib/seo";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { supabaseServer } from "@/lib/supabase/server";
 
 export const metadata: Metadata = privateMetadata("Plan and billing | Victress", "Your Victress plan and billing.");
 export const dynamic = "force-dynamic";
@@ -23,7 +23,12 @@ const date = (d: string) => new Date(d).toLocaleDateString("en-US", { month: "lo
 /** Hidden completely (404) while NEXT_PUBLIC_BILLING_ENABLED is not "true": Production today. */
 export default async function PlayerBilling({ searchParams }: { searchParams: Promise<{ checkout?: string }> }) {
   if (!playerBillingEnabled()) notFound();
-  const { sb, user } = await requireUser();
+  // Signed out (for example from a pricing page button): sign in, then come back here.
+  const sb = await supabaseServer();
+  const {
+    data: { user },
+  } = await sb.auth.getUser();
+  if (!user) redirect("/login?next=/settings/billing");
   const { checkout } = await searchParams;
   const tier = await currentTier();
   const { data: rows } = await sb
@@ -74,9 +79,7 @@ export default async function PlayerBilling({ searchParams }: { searchParams: Pr
                 </p>
               </div>
               <p className="mt-2 text-mute">{p.blurb}</p>
-              {p.id === "scout" ? (
-                <p className="mt-2 text-sm text-mute">Scout Desk discovery is Coming soon. It opens only after verification and player consent rules are built and approved. Player access stays opt in, and nothing is shared about minors.</p>
-              ) : null}
+              {p.id === "scout" ? <p className="mt-2 text-sm text-mute">{SCOUT_BUYER_NOTE}</p> : null}
               {current ? (
                 <p className="mt-4 text-sm font-semibold">Your current plan</p>
               ) : active ? null : (

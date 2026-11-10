@@ -63,3 +63,9 @@ export const PLANS: Plan[] = [
 ];
 
 export const formatUsd = (n: number) => (n === 0 ? "$0" : `$${Number.isInteger(n) ? n : n.toFixed(2)}`);
+
+/**
+ * Shown to buyers before they pay for Scout (pricing page and /settings/billing), only while billing is on. Founder wording, 2026-11-10.
+ * PENDING the founder's approval of the final wording: billing must not be enabled on Production until he approves it.
+ */
+export const SCOUT_BUYER_NOTE = "Scout, $249/month. Your account is set up as a Scout. Scout Desk access opens to Scout accounts when it launches.";
