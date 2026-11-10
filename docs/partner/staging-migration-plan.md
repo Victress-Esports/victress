@@ -1,6 +1,8 @@
 # Staging plan for the Partner migrations (NOT applied)
 
-Status: prepared, tested on a throwaway local Postgres only. Nothing has been applied to victress-staging or production. Waiting for the founder's explicit approval. Partner billing stays off (`PARTNER_BILLING_ENABLED` unset or false). No signup or checkout tests run until authorized.
+Status (2026-11-10): both migrations APPLIED to victress-staging (project `cmvifuayvqhbfkeskoqi`) with the founder's approval, as `partner_exclusivity` and `partner_admin`. Verified there: row level security on, anon has no access, execute grants as designed, security advisors show only the intended authenticated grants and the service role only `partner_admin_log`. Production untouched.
+
+Original status: prepared, tested on a throwaway local Postgres. Not applied to production. Waiting for the founder's explicit approval. Partner billing stays off (`PARTNER_BILLING_ENABLED` unset or false). No signup or checkout tests run until authorized.
 
 Staging currently has the earlier Partner migration (`20261109000100_partner_account.sql`, applied 2026-11-09). Two additive migrations follow it, in this order.
 
