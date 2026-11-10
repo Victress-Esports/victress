@@ -21,4 +21,5 @@ run_test() { # file, minimum number of PASS lines
 run_test supabase/tests/partner.sql 90
 run_test supabase/tests/partner_exclusivity.sql 50
 run_test supabase/tests/partner_admin.sql 10
+run_test supabase/tests/player_billing.sql 25
 echo "ALL PARTNER DATABASE CHECKS PASSED"

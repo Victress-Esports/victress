@@ -192,6 +192,22 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      subscriptions: {
+        // stripe_subscription_id, stripe_price_id and last_event_at are not readable by the app roles (column grants). Written by the webhook only.
+        Row: {
+          billing_interval: string; cancel_at_period_end: boolean; current_period_end: string | null; last_paid_at: string | null;
+          payment_failed_at: string | null; plan: string; profile_id: string; status: string; updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      billing_customers: {
+        Row: { created_at: string; profile_id: string };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       partner_impact_records: {
         Row: {
           category: string; created_at: string; id: string; occurred_on: string; org_id: string; quantity: number | null;
@@ -239,6 +255,17 @@ export type Database = {
         Returns: string;
       };
       partner_is_admin: { Args: Record<string, never>; Returns: boolean };
+      billing_record_event: { Args: { p_id: string; p_type: string; p_livemode: boolean }; Returns: boolean };
+      billing_finish_event: { Args: { p_id: string; p_outcome: string }; Returns: undefined };
+      billing_link_customer: { Args: { p_profile: string; p_customer: string }; Returns: string };
+      billing_apply_subscription: {
+        Args: {
+          p_profile: string; p_sub: string; p_customer: string | null; p_plan: string; p_interval: string; p_status: string; p_price: string;
+          p_period_end: string | null; p_cancel: boolean; p_event_at: string;
+        };
+        Returns: string;
+      };
+      billing_payment_event: { Args: { p_sub: string; p_kind: string; p_at: string }; Returns: string };
       partner_is_anchor_owner: { Args: { p_org: string }; Returns: boolean };
       partner_category_taken: { Args: { p_category: string }; Returns: boolean };
       partner_exclusivity_active: { Args: { p_org: string }; Returns: boolean };

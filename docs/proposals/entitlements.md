@@ -1,5 +1,7 @@
 # Plan entitlement matrix (proposal)
 
+**Update 2026-11-10: player billing is built behind `NEXT_PUBLIC_BILLING_ENABLED` (docs/proposals/stripe-billing.md, sections 0A and 9). Plans offered at checkout: Pro monthly and annual, Team monthly, Scout monthly. `currentTier()` reads the player's own subscription rows (active, trialing, or past_due within 7 days of the first failed payment; highest plan wins) and is Rookie while the flag is off. Scout sets the tier but Scout Desk discovery stays closed (`scoutDeskState`), because no policy grants player data and recruiter discovery is disabled pending legal review. The capability matrix below is otherwise unchanged and still not enforced beyond the tier.**
+
 **Status: PROPOSAL for review (revision 2.2: Rookie team recommendation; roster wording corrected to match the database; decision 8 direction recorded; see the decision register). Nothing is implemented.** Prices, plan names and approved plan descriptions are **not changed** by this document (`content/pricing.ts`, `docs/stripe.md`). Billing stays off (`NEXT_PUBLIC_BILLING_ENABLED=false`).
 Strategic basis: [docs/strategy/victress-business-purpose.md](../strategy/victress-business-purpose.md), section 5 (the business model that sustains the purpose), section 3B (accessible development infrastructure) and section 6 (cost-effective expansion).
 

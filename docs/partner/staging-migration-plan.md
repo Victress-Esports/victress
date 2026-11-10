@@ -42,3 +42,6 @@ drop function public.partner_is_admin(), public.partner_is_anchor_owner(uuid), p
   public.partner_exclusivity_touch();
 -- partner_caps() and partner_apply_billing(): re-create from 20261109000100_partner_account.sql.
 ```
+
+## Not part of the approved staging apply: player billing
+`20261110000300_player_billing.sql` (tables `billing_customers`, `subscriptions`, `stripe_events` and five service role functions) is prepared and tested locally only (34 checks). It is NOT applied to staging. It waits until the Partner staging tests are finished and the founder approves. Details: `docs/proposals/stripe-billing.md`, section 9.

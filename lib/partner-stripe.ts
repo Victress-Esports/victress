@@ -270,3 +270,6 @@ export function verifyStripeSignature(rawBody: string, header: string | null, se
     return got.length === expected.length && timingSafeEqual(got, expected);
   });
 }
+
+/** The Stripe REST helpers, shared with player billing (lib/billing.ts). Same key rules: a live key is refused outside Production. */
+export { stripe as stripePost, stripeGet };

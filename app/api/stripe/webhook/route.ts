@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { choiceForPrice, invoiceSubscriptionId, retrieveInvoice, retrieveSubscription, verifyStripeSignature, type StripeInvoice, type StripeSubscription } from "@/lib/partner-stripe";
+import { handlePlayerEvent } from "@/lib/billing-webhook";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
@@ -10,12 +11,14 @@ export const dynamic = "force-dynamic";
  * customer.subscription.created / updated / deleted that carry partner metadata (kind=partner), and invoice.paid / payment_failed / voided
  * for exclusivity invoices (kind=partner_exclusivity). Every other event, partner or not, is acknowledged and ignored. An ended
  * subscription returns the organization to Community. Exclusivity activates only on invoice.paid, never on a request or an approval.
+ * Player billing events (kind=player) are handled in lib/billing-webhook.ts. Live mode events are ignored.
  * 400 = bad signature. 500 = something on our side failed, so Stripe retries. 200 = handled or deliberately ignored.
  */
 interface StripeEvent {
   id: string;
   type: string;
   created: number;
+  livemode?: boolean;
   data: { object: Record<string, unknown> };
 }
 
@@ -121,7 +124,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid body" }, { status: 400 });
   }
 
+  // Test mode only. A live mode event is acknowledged and ignored (live mode is a separate approval and a separate change).
+  if (event.livemode === true) return ok("live mode ignored");
+
   try {
+    // Player billing (kind=player) first; null means it is not a player event.
+    const player = await handlePlayerEvent(event);
+    if (player) return player;
     const obj = event.data?.object ?? {};
     switch (event.type) {
       case "checkout.session.completed": {

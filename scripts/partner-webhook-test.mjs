@@ -13,6 +13,8 @@ const ORG = "11111111-1111-4111-8111-111111111111";
 const rpcCalls = [];
 const exclCalls = [];
 let exclResult = "activated";
+const playerCalls = [];
+let recordFresh = true, paymentResult = "applied", applyResult = "applied";
 const subs = { sub_live: { id: "sub_live", customer: "cus_1", status: "active", metadata: { kind: "partner", org_id: ORG }, items: { data: [{ price: { id: "price_sa" } }] } } };
 
 const fakeSupabase = http.createServer((req, res) => {
@@ -29,10 +31,18 @@ const fakeSupabase = http.createServer((req, res) => {
       res.writeHead(200, { "content-type": "application/json" });
       return res.end(JSON.stringify(exclResult));
     }
+    const rm = req.url?.match(/^\/rest\/v1\/rpc\/(billing_[a-z_]+)/);
+    if (rm) {
+      playerCalls.push({ name: rm[1], body: JSON.parse(Buffer.concat(chunks).toString() || "{}") });
+      const out = { billing_record_event: recordFresh, billing_finish_event: null, billing_link_customer: "ok", billing_apply_subscription: applyResult, billing_payment_event: paymentResult }[rm[1]];
+      res.writeHead(200, { "content-type": "application/json" });
+      return res.end(JSON.stringify(out));
+    }
     res.writeHead(404).end("{}");
   });
 }).listen(4010);
 subs.sub_inv = { id: "sub_inv", customer: "cus_2", status: "active", collection_method: "send_invoice", latest_invoice: "in_paid", metadata: { kind: "partner", org_id: ORG, plan: "anchor", interval: "annual" }, items: { data: [{ price: { id: "price_aa" } }] } };
+subs.sub_pl = { id: "sub_pl", customer: "cus_pl", status: "active", metadata: { kind: "player", profile_id: "22222222-2222-4222-8222-222222222222", plan: "pro", interval: "year" }, items: { data: [{ price: { id: "price_py" } }] } };
 const invoices = {
   in_open: { id: "in_open", status: "open", billing_reason: "subscription_create" },
   in_paid: { id: "in_paid", status: "paid", billing_reason: "subscription_create" },
@@ -198,6 +208,51 @@ e = ev("invoice.paid", { id: "in_x", subscription: "sub_live", metadata: {} });
 body = JSON.stringify(e); rpcCalls.length = 0;
 r = await post(e, { "stripe-signature": sign(body) }, body);
 ok(r.status === 200 && rpcCalls.length === 0, "invoice.paid on a subscription paid by card is ignored (Checkout already handled it)");
+
+// ---- Player billing (kind=player). Plan comes from the billed price; events are recorded once; live mode is ignored.
+const PROFILE = "22222222-2222-4222-8222-222222222222";
+const playerSub = (over = {}) => ({ id: "sub_pl", customer: "cus_pl", status: "active", cancel_at_period_end: false, current_period_end: 1796000000, metadata: { kind: "player", profile_id: PROFILE, plan: "pro", interval: "month" }, items: { data: [{ price: { id: "price_pm" } }] }, ...over });
+const named = (n) => playerCalls.filter((c) => c.name === n);
+const send = async (event) => { const b = JSON.stringify(event); playerCalls.length = 0; rpcCalls.length = 0; return post(event, { "stripe-signature": sign(b) }, b); };
+
+for (const [price, plan, interval] of [["price_pm", "pro", "month"], ["price_py", "pro", "year"], ["price_tm", "team", "month"], ["price_sc", "scout", "month"]]) {
+  r = await send(ev("customer.subscription.created", playerSub({ items: { data: [{ price: { id: price } }] } })));
+  const c = named("billing_apply_subscription")[0]?.body;
+  ok(r.status === 200 && c?.p_plan === plan && c?.p_interval === interval && c?.p_profile === PROFILE && c?.p_status === "active", `player ${plan} ${interval}: the billed price decides the plan`);
+}
+ok(rpcCalls.length === 0, "a player subscription never touches Partner billing");
+r = await send(ev("customer.subscription.created", playerSub({ metadata: { kind: "player", profile_id: PROFILE, plan: "scout", interval: "month" }, items: { data: [{ price: { id: "price_pm" } }] } })));
+ok(named("billing_apply_subscription")[0]?.body.p_plan === "pro", "player metadata cannot choose the plan; the billed price decides");
+r = await send(ev("customer.subscription.updated", playerSub({ items: { data: [{ price: { id: "price_unknown" } }] } })));
+ok(r.status === 500 && named("billing_apply_subscription").length === 0, "an unknown player price is not applied and returns 500 so Stripe retries");
+r = await send(ev("customer.subscription.deleted", playerSub({ status: "canceled" })));
+ok(r.status === 200 && named("billing_apply_subscription")[0]?.body.p_status === "canceled", "a deleted player subscription is recorded as canceled");
+r = await send(ev("customer.subscription.updated", playerSub({ status: "past_due" })));
+ok(named("billing_apply_subscription")[0]?.body.p_status === "past_due", "past_due is recorded (the 7 day grace is computed from the first failed payment)");
+r = await send(ev("customer.subscription.created", playerSub({ metadata: { kind: "player", profile_id: "not-a-uuid" } })));
+ok(r.status === 200 && named("billing_apply_subscription").length === 0, "a bad profile id is ignored");
+
+recordFresh = false;
+r = await send(ev("customer.subscription.created", playerSub()));
+ok(r.status === 200 && named("billing_apply_subscription").length === 0, "a replay of an applied event does nothing (idempotent)");
+recordFresh = true;
+
+r = await send(ev("checkout.session.completed", { id: "cs_p", mode: "subscription", customer: "cus_pl", client_reference_id: PROFILE, metadata: { kind: "player", profile_id: PROFILE } }));
+ok(r.status === 200 && named("billing_link_customer")[0]?.body.p_customer === "cus_pl", "checkout.session.completed links the Stripe customer to the player");
+r = await send(ev("checkout.session.completed", { id: "cs_p2", mode: "subscription", customer: "cus_pl", client_reference_id: "33333333-3333-4333-8333-333333333333", metadata: { kind: "player", profile_id: PROFILE } }));
+ok(r.status === 200 && named("billing_link_customer").length === 0, "a checkout whose client reference differs from the metadata is ignored");
+
+r = await send(ev("invoice.paid", { id: "in_p", subscription: "sub_pl", metadata: {} }));
+ok(r.status === 200 && named("billing_payment_event")[0]?.body.p_kind === "paid", "invoice.paid on a player subscription records the payment");
+r = await send(ev("invoice.payment_failed", { id: "in_pf", subscription: "sub_pl", metadata: {} }));
+ok(r.status === 200 && named("billing_payment_event")[0]?.body.p_kind === "failed", "invoice.payment_failed starts the grace bookkeeping");
+paymentResult = "not_found";
+r = await send(ev("invoice.payment_failed", { id: "in_pf2", subscription: "sub_pl", metadata: {} }));
+ok(r.status === 500, "an invoice event that beats subscription.created returns 500 so Stripe retries");
+paymentResult = "applied";
+
+r = await send({ ...ev("customer.subscription.created", playerSub()), livemode: true });
+ok(r.status === 200 && playerCalls.length === 0 && rpcCalls.length === 0, "a live mode event is ignored (test mode only)");
 
 const get = await fetch(`http://127.0.0.1:${PORT}/api/stripe/webhook`, { headers: { host: "victress.gg" } });
 ok(get.status === 405, "GET is not allowed");
