@@ -32,8 +32,8 @@ export const seo = {
       description: "A 4 to 6 week pilot for women's rosters, Game Changers teams and collegiate programs. See what partners receive and what we ask. Places are not guaranteed.",
     },
     partnerships: {
-      title: "Esports Partnerships | Victress",
-      description: "Partner to grow Women in Esports. Sign up, choose a plan and start in your Partner dashboard.",
+      title: "Partner with Victress | Women in Esports",
+      description: "Support player development, recruitment and competitive players in esports. Partner with Victress to open doors in collegiate gaming.",
     },
     contact: {
       title: "Contact the Team | Victress",

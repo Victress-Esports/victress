@@ -6,7 +6,8 @@ import { CHALLENGE_AREAS, IMPACT_CATEGORIES, WAYS } from "@/content/partner";
 
 /**
  * A sample of the Partner dashboard with the real section names (Partner Experience specification, section 3). Everything in it is labeled Sample:
- * the organization is not real, the numbers are placeholders, and no company is named. The real dashboard shows only an organization's own records.
+ * the organization is not real, there are NO numbers (an empty dashboard shows measures only when records exist), and no company is named.
+ * The real dashboard shows only an organization's own records.
  * Copy has no hyphens (victressesports.com rule).
  */
 const TABS = ["Overview", "Challenges", "Participation", "Opportunities", "Impact"] as const;
@@ -31,14 +32,10 @@ function Overview() {
       </div>
       <p className="text-sm font-semibold">Impact Summary</p>
       <div className="grid gap-3 sm:grid-cols-3">
-        {[
-          ["Supported Teams", "2"],
-          ["Resources Provided", "4"],
-          ["Mentorship Hours", "12"],
-        ].map(([k, v]) => (
+        {["Supported Teams", "Resources Provided", "Mentorship Hours"].map((k) => (
           <div key={k} className={tile}>
-            <p className="tnum font-display text-3xl font-bold">{v}</p>
-            <p className="mt-1 text-xs text-mute">{k}</p>
+            <p className="font-semibold">{k}</p>
+            <p className="mt-1 text-xs text-mute">Shown when records exist</p>
           </div>
         ))}
       </div>
@@ -76,8 +73,8 @@ function Opportunities() {
   return (
     <div className={`${tile} grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center`}>
       <div>
-        <p className="text-xs text-mute">Tournament Support</p>
-        <p className="mt-1 font-semibold">Regional qualifier travel fund</p>
+        <p className="text-xs text-mute">Opportunity type</p>
+        <p className="mt-1 font-semibold">Opportunity title</p>
         <dl className="mt-2 grid gap-1 text-sm">
           <div className="flex gap-2">
             <dt className="text-mute">Organization</dt>
