@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { copy } from "@/content/copy";
-import { ROLES } from "@/lib/roles";
+import { AUDIENCES } from "@/lib/roles";
 import { appUrl } from "@/lib/urls";
 
 /**
@@ -15,10 +15,10 @@ export function RolePicker() {
           {copy.home.intent.title}
         </h2>
         <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {ROLES.map((r) => (
+          {AUDIENCES.map((r) => (
             <li key={r.id}>
               <Link
-                href={appUrl(`/login?role=${r.id}`)}
+                href={r.to.startsWith("app:") ? appUrl(r.to.slice(4)) : r.to}
                 className="group flex min-h-44 flex-col rounded-3xl border border-line bg-surface p-6 transition-colors hover:border-white focus-visible:border-white sm:p-8"
               >
                 <span className="flex flex-wrap items-center gap-3">
@@ -27,7 +27,7 @@ export function RolePicker() {
                 </span>
                 <span className="mt-2 text-lg text-mute">{r.line}</span>
                 <span className="mt-auto pt-6 text-sm font-semibold text-coral group-hover:text-white">
-                  Get started <span aria-hidden>→</span>
+                  {r.cta} <span aria-hidden>→</span>
                 </span>
               </Link>
             </li>

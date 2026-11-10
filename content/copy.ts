@@ -44,7 +44,7 @@ export const copy = {
     // Above the fold: the name, one short line, one sentence, two doorways (teams to the pilot, players to the app), one small line.
     hero: {
       title: "Your competitive career. All in one place.",
-      sentence: "Track performance. Build your player profile. Connect with opportunities.",
+      sentence: "Build your Player Resume. Bring your team together.",
       primary: "Get started",
       secondary: "",
       note: "Free for players.",

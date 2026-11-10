@@ -63,7 +63,7 @@ export default async function Dashboard() {
             <h2 className="font-display text-xl font-bold">{role.title}</h2>
             <StatusChip>Coming soon</StatusChip>
           </div>
-          <p className="mt-2 text-mute">Your account is saved. Your {role.title.toLowerCase()} experience is not open yet, and nothing here is shown on your behalf.</p>
+          <p className="mt-2 text-mute">Your account is saved. Scout Desk is not open yet, and nothing about you is shown to anyone.</p>
         </div>
       ) : null}
 

@@ -48,6 +48,21 @@ export default function Home() {
 
       <RolePicker />
 
+      <section aria-labelledby="women-title" className="px-4 pb-20 sm:px-6 sm:pb-28">
+        <div className="mx-auto grid max-w-6xl items-end gap-10 rounded-3xl bg-crimson p-8 sm:p-14 md:grid-cols-2">
+          <h2 id="women-title" className="font-display text-3xl font-bold leading-tight text-white sm:text-5xl">
+            {e.title}
+          </h2>
+          <div>
+            <p className="text-lg text-white">{e.line} {e.message}</p>
+            <p className="mt-4 text-sm text-white/85">{e.note}</p>
+            <ButtonLink href="/women-in-esports" variant="ghost" className="mt-8 bg-carbon hover:bg-surface-2">
+              {e.more}
+            </ButtonLink>
+          </div>
+        </div>
+      </section>
+
       <section aria-labelledby="products-title" className={section}>
         <div className={inner}>
           <h2 id="products-title" className={`${h2} max-w-3xl`}>
@@ -79,20 +94,6 @@ export default function Home() {
         </div>
       </section>
 
-      <section aria-labelledby="women-title" className="px-4 pb-20 sm:px-6 sm:pb-28">
-        <div className="mx-auto grid max-w-6xl items-end gap-10 rounded-3xl bg-crimson p-8 sm:p-14 md:grid-cols-2">
-          <h2 id="women-title" className="font-display text-3xl font-bold leading-tight text-white sm:text-5xl">
-            {e.title}
-          </h2>
-          <div>
-            <p className="text-lg text-white">{e.line} {e.message}</p>
-            <p className="mt-4 text-sm text-white/85">{e.note}</p>
-            <ButtonLink href="/women-in-esports" variant="ghost" className="mt-8 bg-carbon hover:bg-surface-2">
-              {e.more}
-            </ButtonLink>
-          </div>
-        </div>
-      </section>
 
     </>
   );

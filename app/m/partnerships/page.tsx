@@ -21,9 +21,9 @@ const inner = "mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28";
 const h2 = "font-display text-3xl font-bold leading-tight sm:text-5xl";
 const lead = "mt-5 max-w-2xl text-lg text-mute sm:text-xl";
 
-/** The one action on this page: register as a partner organization. The partner experience itself lives in the Partner platform. */
+/** The one action on this page. Per the Partner brief it links to victress.gg/partner, where organizations register separately from player accounts. */
 function BecomePartner() {
-  return <ButtonLink href={appUrl("/login?role=partner")}>Become a Partner</ButtonLink>;
+  return <ButtonLink href={appUrl("/partner")}>Become a Partner</ButtonLink>;
 }
 
 const AREAS = [
@@ -64,7 +64,7 @@ export default function Partnerships() {
           <div className="mt-10">
             <BecomePartner />
           </div>
-          <p className="mt-4 max-w-md text-sm text-mute">Create your account now. Your Partner dashboard opens here when the Partner platform launches.</p>
+          <p className="mt-4 max-w-md text-sm text-mute">Partner registration opens with the Partner platform.</p>
         </div>
       </section>
 

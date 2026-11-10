@@ -243,23 +243,23 @@ const pages = [
     // the one registration), the three products, Women in Esports. Pricing and questions live on /pricing, not repeated here.
     contains: [
       "Your competitive career. All in one place.",
-      "Track performance. Build your player profile. Connect with opportunities.",
+      "Build your Player Resume. Bring your team together.",
       "Get started", "Free for players.", "Log in",
-      "Where do you belong?", "Player", "Coach or team", "Scout or recruiter", "College program", "Partner organization", "login?role=partner",
+      "Where do you belong?", "Player", "Coach or team", "Scout or recruiter", "College program", "Partner organization", "/partnerships",
       "Three products. One connected platform.", "Scrim Intelligence", "Player Resume", "Scout Desk", "Coming soon", "Women in Esports",
       "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment.",
     ],
     // Approved homepage values. The wings are the logo (nav and footer) and a faint cropped backdrop; the full-size art file itself must not be a hero visual.
     exact: {
       title: "Esports Player Development and Recruitment | Victress",
-      description: "Esports player development and recruitment for players, teams, coaches and collegiate programs. Create an account with source labeled stats and manage rosters.",
+      description: "Esports player development and recruitment for players, teams, coaches and collegiate programs. Create a Player Resume and manage rosters.",
     },
     notContains: ["wings-480", "wings-720", "/brand/wings.webp", "Claim your name", "Available now", "shareable player profile", "share one link", "Explore the Platform", "Join the Design Partner Pilot", "Simple pricing. Start free.", "Questions? Answers."],
   },
   mk(MARKETING, "/pricing", true, ["FAQPage", "BreadcrumbList"]),
   mk(MARKETING, "/teams", true, ["BreadcrumbList"]),
   mk(MARKETING, "/about", true, ["BreadcrumbList"]),
-  { host: MARKETING, path: "/partnerships", index: true, types: ["BreadcrumbList"], exact: { title: "Partner with Victress | Women in Esports", description: "Support player development, recruitment and competitive players in esports. Partner with Victress to open doors in collegiate gaming." }, contains: ["Build something meaningful with Victress.", "Become a Partner", "login?role=partner", "Your partnership, in one place.", "Sample", "Four ways to make a difference.", "Expertise and Mentorship", "Infrastructure", "Community Partner", "Supporting Partner", "Anchor Partner", "Anchor Partner with Category Exclusivity", "A dedicated Victress partnership representative", "A dedicated relationship manager, exclusivity coordination and strategic partnership support.", "Pricing is shared directly by the Victress team", "Direct subsidization of Scrim Intelligence access for developing rosters", "10 Scout Desk seats", "Exclusive rights within an agreed category", "Custom research reports", "Partners do not automatically receive player profiles or private player data. Players decide what information they share.", "Financial support does not buy access to private player information."], notContains: ["mailto:", "hello@victressesports.com", "victress.gg/partner", "Talk with our team", "Coming Soon", "$0", "$1,000", "$10,000", "$35,000", "$50,000", "$85,000", "per month", "per year", "Back the next generation", "Email us", "Victress Women in Esports"] },
+  { host: MARKETING, path: "/partnerships", index: true, types: ["BreadcrumbList"], exact: { title: "Partner with Victress | Women in Esports", description: "Support player development, recruitment and competitive players in esports. Partner with Victress to open doors in collegiate gaming." }, contains: ["Build something meaningful with Victress.", "Become a Partner", "Partner registration opens with the Partner platform.", "Your partnership, in one place.", "Sample", "Four ways to make a difference.", "Expertise and Mentorship", "Infrastructure", "Community Partner", "Supporting Partner", "Anchor Partner", "Anchor Partner with Category Exclusivity", "A dedicated Victress partnership representative", "A dedicated relationship manager, exclusivity coordination and strategic partnership support.", "Pricing is shared directly by the Victress team", "Direct subsidization of Scrim Intelligence access for developing rosters", "10 Scout Desk seats", "Exclusive rights within an agreed category", "Custom research reports", "Partners do not automatically receive player profiles or private player data. Players decide what information they share.", "Financial support does not buy access to private player information."], notContains: ["mailto:", "hello@victressesports.com", "Talk with our team", "login?role=partner", "Coming Soon", "$0", "$1,000", "$10,000", "$35,000", "$50,000", "$85,000", "per month", "per year", "Back the next generation", "Email us", "Victress Women in Esports"] },
   { host: MARKETING, path: "/contact", index: true, types: ["BreadcrumbList"], contains: ["mailto:hello@victressesports.com", "Partnership conversation", "Talk with our team", "Teams and organizations", "Individual players", "Request access", "Apply for Design Partner"] },
   { host: MARKETING, path: "/platform", index: true, types: ["BreadcrumbList"], contains: ["Practice", "Performance Evidence", "Development", "Recognition", "Opportunity", "Scrim Intelligence", "Player Resume", "Scout Desk", "Coming soon"] },
   { host: MARKETING, path: "/women-in-esports", index: true, types: ["BreadcrumbList"], contains: ["Women in Esports", "Victress is called Victress for a purpose.", "Delivered through", "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment."] },
@@ -291,7 +291,7 @@ if (!LIVE) {
 }
 
 const mPaths = ["/", "/platform", "/women-in-esports", "/design-partner", "/pricing", "/teams", "/partnerships", "/about", "/contact", "/privacy", "/terms", "/refunds"];
-const aPrivate = ["/dashboard", "/dashboard/profile", "/dashboard/team", "/onboarding", "/login", "/auth/callback", "/auth/signout", "/join/abc123", "/api/waitlist", "/api/handle-check"];
+const aPrivate = ["/partner", "/dashboard", "/dashboard/profile", "/dashboard/team", "/onboarding", "/login", "/auth/callback", "/auth/signout", "/join/abc123", "/api/waitlist", "/api/handle-check"];
 await auditSite(MARKETING, APP, mPaths, ["/api/waitlist", "/api/handle-check"]);
 const appUrls = await auditSite(
   APP,
@@ -490,9 +490,10 @@ console.log("\n######## STATUS WORDING, SELF-ENTERED STATS AND THE HOME HERO ###
   const header = home.slice(home.indexOf("<header"), home.indexOf("</header>"));
   const navCtas = [...header.matchAll(/<a\b[^>]*href="([^"]*)"[^>]*>\s*Get started\s*<\/a>/g)].map((m) => m[1]);
   ok(navCtas.length >= 1 && navCtas.every((h) => /^https:\/\/victress\.gg/.test(h) || /__site\/app/.test(h)), `the nav has a Get started button that goes to victress.gg (found ${JSON.stringify(navCtas)})`);
-  const order = ["Where do you belong?", "Three products. One connected platform.", "id=\"women-title\""].map((t) => home.indexOf(t));
-  for (const role of ["player", "team", "recruiter", "college", "partner"]) ok(new RegExp(`href="[^"]*login\\?role=${role}"`).test(home), `home: the ${role} card goes straight to registration with the role`);
-  ok(order.every((i, n) => i > 0 && (n === 0 || i > order[n - 1])), "below the fold the sections run in order: role picker, products, Women in Esports");
+  const order = ["Where do you belong?", "id=\"women-title\"", "Three products. One connected platform."].map((t) => home.indexOf(t));
+  for (const role of ["player", "team", "recruiter"]) ok(new RegExp(`href="[^"]*login\\?role=${role}"`).test(home), `home: the ${role} card goes straight to registration with the role`);
+  ok(/href="\/partnerships"/.test(home), "home: the partner organization card goes to Partnerships");
+  ok(order.every((i, n) => i > 0 && (n === 0 || i > order[n - 1])), "below the fold the sections run in order: role picker, Women in Esports, products");
 }
 
 console.log(`\n${checks} checks run, ${failures} failed${LIVE ? " (live production)" : ""}`);
