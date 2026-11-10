@@ -15,11 +15,14 @@ Milestone 1, Foundation. Age gate and Terms/Privacy acceptance are built and tes
 ## In progress
 - Consent PR (`claude/foundation-consent`): `/consent` page, gate in `requireUser` and the sign in callback, versions in `content/legal-versions.ts`, reacceptance when a version changes, under 13 refused (account and files deleted, date not kept). Migration `20261110000100_age_gate_legal_acceptance.sql`: **applied to staging only** (`cmvifuayvqhbfkeskoqi`), not production. The app tolerates the tables being absent, so deploying the code before the production migration does not lock anyone out, but the gate does not take effect until the migration is applied.
 
+## Account deletion and data export (PR open, stacked on the consent PR)
+Built: `/dashboard/account` (download my data, delete my account with typed name), JSON export of own data only, deletion of files, waitlist signup and account (cascade), team owners with players must remove them first (existing rule). One small additive migration `20261110000200_waitlist_service_role_delete.sql` (applied to staging only). See the PR for migration and deployment impact.
+
 ## Foundation requirements still outstanding
 - New responsive design (mobile, tablet, desktop)
 - Age gate: done, awaiting merge and production migration approval
 - Terms and Privacy acceptance with version and timestamp, reacceptance on change: done, same
-- Account deletion and data export
+- Account deletion and data export: built, awaiting production approval of its migration and the consent migration
 - Consent before game account linking
 - Confirm sign-in, onboarding, teams and invite links on staging
 - Stripe test checkout for Pro and Team

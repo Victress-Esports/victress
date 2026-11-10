@@ -15,7 +15,7 @@ export const metadata: Metadata = privateMetadata(seo.app.login.title, seo.app.l
 export default async function Login({
   searchParams,
 }: {
-  searchParams: Promise<{ claim?: string; next?: string; error?: string }>;
+  searchParams: Promise<{ claim?: string; next?: string; error?: string; deleted?: string }>;
 }) {
   const sp = await searchParams;
   const next = safeNext(sp.next, "");
@@ -38,6 +38,12 @@ export default async function Login({
         </h1>
         {claim ? <p className="mt-3 text-mute">{`Sign in or create your account to claim ${claim}.`}</p> : null}
       </div>
+      {sp.deleted ? (
+        <p role="status" className="rounded-xl border border-line bg-surface px-4 py-3 text-sm">
+          Your account and data were deleted.
+          {sp.deleted === "partial" ? " We could not remove your email list signup automatically. Email hello@victressesports.com and we will remove it." : ""}
+        </p>
+      ) : null}
       {sp.error ? (
         <p role="alert" className="rounded-xl border border-line bg-surface px-4 py-3 text-sm text-coral">
           That link didn&apos;t work. Try again.

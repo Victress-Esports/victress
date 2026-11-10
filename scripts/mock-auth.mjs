@@ -59,7 +59,7 @@ function seed(key) {
 }
 
 /** Test tooling only: what the mock holds right now (for assertions). */
-export const getState = () => ({ deletedUsers: state?.deletedUsers ?? [], tables: state ? Object.fromEntries(Object.entries(state.tables).map(([k, v]) => [k, v.length])) : {}, acceptances: state?.tables.legal_acceptances ?? [], ages: (state?.tables.age_confirmations ?? []).length });
+export const getState = () => ({ deletedUsers: state?.deletedUsers ?? [], waitlistDeletes: state?.waitlistDeletes ?? [], tables: state ? Object.fromEntries(Object.entries(state.tables).map(([k, v]) => [k, v.length])) : {}, acceptances: state?.tables.legal_acceptances ?? [], ages: (state?.tables.age_confirmations ?? []).length });
 
 const b64u = (o) => Buffer.from(typeof o === "string" ? o : JSON.stringify(o)).toString("base64url");
 export function sessionCookie(key, supaUrl) {
@@ -218,6 +218,17 @@ function rpc(res, name, args) {
       me.team_id = tid;
       return send(res, { status: "ok", team_id: tid });
     }
+    case "leave_team": {
+      const mine = T.team_members.find((m) => m.profile_id === uid);
+      if (!mine) return send(res, "not_in_team");
+      if (mine.role === "owner") {
+        if (T.team_members.some((m) => m.team_id === mine.team_id && m.profile_id !== uid)) return send(res, "owner_has_members");
+        T.teams = T.teams.filter((t) => t.id !== mine.team_id);
+      }
+      T.team_members = T.team_members.filter((m) => !(m.team_id === mine.team_id && m.profile_id === uid));
+      me.team_id = null;
+      return send(res, "ok");
+    }
     default: return send(res, { message: `mock: no rpc ${name}` }, 404);
   }
 }
@@ -260,7 +271,7 @@ export function handleUserRequest(req, res, url, body, raw) {
   if (!user) return false;
   if (p.startsWith("/rest/v1/rpc/")) {
     const name = p.replace("/rest/v1/rpc/", "");
-    const known = ["handle_change_available_at", "team_invite_code", "team_roster", "claim_handle", "set_primary_game", "create_team", "upload_allowed"];
+    const known = ["handle_change_available_at", "team_invite_code", "team_roster", "claim_handle", "set_primary_game", "create_team", "upload_allowed", "leave_team"];
     if (!known.includes(name)) return false;
     return rpc(res, name, body ?? {}), true;
   }
@@ -282,6 +293,10 @@ export function handleServiceRequest(req, res, url, body) {
     const bucket = url.pathname.split("/").pop();
     for (const k of body.prefixes ?? []) state.files.delete(`${bucket}/${k}`);
     return send(res, []), true;
+  }
+  if (req.method === "DELETE" && url.pathname === "/rest/v1/waitlist") {
+    state.waitlistDeletes = [...(state.waitlistDeletes ?? []), (url.searchParams.get("email") ?? "").replace(/^eq\./, "")];
+    return send(res, undefined, 204), true;
   }
   if (req.method === "GET" && url.pathname === `/auth/v1/admin/users/${state.user.id}`) return send(res, state.user), true;
   if (req.method === "DELETE" && url.pathname === `/auth/v1/admin/users/${state.user.id}`) {
