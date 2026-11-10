@@ -70,7 +70,7 @@ export function GamesManager({ games }: { games: PlayerGame[] }) {
                       className={inputClass}
                       value={pg.role ?? ""}
                       disabled={pending}
-                      onChange={(e) => run(() => saveGameAction({ game: cfg.id, role: e.target.value || null, rank: pg.rank }))}
+                      onChange={(e) => run(() => saveGameAction({ game: cfg.id, role: e.target.value || null }))}
                     >
                       <option value="">Not set</option>
                       {cfg.roles.map((r) => (
@@ -81,22 +81,6 @@ export function GamesManager({ games }: { games: PlayerGame[] }) {
                     </select>
                   </label>
                 ) : null}
-                <label className="flex flex-col gap-1.5 text-sm font-semibold">
-                  Rank
-                  <select
-                    className={inputClass}
-                    value={pg.rank ?? ""}
-                    disabled={pending}
-                    onChange={(e) => run(() => saveGameAction({ game: cfg.id, role: pg.role, rank: e.target.value || null }))}
-                  >
-                    <option value="">Not set</option>
-                    {cfg.ranks.map((r) => (
-                      <option key={r} value={r}>
-                        {r}
-                      </option>
-                    ))}
-                  </select>
-                </label>
               </div>
             </li>
           );

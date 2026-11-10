@@ -55,7 +55,7 @@ export const seo = {
   app: {
     home: {
       title: "Create an Esports Player Account | Victress",
-      description: "Create a Victress account, pick your name and add your games, roles and ranks. Profiles are private by default.",
+      description: "Create a Victress account, pick your name and add your games and roles. Profiles are private by default.",
     },
     login: {
       title: "Sign In | Victress",

@@ -62,7 +62,6 @@ export async function changeHandleAction(raw: string): Promise<Result & { status
 const gameSchema = z.object({
   game: z.enum(GAME_IDS),
   role: z.string().max(40).nullable().optional(),
-  rank: z.string().max(40).nullable().optional(),
 });
 
 export async function saveGameAction(input: z.input<typeof gameSchema>): Promise<Result> {
@@ -71,8 +70,7 @@ export async function saveGameAction(input: z.input<typeof gameSchema>): Promise
   if (!p.success) return fail();
   const cfg = getGame(p.data.game)!;
   const role = p.data.role && cfg.roles.includes(p.data.role) ? p.data.role : null;
-  const rank = p.data.rank && cfg.ranks.includes(p.data.rank) ? p.data.rank : null;
-  return (await savePlayerGame(sb, user.id, cfg, role, rank)) ? { ok: true } : fail();
+  return (await savePlayerGame(sb, user.id, cfg, role)) ? { ok: true } : fail();
 }
 
 export async function removeGameAction(game: string): Promise<Result> {

@@ -7,10 +7,9 @@ export interface ProfileCardProps {
   avatarUrl: string | null;
   game: string | null;
   role: string | null;
-  rank: string | null;
   teamName: string | null;
   /** Other games on the profile (not the primary one). */
-  alsoPlays?: { game: string; role: string | null; rank: string | null }[];
+  alsoPlays?: { game: string; role: string | null }[];
   isDemo?: boolean;
   appHost: string;
 }
@@ -23,7 +22,6 @@ export function ProfileCard(p: ProfileCardProps) {
     ["Game", cfg?.name ?? p.game],
     // Games without fixed roles (Rocket League) don't show a role slot.
     ...(!cfg || cfg.roles.length ? ([[cfg?.roleLabel ?? "Role", p.role]] as const) : []),
-    ["Rank", p.rank],
   ] as const;
 
   return (
@@ -62,7 +60,7 @@ export function ProfileCard(p: ProfileCardProps) {
         <p className="mt-4 text-sm text-mute">
           <span className="font-semibold text-white">Also plays</span>{" "}
           {p.alsoPlays
-            .map((g) => [getGame(g.game)?.name ?? g.game, g.rank].filter(Boolean).join(" · "))
+            .map((g) => getGame(g.game)?.name ?? g.game)
             .join(", ")}
         </p>
       ) : null}

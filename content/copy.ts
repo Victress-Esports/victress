@@ -76,9 +76,9 @@ export const copy = {
       ],
       player: {
         title: "Your Player Resume.",
-        line: "Your games, roles, ranks, tournaments and highlights in one resume you control. Free to start.",
+        line: "Your games, roles and highlight links in one resume you control. Free to start.",
         cta: "Create your Player Resume",
-        steps: ["Create your account", "Add your games, roles and ranks", "Add your tournaments and highlights"],
+        steps: ["Create your account", "Add your games and roles", "Add your highlight links"],
       },
       team: {
         title: "Bring your roster into one place.",
@@ -230,8 +230,8 @@ export const copy = {
       scrim: { points: [] as string[] },
       resume: {
         points: [
-          "Your games, roles and ranks in one place.",
-          "Tournament history and highlights.",
+          "Your games and roles in one place.",
+          "Highlight links you host elsewhere.",
           "Privacy controls: your profile is private by default.",
         ],
       },
@@ -430,7 +430,7 @@ export const copy = {
     nowTitle: "What Victress does",
     // `soon` puts one plain "Coming soon" label next to the item.
     offers: [
-      { text: "Player accounts with your games, roles and ranks.", soon: false },
+      { text: "Player accounts with your games and roles.", soon: false },
       { text: "Team rosters with invite links.", soon: false },
       { text: "A profile that is private by default, so you choose what to share.", soon: false },
       { text: "Scrim Intelligence: private practice into performance information.", soon: true },

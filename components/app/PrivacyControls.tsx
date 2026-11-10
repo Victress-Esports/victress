@@ -24,7 +24,7 @@ const FIELD_LABELS: { key: keyof Fields; label: string }[] = [
   { key: "avatar", label: "Photo" },
   { key: "bio", label: "Bio" },
   { key: "team", label: "Team" },
-  { key: "rank_role", label: "Role and rank" },
+  { key: "rank_role", label: "Role" },
 ];
 
 const fmt = (d: string) => new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });

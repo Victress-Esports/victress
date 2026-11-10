@@ -65,7 +65,7 @@ export default async function Dashboard() {
       ) : null}
 
       <section aria-label="Modules" className="grid gap-4 sm:grid-cols-2">
-        <ModuleCard href="/dashboard/resume" title="Player Resume" line="Your games, roles, ranks, tournaments and highlights." chip={null} />
+        <ModuleCard href="/dashboard/resume" title="Player Resume" line="Your games, roles and highlight links." chip={null} />
         <ModuleCard href="/dashboard/scrims" title="Scrims" line="Log your practice matches." chip={null} />
         <ModuleCard href="/dashboard/privacy" title="Privacy" line="Your profile is private by default. You choose what to share." chip={null} />
         <ModuleCard href="/dashboard/team" title="Team" line="Create a team, invite players with a link, and see your roster." chip={null} />
