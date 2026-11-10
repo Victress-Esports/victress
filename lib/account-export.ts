@@ -18,7 +18,7 @@ export async function buildAccountExport(sb: SupabaseClient<Database>, user: Use
     return data ?? [];
   };
 
-  const profile = await own("profiles", "handle, display_name, bio, avatar_url, game, role, team_id, search_indexable, directory_listed, show_on_leaderboards, public_fields, handle_changed_at, created_at, updated_at", "id");
+  const profile = await own("profiles", "handle, display_name, bio, avatar_url, game, role, team_id, search_indexable, directory_listed, show_on_leaderboards, public_fields, created_at, updated_at", "id");
   const membership = await own("team_members", "team_id, role, joined_at");
   let team: unknown = null;
   const teamId = (profile?.[0] as { team_id?: string } | undefined)?.team_id;
