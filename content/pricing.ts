@@ -25,7 +25,7 @@ export const PLANS: Plan[] = [
     monthly: 0,
     unit: "forever",
     blurb:
-      "Your competitive profile starts here. Track your stats, share your progress, and build your presence in esports.",
+      "Get your player profile started. Show who you are and what you've done in esports.",
     live: true,
   },
   {
@@ -35,7 +35,7 @@ export const PLANS: Plan[] = [
     yearly: 75,
     unit: "per month",
     blurb:
-      "A clearer view of your performance. Track your progress, build your player profile, and share it with teams.",
+      "Take your player profile further. Show more of your experience and get noticed by teams.",
     live: false,
     interest: "pro",
     highlight: true,

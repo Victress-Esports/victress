@@ -266,11 +266,30 @@ export const copy = {
         line: "Reporting, blocking and review are in place before features that expose players to strangers launch.",
       },
     ],
-    pilotTitle: "A first step.",
-    pilot:
-      "The Founding Design Partner pilot is a 4 to 6 week program open to women's competitive rosters, Game Changers teams and collegiate programs.",
-    pilotCta: "See the pilot",
-    contactCta: "Contact us",
+    takePartTitle: "How to take part.",
+    takePart: [
+      {
+        id: "organizations",
+        title: "Organizations",
+        line: "Provide resources, expertise, infrastructure and opportunities.",
+        cta: "Learn about partnering",
+        to: "/partnerships",
+      },
+      {
+        id: "teams",
+        title: "Teams and programs",
+        line: "Women's rosters, Game Changers teams and collegiate programs.",
+        cta: "Start your team",
+        to: "app:/login?role=team",
+      },
+      {
+        id: "players",
+        title: "Players",
+        line: "Build a credible record of your competitive identity.",
+        cta: "Build your Player Resume",
+        to: "app:/login?role=player",
+      },
+    ],
   },
 
   // /design-partner. The program terms below are the founder's, used as given.
@@ -377,17 +396,12 @@ export const copy = {
       },
       {
         title: "One dashboard.",
-        line: "See everyone's game and rank.",
+        line: "See everyone's game and role.",
         soon: false,
       },
       {
         title: "Shared scrim review.",
         line: "Review scrim performance together.",
-        soon: true,
-      },
-      {
-        title: "Team standings.",
-        line: "See how your team compares with others.",
         soon: true,
       },
       {

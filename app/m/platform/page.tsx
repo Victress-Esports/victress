@@ -97,7 +97,7 @@ export default function Platform() {
                   ) : null}
                   {hasAccount ? (
                     <div className="mt-8">
-                      <ButtonLink href={appUrl("/login")}>{h.final.cta}</ButtonLink>
+                      <ButtonLink href={appUrl("/login?role=player")}>{h.final.cta}</ButtonLink>
                     </div>
                   ) : null}
                 </div>
@@ -112,11 +112,6 @@ export default function Platform() {
         );
       })}
 
-      <section className="border-t border-line">
-        <div className="mx-auto max-w-3xl px-4 py-20 sm:px-6">
-          <ButtonLink href="/design-partner">{p.cta}</ButtonLink>
-        </div>
-      </section>
     </div>
     <WomenStrip />
     </>
