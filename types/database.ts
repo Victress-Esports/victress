@@ -182,6 +182,16 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      partner_exclusivity: {
+        Row: {
+          approved_at: string | null; activated_at: string | null; category: string; category_key: string; created_at: string; duration_months: number;
+          ends_at: string | null; id: string; invoice_status: string | null; invoice_url: string | null; note: string | null; org_id: string;
+          status: string; stripe_customer_id: string | null; stripe_invoice_id: string | null; updated_at: string;
+        };
+        Insert: { category: string; duration_months: number; note?: string | null; org_id: string };
+        Update: never;
+        Relationships: [];
+      };
       partner_impact_records: {
         Row: {
           category: string; created_at: string; id: string; occurred_on: string; org_id: string; quantity: number | null;
@@ -228,6 +238,12 @@ export type Database = {
         };
         Returns: string;
       };
+      partner_is_anchor_owner: { Args: { p_org: string }; Returns: boolean };
+      partner_category_taken: { Args: { p_category: string }; Returns: boolean };
+      partner_exclusivity_active: { Args: { p_org: string }; Returns: boolean };
+      partner_exclusivity_withdraw: { Args: { p_request: string }; Returns: string };
+      partner_exclusivity_attach_invoice: { Args: { p_request: string; p_customer: string; p_invoice: string; p_url: string }; Returns: string };
+      partner_exclusivity_apply_invoice: { Args: { p_invoice: string; p_event: string; p_paid_at: string }; Returns: string };
       claim_handle: { Args: { p_handle: string }; Returns: string };
       create_team: { Args: { p_name: string }; Returns: Json };
       handle_change_available_at: { Args: Record<string, never>; Returns: string | null };

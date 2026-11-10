@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { CONTACT_EMAIL, copy } from "@/content/copy";
-import { PARTNER_PLANS } from "@/content/partner";
+import { copy } from "@/content/copy";
+import { PARTNER_PLANS, isComing, marketingText } from "@/content/partner";
 import { seo } from "@/content/seo";
 import { marketingCrumbs } from "@/lib/jsonld";
 import { pageMetadata } from "@/lib/seo";
@@ -30,7 +30,6 @@ export default function Partnerships() {
           </Card>
         ))}
       </ul>
-      <p className="mt-8 text-sm text-mute">{p.note}</p>
       <p className="mt-6 text-mute">
         <a
           href="/design-partner"
@@ -49,31 +48,32 @@ export default function Partnerships() {
           Partner is an account for organizations: universities, companies, esports organizations, leagues, community groups and nonprofits. Partners take part in
           addressing the barriers women competitors face in esports, and see what happened. Partners do not get access to player profiles, scrims or contact details.
         </p>
-        <ul className="mt-8 grid gap-5 md:grid-cols-3">
+        <ul className="mt-8 grid gap-5 md:grid-cols-2">
           {PARTNER_PLANS.map((pl) => (
-            <Card as="li" key={pl.id}>
+            <Card as="li" key={pl.id} className="flex flex-col">
               <h3 className="font-display text-xl font-bold">{pl.name}</h3>
               <p className="mt-2">
                 <span className="font-display text-3xl font-bold">{pl.price}</span> <span className="text-mute">{pl.priceLine}</span>
               </p>
+              {pl.includes ? <p className="mt-4 text-mute">Everything in {PARTNER_PLANS.find((x) => x.id === pl.includes)?.name}, plus:</p> : null}
               <ul className="mt-4 flex list-disc flex-col gap-2 pl-5 text-mute">
-                {pl.includes.map((i) => (
-                  <li key={i}>{i}</li>
+                {pl.benefits.map((b) => (
+                  <li key={b.id}>
+                    {marketingText(b)}
+                    {isComing(b) ? <span className="ml-2 whitespace-nowrap rounded-full border border-line px-2 py-0.5 text-xs">Coming soon</span> : null}
+                  </li>
                 ))}
               </ul>
+              <div className="mt-auto pt-6">
+                <ButtonLink href={appUrl("/partner")}>Become a Partner</ButtonLink>
+              </div>
             </Card>
           ))}
         </ul>
-        <ButtonLink href={appUrl("/partner")} className="mt-8">
-          Become a Partner
-        </ButtonLink>
+        <p className="mt-6 max-w-2xl text-sm text-mute">
+          Category Exclusivity is requested by an Anchor Partner inside the dashboard. Victress approves each category so it is never sold twice, and payment is by Stripe invoice. Partners never get access to player data. Players decide what is shared, and nothing is shared about minors.
+        </p>
       </section>
-      <p className="mt-6 text-sm text-mute">
-        Questions about partnering?{" "}
-        <a href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(p.subject)}`} className="inline-block py-1 font-semibold text-white underline underline-offset-2">
-          {CONTACT_EMAIL}
-        </a>
-      </p>
     </div>
   );
 }

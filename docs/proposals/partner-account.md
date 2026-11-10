@@ -35,3 +35,25 @@ drop function public.partner_org_id(), public.partner_is_paid(uuid), public.part
   public.partner_caps(), public.partner_opportunity_defaults(), public.partner_org_touch();
 -- handle_is_allowed: re-create from 20261106000300 to release the "partner" name.
 ```
+
+## Update 2026-11-10: four plans, entitlements and Category Exclusivity
+Basis: `docs/partner/` (decision authority, the approved brief and the Partner Experience specification). Plans, prices and benefits are the brief's, not the earlier branch's.
+
+**Central configuration:** `content/partner-entitlements.ts`. Four plans (Community Partner, Supporting Partner, Anchor Partner, Anchor Partner with Category Exclusivity), every benefit with a status (`implemented`, `in_development`, `planned`) and, where a benefit is built and enforced, a capability (`offer_support`, `impact_report_csv`, `request_exclusivity`). Pages and actions ask `allowed(...)`; the database enforces the same rules. Tests: the Postgres checks below. victressesports.com labels every unbuilt benefit "Coming soon"; victress.gg shows Available, In development or Planned.
+
+**Earlier approved wording is kept**, not replaced: Community's "All five Partner sections", "Post opportunities that need support" and "Submit ways to participate" (now `earlierWording` on the new Community benefits); Supporting's "Offer Support on published opportunities" and "A downloadable impact report (CSV)" (both built); Anchor's "Initiatives planned with the Victress team" (`anchor_initiatives`) and "Category exclusivity" (now the Request Category Exclusivity benefit and the fourth plan).
+
+**Exclusivity flow:** request (Anchor owner, paid and active) → Victress approves in the admin queue (`partner_exclusivity.status = 'approved'`; a category cannot be approved twice) → owner pays a Stripe hosted invoice from Organization Settings → `invoice.paid` webhook activates it for the requested duration → the Anchor subscription ending ends it. No email step. Migration `20261110000100_partner_exclusivity.sql` (additive, 55 new checks in `supabase/tests/partner_exclusivity.sql`; the 93 earlier checks are unchanged and still pass).
+
+**Self-serve:** the marketing page no longer has an email link or "case by case" note; "handled directly with Victress" and "contact Victress" are gone. Every plan card has one Become a Partner button to victress.gg/partner.
+
+### Open questions for the founder (not decided in code)
+1. **$85,000 versus $50,000.** The code treats the $85,000 as the full annual price of the plan ("Everything in Anchor Partner"), invoiced on top of an active Anchor subscription. Does the $85,000 replace the $50,000 (credit or cancel the Anchor subscription) or is it additional? Nothing is cancelled or credited automatically.
+2. **Anchor by invoice.** The brief allows a Stripe hosted invoice for Anchor itself. Anchor is Checkout only for now (card or ACH as the Stripe account allows). Invoice-based Anchor needs a subscription with `send_invoice` and a rule that activates it on `invoice.paid`, not on creation.
+3. **Specification versus brief on exclusivity.** The specification says no self-service $85,000 subscription; the brief says an invoice. Built as the brief says (not a subscription, not Checkout). Resolved by the handoff, listed for the record.
+4. **Anchor lapse.** If the Anchor subscription ends, exclusivity ends and the category is freed. Confirm.
+5. **Brand rule versus verbatim wording.** victressesports.com bans hyphens, so "Co-developed" and "co-investment" are shown there as "Codeveloped" and "co investment". victress.gg shows them exactly as approved.
+6. **Scout Desk seats and Scrim Intelligence subsidization** are `planned` and show "Coming soon". CLAUDE.md earlier said to leave Scout Desk seats out of the plans; the handoff overrides it. Seats stay opt-in players only, never minors.
+7. **Stripe invoice payment methods** (card, ACH, bank transfer) must be enabled on the Victress Stripe account for invoices. Not verified; no sandbox access here.
+8. **Invoice price type.** The exclusivity price is used as an invoice item. If Stripe rejects a recurring price there, create it as a one time price.
+9. **Not built from the specification** (outside this task): PDF reports, the Offer Support discussion thread, multi user roles beyond owner and member, an in-app admin console (the table editor is used), manual check recording, payment history and invoices list in Settings.

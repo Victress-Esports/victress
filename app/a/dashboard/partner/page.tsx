@@ -21,7 +21,7 @@ async function count(p: Awaited<ReturnType<typeof requirePartner>>, table: "part
 
 export default async function Overview() {
   const p = await requirePartner();
-  const { sb, org } = p;
+  const { sb, org, plan } = p;
   const [participation, offers, impact, findings, mine, listed] = await Promise.all([
     count(p, "partner_participation"),
     count(p, "partner_support_offers"),
@@ -47,7 +47,7 @@ export default async function Overview() {
         <dl className="grid gap-4 sm:grid-cols-3">
           <div>
             <dt className="text-sm text-mute">Partner Plan</dt>
-            <dd className="mt-1 font-semibold">{planLabel(org.plan)}</dd>
+            <dd className="mt-1 font-semibold">{planLabel(plan)}</dd>
           </div>
           <div>
             <dt className="text-sm text-mute">Verification</dt>

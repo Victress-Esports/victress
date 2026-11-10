@@ -7,8 +7,9 @@ export const dynamic = "force-dynamic";
 
 /**
  * Stripe webhook (docs/stripe.md). Verifies the signature on the raw body, then handles only checkout.session.completed and
- * customer.subscription.created / updated / deleted that carry partner metadata (kind=partner). Every other event, partner or not,
- * is acknowledged and ignored. An ended subscription returns the organization to Community.
+ * customer.subscription.created / updated / deleted that carry partner metadata (kind=partner), and invoice.paid / payment_failed / voided
+ * for exclusivity invoices (kind=partner_exclusivity). Every other event, partner or not, is acknowledged and ignored. An ended
+ * subscription returns the organization to Community. Exclusivity activates only on invoice.paid, never on a request or an approval.
  * 400 = bad signature. 500 = something on our side failed, so Stripe retries. 200 = handled or deliberately ignored.
  */
 interface StripeEvent {
@@ -55,6 +56,28 @@ async function apply(sub: StripeSubscription, eventType: string, eventAt: number
   return ok(String(data));
 }
 
+/** Exclusivity invoices. The request is found by the invoice id Victress stored, so a forged metadata field cannot point at another request. */
+async function applyInvoice(inv: Record<string, unknown>, type: string, eventAt: number): Promise<NextResponse> {
+  const meta = (inv.metadata ?? {}) as Record<string, string>;
+  if (meta.kind !== "partner_exclusivity" || typeof inv.id !== "string") return ok("not exclusivity");
+  const sb = supabaseAdmin();
+  if (!sb) return NextResponse.json({ error: "database unavailable" }, { status: 500 });
+  const event = type === "invoice.paid" ? "paid" : type === "invoice.payment_failed" ? "payment_failed" : "void";
+  const transitions = (inv.status_transitions ?? {}) as { paid_at?: number | null };
+  const paidAt = new Date((transitions.paid_at ?? eventAt) * 1000).toISOString();
+  const { data, error } = await sb.rpc("partner_exclusivity_apply_invoice", { p_invoice: inv.id, p_event: event, p_paid_at: paidAt });
+  if (error) {
+    console.error("partner webhook: partner_exclusivity_apply_invoice failed", error.message);
+    return NextResponse.json({ error: "could not apply" }, { status: 500 });
+  }
+  // A paid invoice of ours that no request knows yet: answer 500 so Stripe retries, instead of losing a confirmed payment.
+  if (data === "not_found" && event === "paid") {
+    console.error(`partner webhook: invoice ${inv.id} was paid but matches no exclusivity request`);
+    return NextResponse.json({ error: "no matching request" }, { status: 500 });
+  }
+  return ok(String(data));
+}
+
 export async function POST(req: Request) {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!secret) {
@@ -88,6 +111,10 @@ export async function POST(req: Request) {
       case "customer.subscription.updated":
       case "customer.subscription.deleted":
         return await apply(obj as unknown as StripeSubscription, event.type, event.created);
+      case "invoice.paid":
+      case "invoice.payment_failed":
+      case "invoice.voided":
+        return await applyInvoice(obj, event.type, event.created);
       default:
         return ok("ignored");
     }

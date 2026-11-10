@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { IMPACT_ATTRIBUTION, impactLabel, opportunityTypeLabel, statusLabel, wayLabel } from "@/content/partner";
+import { can, effectivePlan, IMPACT_ATTRIBUTION, impactLabel, opportunityTypeLabel, statusLabel, wayLabel } from "@/content/partner";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +21,9 @@ export async function GET() {
   const { data: orgId } = await sb.rpc("partner_org_id");
   if (!orgId) return new NextResponse("Not found.", { status: 404, headers: { "Cache-Control": "no-store" } });
   const { data: paid } = await sb.rpc("partner_is_paid", { p_org: orgId });
-  if (!paid) return new NextResponse("The impact report is part of the Supporting and Anchor plans.", { status: 403, headers: { "Cache-Control": "no-store" } });
+  const { data: planRow } = await sb.from("partner_organizations").select("plan").eq("id", orgId).maybeSingle();
+  // Central entitlement (content/partner-entitlements.ts) and the database rule must both agree.
+  if (!paid || !can(effectivePlan(planRow?.plan ?? "community", true, false), "impact_report_csv")) return new NextResponse("The impact report is part of the Supporting and Anchor plans.", { status: 403, headers: { "Cache-Control": "no-store" } });
 
   const [{ data: org }, { data: part }, { data: opps }, { data: offers }, { data: recs }] = await Promise.all([
     sb.from("partner_organizations").select("name").eq("id", orgId).maybeSingle(),

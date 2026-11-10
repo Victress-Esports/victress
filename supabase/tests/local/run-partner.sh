@@ -10,9 +10,14 @@ for m in supabase/migrations/*.sql; do
   psql -v ON_ERROR_STOP=1 -q -d $DB -f "$m" >/dev/null 2>/tmp/mig.err || { echo "MIGRATION FAILED: $m"; cat /tmp/mig.err; exit 1; }
   echo "applied $(basename "$m")"
 done
-out=$(psql -q -d $DB -f supabase/tests/partner.sql 2>&1 | awk '/ERROR:/{f=1; sub(/^.*ERROR:  /,"")} /^CONTEXT:/{f=0} f')
-echo "$out"
-echo "$out" | grep -q '^FAIL' && { echo "PARTNER DATABASE CHECKS FAILED"; exit 1; }
-echo "$out" | grep -q '^RESULTS' || { echo "PARTNER TEST DID NOT REPORT (error above)"; exit 1; }
-[ "$(echo "$out" | grep -c '^PASS')" -lt 90 ] && { echo "TOO FEW CHECKS RAN"; exit 1; }
+run_test() { # file, minimum number of PASS lines
+  out=$(psql -q -d $DB -f "$1" 2>&1 | awk '/ERROR:/{f=1; sub(/^.*ERROR:  /,"")} /^CONTEXT:/{f=0} f')
+  echo "$out"
+  echo "$out" | grep -q '^FAIL' && { echo "PARTNER DATABASE CHECKS FAILED in $1"; exit 1; }
+  echo "$out" | grep -q '^RESULTS' || { echo "PARTNER TEST DID NOT REPORT in $1 (error above)"; exit 1; }
+  [ "$(echo "$out" | grep -c '^PASS')" -lt "$2" ] && { echo "TOO FEW CHECKS RAN in $1"; exit 1; }
+  return 0
+}
+run_test supabase/tests/partner.sql 90
+run_test supabase/tests/partner_exclusivity.sql 50
 echo "ALL PARTNER DATABASE CHECKS PASSED"

@@ -10,7 +10,8 @@ import { privateMetadata } from "@/lib/seo";
 export const metadata: Metadata = privateMetadata("Partner Opportunities | Victress", "Published opportunities that need support, and your own submissions.");
 
 export default async function Opportunities() {
-  const { sb, org, paid } = await requirePartner();
+  const { sb, org, allowed } = await requirePartner();
+  const paid = allowed("offer_support");
   const [{ data: all }, { data: offers }] = await Promise.all([
     sb.from("partner_opportunities").select("id, org_id, organization_name, type, title, purpose, support_needed, status, published_at, created_at").order("created_at", { ascending: false }),
     sb.from("partner_support_offers").select("id, opportunity_id, support_type, status, created_at"),

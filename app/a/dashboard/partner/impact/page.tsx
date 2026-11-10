@@ -11,7 +11,8 @@ export const metadata: Metadata = privateMetadata("Partner Impact | Victress", "
 const date = (d: string) => new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
 export default async function Impact() {
-  const { sb, org, paid } = await requirePartner();
+  const { sb, org, allowed } = await requirePartner();
+  const paid = allowed("impact_report_csv");
   const [{ data: participation }, { data: opps }, { data: offers }, { data: records }] = await Promise.all([
     sb.from("partner_participation").select("id, way, title, status, created_at").order("created_at", { ascending: false }),
     sb.from("partner_opportunities").select("id, type, title, status, created_at").eq("org_id", org.id).order("created_at", { ascending: false }),

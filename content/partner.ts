@@ -5,60 +5,8 @@
 /** Version of the Terms an organization accepts at signup (the "Effective November 7, 2026" Terms, content/legal.ts). Stored with a timestamp. */
 export const PARTNER_TERMS_VERSION = "terms-2026-11-07";
 
-export type PartnerPlanId = "community" | "supporting" | "anchor";
-export type PartnerInterval = "monthly" | "annual";
-
-export interface PartnerPlan {
-  id: PartnerPlanId;
-  name: string;
-  /** Display price. Anchor is annual only. */
-  price: string;
-  priceLine: string;
-  intervals: PartnerInterval[];
-  includes: string[];
-}
-
-export const PARTNER_PLANS: PartnerPlan[] = [
-  {
-    id: "community",
-    name: "Community Partner",
-    price: "$0",
-    priceLine: "Free",
-    intervals: [],
-    includes: [
-      "All five Partner sections",
-      "Post opportunities that need support",
-      "Submit ways to participate",
-    ],
-  },
-  {
-    id: "supporting",
-    name: "Supporting Partner",
-    price: "$1,000",
-    priceLine: "per month, or $10,000 per year",
-    intervals: ["monthly", "annual"],
-    includes: [
-      "Everything in Community Partner",
-      "Offer Support on published opportunities",
-      "A downloadable impact report (CSV)",
-    ],
-  },
-  {
-    id: "anchor",
-    name: "Anchor Partner",
-    price: "$50,000",
-    priceLine: "per year",
-    intervals: ["annual"],
-    includes: [
-      "Everything in Supporting Partner",
-      "Initiatives developed together with the Victress team",
-      "Category exclusivity by agreement, handled directly with Victress",
-    ],
-  },
-];
-
-export const planLabel = (id: string) => PARTNER_PLANS.find((p) => p.id === id)?.name ?? "Community Partner";
-export const isPaidPlan = (id: string) => id === "supporting" || id === "anchor";
+// Plans, prices, benefits and their statuses live in content/partner-entitlements.ts (one central configuration).
+export * from "@/content/partner-entitlements";
 
 export const ORG_TYPES = [
   { id: "university", label: "University" },

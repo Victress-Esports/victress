@@ -7,14 +7,17 @@ import { FormMessage, inputClass } from "@/components/ui/form";
 import {
   OPPORTUNITY_TYPES,
   ORG_TYPES,
-  PARTNER_PLANS,
+  SIGNUP_PLANS,
   WAYS,
   type PartnerInterval,
-  type PartnerPlanId,
+  type SignupPlanId,
 } from "@/content/partner";
 import { createPartnerOrgAction } from "@/app/a/partner/actions";
 import {
   offerSupportAction,
+  requestExclusivityAction,
+  startExclusivityInvoiceAction,
+  withdrawExclusivityAction,
   openBillingPortalAction,
   startUpgradeAction,
   submitOpportunityAction,
@@ -41,10 +44,10 @@ const areaClass = `${inputClass} min-h-28 py-3`;
 function PlanPicker({
   plan, interval, onPlan, onInterval, withCommunity,
 }: {
-  plan: PartnerPlanId; interval: PartnerInterval; onPlan: (p: PartnerPlanId) => void; onInterval: (i: PartnerInterval) => void; withCommunity: boolean;
+  plan: SignupPlanId; interval: PartnerInterval; onPlan: (p: SignupPlanId) => void; onInterval: (i: PartnerInterval) => void; withCommunity: boolean;
 }) {
-  const plans = PARTNER_PLANS.filter((p) => withCommunity || p.id !== "community");
-  const current = PARTNER_PLANS.find((p) => p.id === plan)!;
+  const plans = SIGNUP_PLANS.filter((p) => withCommunity || p.id !== "community");
+  const current = SIGNUP_PLANS.find((p) => p.id === plan)!;
   return (
     <fieldset className="flex flex-col gap-3">
       <legend className="text-sm font-semibold">Plan</legend>
@@ -79,7 +82,7 @@ export function PartnerSignupForm({ billingOpen }: { billingOpen: boolean }) {
   const [name, setName] = useState("");
   const [type, setType] = useState("");
   const [website, setWebsite] = useState("");
-  const [plan, setPlan] = useState<PartnerPlanId>("community");
+  const [plan, setPlan] = useState<SignupPlanId>("community");
   const [interval, setInterval] = useState<PartnerInterval>("monthly");
   const [authorized, setAuthorized] = useState(false);
 
@@ -322,7 +325,7 @@ export function OrganizationForm({ name, type, website, canEdit }: { name: strin
 
 export function UpgradePanel() {
   const { pending, msg, run } = useAction();
-  const [plan, setPlan] = useState<PartnerPlanId>("supporting");
+  const [plan, setPlan] = useState<SignupPlanId>("supporting");
   const [interval, setInterval] = useState<PartnerInterval>("monthly");
   return (
     <div className="flex flex-col gap-4">
@@ -342,6 +345,65 @@ export function ManageBillingButton() {
       <button type="button" disabled={pending} onClick={() => run(() => openBillingPortalAction())} className={buttonClass("secondary", "w-full sm:w-auto")}>
         {pending ? "Opening…" : "Manage billing"}
       </button>
+      <FormMessage message={msg} />
+    </div>
+  );
+}
+
+/** Anchor Partner, owner: ask for a category and a duration. Victress approves the category, then the owner pays a Stripe hosted invoice. */
+export function ExclusivityRequestForm() {
+  const { pending, msg, run } = useAction();
+  const [category, setCategory] = useState("");
+  const [years, setYears] = useState("1");
+  const [note, setNote] = useState("");
+  return (
+    <form
+      className="flex flex-col gap-4"
+      onSubmit={(e: FormEvent) => {
+        e.preventDefault();
+        run(() => requestExclusivityAction({ category, duration_months: (Number(years) * 12) as 12, note }));
+      }}
+    >
+      <Labeled id="x-category" label="Category">
+        <input id="x-category" value={category} onChange={(e) => setCategory(e.target.value)} maxLength={80} placeholder="For example, gaming peripherals" className={inputClass} />
+      </Labeled>
+      <Labeled id="x-years" label="Duration">
+        <select id="x-years" value={years} onChange={(e) => setYears(e.target.value)} className={inputClass}>
+          {[1, 2, 3, 4, 5].map((y) => (
+            <option key={y} value={y}>
+              {y === 1 ? "1 year" : `${y} years`}
+            </option>
+          ))}
+        </select>
+      </Labeled>
+      <Labeled id="x-note" label="Anything Victress should know (optional)">
+        <textarea id="x-note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={1000} rows={3} className={inputClass} />
+      </Labeled>
+      <button type="submit" disabled={pending || category.trim().length < 3} className={buttonClass("primary", "w-full sm:w-auto")}>
+        {pending ? "Sending…" : "Request Category Exclusivity"}
+      </button>
+      <FormMessage message={msg} />
+    </form>
+  );
+}
+
+export function ExclusivityActions({ id, status, hasInvoice, billingOpen }: { id: string; status: string; hasInvoice: boolean; billingOpen: boolean }) {
+  const { pending, msg, run } = useAction();
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap gap-3">
+        {status === "approved" ? (
+          <button type="button" disabled={pending || !billingOpen} onClick={() => run(() => startExclusivityInvoiceAction(id))} className={buttonClass("primary", "w-full sm:w-auto")}>
+            {pending ? "Opening…" : hasInvoice ? "Open invoice" : "Pay by invoice"}
+          </button>
+        ) : null}
+        {status === "requested" || status === "approved" ? (
+          <button type="button" disabled={pending} onClick={() => run(() => withdrawExclusivityAction(id))} className={buttonClass("secondary", "w-full sm:w-auto")}>
+            Withdraw request
+          </button>
+        ) : null}
+      </div>
+      {status === "approved" && !billingOpen ? <p className="text-sm text-mute">Invoices are not open yet. Your approval is kept.</p> : null}
       <FormMessage message={msg} />
     </div>
   );

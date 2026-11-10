@@ -1,6 +1,6 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
-import type { PartnerInterval, PartnerPlanId } from "@/content/partner";
+import type { PartnerInterval, SignupPlanId } from "@/content/partner";
 
 /**
  * Partner billing, server only. Talks to Stripe over its REST API with fetch (no SDK), and verifies webhook signatures itself.
@@ -8,13 +8,13 @@ import type { PartnerInterval, PartnerPlanId } from "@/content/partner";
  */
 export const partnerBillingEnabled = () => process.env.PARTNER_BILLING_ENABLED === "true";
 
-type PaidPlan = Exclude<PartnerPlanId, "community">;
+type PaidPlan = Exclude<SignupPlanId, "community">;
 export interface PaidChoice {
   plan: PaidPlan;
   interval: PartnerInterval;
 }
 
-/** The three partner prices (env vars hold Stripe price ids, test mode first). Anchor is annual only. */
+/** The three subscription prices (env vars hold Stripe price ids, test mode first). Anchor is annual only. The exclusivity price is separate: see exclusivityPriceId. */
 export function partnerPriceId({ plan, interval }: PaidChoice): string | null {
   const env = process.env;
   if (plan === "supporting" && interval === "monthly") return env.STRIPE_PRICE_PARTNER_SUPPORTING_MONTHLY || null;
@@ -40,12 +40,12 @@ export const isValidChoice = (plan: string, interval: string): plan is PaidPlan 
 /** Test only: lets scripts/partner-webhook-test.mjs point at a local fake. Production never sets it. */
 const api = () => process.env.STRIPE_API_BASE || "https://api.stripe.com/v1";
 
-async function stripe<T>(path: string, params: URLSearchParams): Promise<T> {
+async function stripe<T>(path: string, params: URLSearchParams, idempotencyKey?: string): Promise<T> {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) throw new Error("STRIPE_SECRET_KEY is not set");
   const res = await fetch(`${api()}/${path}`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/x-www-form-urlencoded" },
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/x-www-form-urlencoded", ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}) },
     body: params,
     cache: "no-store",
   });
@@ -97,6 +97,48 @@ export async function createPortalSession(customerId: string, returnUrl: string)
   const s = await stripe<{ url?: string }>("billing_portal/sessions", new URLSearchParams({ customer: customerId, return_url: returnUrl }));
   if (!s.url) throw new Error("Stripe returned no portal URL");
   return s.url;
+}
+
+/** The Stripe price for "Anchor Partner with Category Exclusivity" ($85,000 per year). It is only ever used on an invoice for an approved request, never in Checkout. */
+export const exclusivityPriceId = () => process.env.STRIPE_PRICE_PARTNER_ANCHOR_EXCLUSIVE_ANNUAL || null;
+
+/**
+ * A Stripe hosted invoice for an APPROVED exclusivity request. Never a subscription and never Checkout: the person pays on the hosted invoice page
+ * (card, ACH or bank transfer, whatever the Victress Stripe account has enabled for invoices) and exclusivity activates only when the
+ * invoice.paid webhook arrives. Idempotency keys make a double click or a retry return the same customer, invoice and item.
+ * Stripe is asked not to email anyone: collection_method send_invoice with auto_advance false, so the person is sent to the hosted page by the app.
+ */
+export async function createExclusivityInvoice(opts: {
+  orgId: string;
+  requestId: string;
+  orgName: string;
+  email?: string | null;
+  customerId?: string | null;
+}): Promise<{ customerId: string; invoiceId: string; url: string }> {
+  const price = exclusivityPriceId();
+  if (!price) throw new Error("STRIPE_PRICE_PARTNER_ANCHOR_EXCLUSIVE_ANNUAL is not set");
+  const meta = { kind: "partner_exclusivity", org_id: opts.orgId, request_id: opts.requestId };
+  const withMeta = (p: URLSearchParams) => {
+    for (const [k, v] of Object.entries(meta)) p.set(`metadata[${k}]`, v);
+    return p;
+  };
+  const idem = (step: string) => `exclusivity-${opts.requestId}-${step}`;
+
+  let customerId = opts.customerId ?? null;
+  if (!customerId) {
+    const c = new URLSearchParams({ name: opts.orgName });
+    if (opts.email) c.set("email", opts.email);
+    customerId = (await stripe<{ id: string }>("customers", withMeta(c), idem("customer"))).id;
+  }
+  const inv = await stripe<{ id: string }>(
+    "invoices",
+    withMeta(new URLSearchParams({ customer: customerId, collection_method: "send_invoice", days_until_due: "30", auto_advance: "false", pending_invoice_items_behavior: "exclude" })),
+    idem("invoice"),
+  );
+  await stripe("invoiceitems", withMeta(new URLSearchParams({ customer: customerId, invoice: inv.id, "price": price })), idem("item"));
+  const done = await stripe<{ id: string; hosted_invoice_url?: string | null }>(`invoices/${encodeURIComponent(inv.id)}/finalize`, new URLSearchParams({ auto_advance: "false" }), idem("finalize"));
+  if (!done.hosted_invoice_url) throw new Error("Stripe returned no hosted invoice URL");
+  return { customerId, invoiceId: done.id, url: done.hosted_invoice_url };
 }
 
 export interface StripeSubscription {

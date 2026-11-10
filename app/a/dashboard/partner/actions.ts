@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { OPPORTUNITY_TYPE_IDS, ORG_TYPE_IDS, WAY_IDS } from "@/content/partner";
 import { requirePartner } from "@/lib/partner";
-import { createPartnerCheckout, createPortalSession, isValidChoice, partnerBillingEnabled } from "@/lib/partner-stripe";
+import { createExclusivityInvoice, createPartnerCheckout, createPortalSession, isValidChoice, partnerBillingEnabled } from "@/lib/partner-stripe";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { APP_URL } from "@/lib/urls";
 
@@ -59,7 +59,7 @@ export async function startUpgradeAction(plan: string, interval: string): Promis
     url = await createPartnerCheckout({ orgId: org.id, choice: { plan, interval: iv as "monthly" | "annual" }, email: user.email, customerId, returnBase: APP_URL });
   } catch (e) {
     console.error("partner checkout failed", e instanceof Error ? e.message : e);
-    return fail("Checkout could not start. Try again, or contact Victress.");
+    return fail("Checkout could not start. Try again in a moment.");
   }
   redirect(url);
 }
@@ -126,8 +126,8 @@ const offerSchema = z.object({
 
 /** Paid, active plan only, and only on another organization's published opportunity. The database policy enforces both, whatever this page shows. */
 export async function offerSupportAction(input: z.input<typeof offerSchema>): Promise<Result> {
-  const { sb, org, paid } = await requirePartner();
-  if (!paid) return fail("Offer Support is part of the Supporting and Anchor plans.");
+  const { sb, org, allowed } = await requirePartner();
+  if (!allowed("offer_support")) return fail("Offer Support is part of the Supporting and Anchor plans.");
   const p = offerSchema.safeParse(input);
   if (!p.success) return fail("Choose a type of support and add a message of 10 to 1000 characters.");
   const { error } = await sb.from("partner_support_offers").insert({ org_id: org.id, ...p.data });
@@ -138,4 +138,77 @@ export async function offerSupportAction(input: z.input<typeof offerSchema>): Pr
   }
   refresh();
   return { ok: true, message: "Offer sent. Victress will follow up." };
+}
+
+// ---------------------------------------------------------------- category exclusivity (Anchor Partner, owner)
+
+const exclusivitySchema = z.object({
+  category: z.string().trim().min(3).max(80),
+  duration_months: z.union([z.literal(12), z.literal(24), z.literal(36), z.literal(48), z.literal(60)]),
+  note: z.string().trim().max(1000),
+});
+
+/**
+ * An Anchor Partner asks for a category and a duration. This only records a request. Victress approves the category in the admin queue
+ * (so a category is never sold twice), then the owner pays a Stripe hosted invoice, and exclusivity starts when Stripe confirms the payment.
+ * The database refuses the request unless the caller owns a paid, active Anchor organization and the category is not already held.
+ */
+export async function requestExclusivityAction(input: z.input<typeof exclusivitySchema>): Promise<Result> {
+  const { sb, org, isOwner, allowed } = await requirePartner();
+  if (!isOwner) return fail("Only the owner can request Category Exclusivity.");
+  if (!allowed("request_exclusivity")) return fail("Category Exclusivity is requested by an Anchor Partner with an active plan.");
+  const p = exclusivitySchema.safeParse(input);
+  if (!p.success) return fail("Enter a category of 3 to 80 characters and choose a duration.");
+  const { error } = await sb.from("partner_exclusivity").insert({ org_id: org.id, category: p.data.category, duration_months: p.data.duration_months, note: p.data.note || null });
+  if (error) {
+    if (error.code === "23505") return fail("You already have a Category Exclusivity request open. Withdraw it first to change it.");
+    if (error.code === "42501") return fail("That category is not available, or this plan cannot request it. Try a different category.");
+    if (limit(error.code)) return fail("You have reached the limit of 10 requests.");
+    return fail();
+  }
+  refresh();
+  return { ok: true, message: "Request sent. It stays In review until Victress approves the category. Then you can pay the invoice here." };
+}
+
+export async function withdrawExclusivityAction(id: string): Promise<Result> {
+  const { sb, isOwner } = await requirePartner();
+  if (!isOwner) return fail("Only the owner can withdraw a request.");
+  if (!z.string().uuid().safeParse(id).success) return fail();
+  const { data, error } = await sb.rpc("partner_exclusivity_withdraw", { p_request: id });
+  if (error || data !== "ok") return fail(data === "not_open" ? "This request can no longer be withdrawn." : undefined);
+  refresh();
+  return { ok: true, message: "Request withdrawn." };
+}
+
+/** After Victress approves a category: creates the Stripe hosted invoice for $85,000 and sends the owner to it. Nothing is granted until it is paid. */
+export async function startExclusivityInvoiceAction(id: string): Promise<Result> {
+  const { sb, user, org, isOwner } = await requirePartner();
+  if (!isOwner) return fail("Only the owner can pay for Category Exclusivity.");
+  if (!partnerBillingEnabled()) return fail("Invoices are not open yet. Your approval is kept.");
+  if (!z.string().uuid().safeParse(id).success) return fail();
+  const { data: req } = await sb.from("partner_exclusivity").select("id, status, invoice_url").eq("id", id).maybeSingle();
+  if (!req || req.status !== "approved") return fail("This request is not approved yet.");
+  if (req.invoice_url) redirect(req.invoice_url);
+  const admin = supabaseAdmin();
+  if (!admin) return fail();
+  const { data: orgRow } = await admin.from("partner_organizations").select("stripe_customer_id").eq("id", org.id).maybeSingle();
+  let created: { customerId: string; invoiceId: string; url: string };
+  try {
+    created = await createExclusivityInvoice({
+      orgId: org.id,
+      requestId: id,
+      orgName: org.name,
+      email: user.email,
+      customerId: (orgRow as { stripe_customer_id?: string | null } | null)?.stripe_customer_id ?? null,
+    });
+  } catch (e) {
+    console.error("partner exclusivity invoice failed", e instanceof Error ? e.message : e);
+    return fail("The invoice could not be created. Try again in a moment.");
+  }
+  const { data: attached, error } = await admin.rpc("partner_exclusivity_attach_invoice", { p_request: id, p_customer: created.customerId, p_invoice: created.invoiceId, p_url: created.url });
+  if (error || (attached !== "ok" && attached !== "invoice_exists")) {
+    console.error("partner exclusivity invoice not recorded", error?.message ?? attached);
+    return fail("The invoice could not be saved. Try again in a moment.");
+  }
+  redirect(created.url);
 }

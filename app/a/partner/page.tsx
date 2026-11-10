@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Logo } from "@/components/brand/Logo";
 import { PartnerSignupForm } from "@/components/app/PartnerForms";
-import { PARTNER_PLANS } from "@/content/partner";
+import { PartnerPlanList } from "@/components/app/PartnerPlans";
 import { loadPartner } from "@/lib/partner";
 import { partnerBillingEnabled } from "@/lib/partner-stripe";
 import { privateMetadata } from "@/lib/seo";
@@ -36,16 +36,8 @@ export default async function BecomePartner() {
       ) : (
         <p className="rounded-2xl border border-line bg-surface p-5 text-mute">Partner accounts are not open yet.</p>
       )}
-      <ul className="grid gap-3 text-sm text-mute sm:grid-cols-3">
-        {PARTNER_PLANS.map((pl) => (
-          <li key={pl.id} className="rounded-2xl border border-line bg-surface p-4">
-            <p className="font-semibold text-white">{pl.name}</p>
-            <p>
-              {pl.price} {pl.priceLine}
-            </p>
-          </li>
-        ))}
-      </ul>
+      <PartnerPlanList />
+      <p className="text-sm text-mute">Category Exclusivity is requested by an Anchor Partner from Organization Settings once the plan is active. Victress approves the category, then you pay by Stripe invoice.</p>
     </main>
   );
 }

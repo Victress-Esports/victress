@@ -2,7 +2,7 @@
 //   Build once with NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:4010 (the fake Supabase port), then start the server:
 //   STRIPE_WEBHOOK_SECRET=whsec_test STRIPE_SECRET_KEY=sk_test_x STRIPE_API_BASE=http://127.0.0.1:4020 SUPABASE_SERVICE_ROLE_KEY=svc \
 //   PARTNER_BILLING_ENABLED=true STRIPE_PRICE_PARTNER_SUPPORTING_MONTHLY=price_sm STRIPE_PRICE_PARTNER_SUPPORTING_ANNUAL=price_sa \
-//   STRIPE_PRICE_PARTNER_ANCHOR_ANNUAL=price_aa npx next start -p 3200
+//   STRIPE_PRICE_PARTNER_ANCHOR_ANNUAL=price_aa STRIPE_PRICE_PARTNER_ANCHOR_EXCLUSIVE_ANNUAL=price_ax npx next start -p 3200
 //   node scripts/partner-webhook-test.mjs [port]
 import { createHmac } from "node:crypto";
 import http from "node:http";
@@ -11,6 +11,8 @@ const PORT = Number(process.argv[2]) || 3200;
 const SECRET = "whsec_test";
 const ORG = "11111111-1111-4111-8111-111111111111";
 const rpcCalls = [];
+const exclCalls = [];
+let exclResult = "activated";
 const subs = { sub_live: { id: "sub_live", customer: "cus_1", status: "active", metadata: { kind: "partner", org_id: ORG }, items: { data: [{ price: { id: "price_sa" } }] } } };
 
 const fakeSupabase = http.createServer((req, res) => {
@@ -21,6 +23,11 @@ const fakeSupabase = http.createServer((req, res) => {
       rpcCalls.push(JSON.parse(Buffer.concat(chunks).toString() || "{}"));
       res.writeHead(200, { "content-type": "application/json" });
       return res.end(JSON.stringify("applied"));
+    }
+    if (req.url?.startsWith("/rest/v1/rpc/partner_exclusivity_apply_invoice")) {
+      exclCalls.push(JSON.parse(Buffer.concat(chunks).toString() || "{}"));
+      res.writeHead(200, { "content-type": "application/json" });
+      return res.end(JSON.stringify(exclResult));
     }
     res.writeHead(404).end("{}");
   });
@@ -96,12 +103,51 @@ body = JSON.stringify(e); rpcCalls.length = 0;
 r = await post(e, { "stripe-signature": sign(body) }, body);
 ok(r.status === 200 && rpcCalls.length === 0, "a bad organization id is ignored");
 
-for (const type of ["invoice.paid", "invoice.payment_failed", "customer.created"]) {
+// Invoice events: only exclusivity invoices (kind=partner_exclusivity) do anything. Everything else is acknowledged and ignored.
+for (const type of ["invoice.paid", "invoice.payment_failed", "invoice.voided", "customer.created"]) {
   e = ev(type, { id: "in_1", metadata: { kind: "partner", org_id: ORG } });
-  body = JSON.stringify(e); rpcCalls.length = 0;
+  body = JSON.stringify(e); rpcCalls.length = 0; exclCalls.length = 0;
   r = await post(e, { "stripe-signature": sign(body) }, body);
-  ok(r.status === 200 && rpcCalls.length === 0, `${type} is acknowledged and ignored`);
+  ok(r.status === 200 && rpcCalls.length === 0 && exclCalls.length === 0, `${type} for a subscription invoice or other event is acknowledged and ignored`);
 }
+const exclInv = (over = {}) => ({ id: "in_ex1", metadata: { kind: "partner_exclusivity", org_id: ORG, request_id: "r1" }, status_transitions: { paid_at: 1796000000 }, ...over });
+
+e = ev("invoice.paid", exclInv());
+body = JSON.stringify(e); exclCalls.length = 0; rpcCalls.length = 0; exclResult = "activated";
+r = await post(e, { "stripe-signature": sign(body) }, body);
+ok(r.status === 200 && exclCalls.length === 1 && exclCalls[0].p_invoice === "in_ex1" && exclCalls[0].p_event === "paid", "invoice.paid for an exclusivity invoice is applied by invoice id");
+ok(exclCalls[0]?.p_paid_at === new Date(1796000000 * 1000).toISOString(), "the term starts at Stripe's paid time");
+ok(rpcCalls.length === 0, "an exclusivity invoice never touches the subscription plan");
+
+e = ev("invoice.payment_failed", exclInv());
+body = JSON.stringify(e); exclCalls.length = 0; exclResult = "recorded";
+r = await post(e, { "stripe-signature": sign(body) }, body);
+ok(r.status === 200 && exclCalls[0]?.p_event === "payment_failed", "invoice.payment_failed is recorded and grants nothing");
+
+e = ev("invoice.voided", exclInv());
+body = JSON.stringify(e); exclCalls.length = 0; exclResult = "recorded";
+r = await post(e, { "stripe-signature": sign(body) }, body);
+ok(r.status === 200 && exclCalls[0]?.p_event === "void", "invoice.voided releases the invoice");
+
+e = ev("invoice.paid", exclInv({ id: "in_unknown" }));
+body = JSON.stringify(e); exclCalls.length = 0; exclResult = "not_found";
+r = await post(e, { "stripe-signature": sign(body) }, body);
+ok(r.status === 500, "a paid exclusivity invoice that no request knows returns 500 so Stripe retries");
+
+e = ev("invoice.payment_failed", exclInv({ id: "in_unknown" }));
+body = JSON.stringify(e); exclCalls.length = 0; exclResult = "not_found";
+r = await post(e, { "stripe-signature": sign(body) }, body);
+ok(r.status === 200, "an unknown invoice failure is acknowledged");
+
+e = ev("invoice.paid", exclInv({ metadata: { kind: "pro" } }));
+body = JSON.stringify(e); exclCalls.length = 0;
+r = await post(e, { "stripe-signature": sign(body) }, body);
+ok(r.status === 200 && exclCalls.length === 0, "an invoice with another kind is ignored");
+
+e = ev("checkout.session.completed", { id: "cs_x", mode: "payment", metadata: { kind: "partner_exclusivity", org_id: ORG } });
+body = JSON.stringify(e); exclCalls.length = 0; rpcCalls.length = 0;
+r = await post(e, { "stripe-signature": sign(body) }, body);
+ok(r.status === 200 && exclCalls.length === 0 && rpcCalls.length === 0, "a started checkout never grants exclusivity");
 
 e = ev("checkout.session.completed", { id: "cs_1", mode: "subscription", subscription: "sub_live", metadata: { kind: "partner", org_id: ORG } });
 body = JSON.stringify(e); rpcCalls.length = 0;

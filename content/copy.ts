@@ -452,9 +452,6 @@ export const copy = {
         line: "Ways to connect competition results to player profiles.",
       },
     ],
-    note: "Nothing on this page is a commitment. Terms are discussed case by case.",
-    cta: "Email us",
-    subject: "Victress partnership",
   },
 
   waitlist: {
