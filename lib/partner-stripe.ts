@@ -40,9 +40,16 @@ export const isValidChoice = (plan: string, interval: string): plan is PaidPlan 
 /** Test only: lets scripts/partner-webhook-test.mjs point at a local fake. Production never sets it. */
 const api = () => process.env.STRIPE_API_BASE || "https://api.stripe.com/v1";
 
-async function stripe<T>(path: string, params: URLSearchParams, idempotencyKey?: string): Promise<T> {
+/** Previews and local runs refuse a live Stripe key. Only the Production deployment may ever hold one, and Partner billing is test mode until the founder approves live mode. */
+function stripeKey(): string {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) throw new Error("STRIPE_SECRET_KEY is not set");
+  if (process.env.VERCEL_ENV !== "production" && key.startsWith("sk_live_")) throw new Error("A live Stripe key is set outside Production. Refusing to use it.");
+  return key;
+}
+
+async function stripe<T>(path: string, params: URLSearchParams, idempotencyKey?: string): Promise<T> {
+  const key = stripeKey();
   const res = await fetch(`${api()}/${path}`, {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/x-www-form-urlencoded", ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}) },
@@ -55,8 +62,7 @@ async function stripe<T>(path: string, params: URLSearchParams, idempotencyKey?:
 }
 
 async function stripeGet<T>(path: string): Promise<T> {
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) throw new Error("STRIPE_SECRET_KEY is not set");
+  const key = stripeKey();
   const res = await fetch(`${api()}/${path}`, { headers: { Authorization: `Bearer ${key}` }, cache: "no-store" });
   const json = (await res.json().catch(() => null)) as (T & { error?: { message?: string } }) | null;
   if (!res.ok || !json) throw new Error(`Stripe ${path} failed (${res.status}): ${json?.error?.message ?? "no detail"}`);

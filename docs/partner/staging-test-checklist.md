@@ -61,6 +61,7 @@ select category, status, invoice_status, approved_at, activated_at, ends_at from
 ```
 
 ### T0. Marketing and entry
+0. Every page on PREVIEW shows a banner at the top: "Staging. Connected to the victress-staging database. Stripe test mode only. Test accounts only." If you ever see a red "Wrong database" banner, or no banner on a preview, STOP and tell me. (The build also refuses a Preview that points at the production project, and a live Stripe key outside Production is refused at runtime.)
 1. Open `PREVIEW`, go to Partnerships. See four plans: Community Partner $0; Supporting Partner $1,000 per month, or $10,000 per year; Anchor Partner $50,000 per year; Anchor Partner with Category Exclusivity $85,000 per year. Unbuilt benefits have a "Coming soon" label. No email address or "contact us" anywhere on the page. Each plan has one Become a Partner button.
 2. Signed out, press Become a Partner. You end on the login page, and after signing in you come back to the Become a Partner form.
 3. Signed in with an account that has no organization, open `PREVIEW/__site/app?to=/dashboard/partner`. You are sent to the Become a Partner form.

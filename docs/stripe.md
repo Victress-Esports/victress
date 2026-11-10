@@ -10,6 +10,8 @@ These **test-mode** products and prices already exist. Do not create duplicates.
 | Team, monthly | `prod_VZmwzsdpWW9rtG` | `price_1UYdMuP3pSL2v8NH2e7HWUZD` |
 | Scout, monthly | `prod_VZmx7WPkAn88pN` | `price_1UYdNCP3pSL2v8NHcIyuuyge` |
 
+**Status of the player variables (checked 2026-11-10):** the names below match the plan in `docs/proposals/stripe-billing.md` and `.env.example`, but no code reads any of them yet. Player billing is not built (`NEXT_PUBLIC_BILLING_ENABLED` stays false). The approved plan builds the checkout allow list from `STRIPE_PRICE_PRO_MONTHLY` and `STRIPE_PRICE_TEAM_MONTHLY` only (annual Pro defined but not offered); Scout is defined in Stripe but not sold, so it is not wired in either place yet. Nothing about Scout has been changed. Setting the player variables in Vercel is harmless until that code exists.
+
 Price IDs are not secrets, but they go in server-side env vars (not `NEXT_PUBLIC_`):
 
 ```

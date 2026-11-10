@@ -66,3 +66,6 @@ Built in this update: exclusivity upgrade invoice for the difference; Anchor by 
 Still to build, in order: roles beyond owner and member, PDF reports, Offer Support discussion thread, manual check recording.
 
 Open: what happens to the $50,000 Anchor subscription at renewal after the upgrade invoice is paid (the subscription still bills $50,000 unless the founder decides to change it in Stripe). Nothing is changed automatically.
+
+## Update 2026-11-10 (third): staging guard
+A Preview build is already refused if `STAGING_SUPABASE_URL` points at the production project (`lib/supabase/resolve-env.ts`, thrown from `next.config.ts` at build time). Added a visible guard: a banner on every page of a deployment connected to the staging project, and a red "Wrong database" banner if a non production deployment ever points at the production project (`components/app/EnvBanner.tsx`). The Partner Stripe client also refuses a live key (`sk_live_`) outside Production. Decisions 1 to 6 of the founder's consolidated message are recorded above (replacement and $35,000 difference invoice, Anchor by invoice, exclusivity ends with the subscription, hyphen rule, statuses and seats, build order).

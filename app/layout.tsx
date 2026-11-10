@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import { EnvBanner } from "@/components/app/EnvBanner";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a href="#main" className="skip-link">
           Skip to content
         </a>
+        <EnvBanner />
         {children}
         {/* The script is served by Vercel only (enable Analytics in the project). Elsewhere it would 404. */}
         {process.env.VERCEL ? <Analytics /> : null}
