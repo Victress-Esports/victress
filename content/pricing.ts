@@ -69,3 +69,6 @@ export const formatUsd = (n: number) => (n === 0 ? "$0" : `$${Number.isInteger(n
  * PENDING the founder's approval of the final wording: billing must not be enabled on Production until he approves it.
  */
 export const SCOUT_BUYER_NOTE = "Scout, $249/month. Your account is set up as a Scout. Scout Desk access opens to Scout accounts when it launches.";
+
+/** Shown on /settings/billing only, after SCOUT_BUYER_NOTE (not on the pricing card). Restored at the founder's request, 2026-11-10. Also pending his approval of the final Scout wording. */
+export const SCOUT_BILLING_PRIVACY_NOTE = "Player access stays opt in, and nothing is shared about minors.";

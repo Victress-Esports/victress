@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Logo } from "@/components/brand/Logo";
 import { CheckoutButton, PortalButton } from "@/components/app/PlayerBilling";
-import { PLANS, SCOUT_BUYER_NOTE, formatUsd } from "@/content/pricing";
+import { PLANS, SCOUT_BILLING_PRIVACY_NOTE, SCOUT_BUYER_NOTE, formatUsd } from "@/content/pricing";
 import { grantsPlan, hasTestKey, playerBillingEnabled, GRACE_DAYS } from "@/lib/billing";
 import { currentTier, planName } from "@/lib/entitlements";
 import { privateMetadata } from "@/lib/seo";
@@ -79,7 +79,7 @@ export default async function PlayerBilling({ searchParams }: { searchParams: Pr
                 </p>
               </div>
               <p className="mt-2 text-mute">{p.blurb}</p>
-              {p.id === "scout" ? <p className="mt-2 text-sm text-mute">{SCOUT_BUYER_NOTE}</p> : null}
+              {p.id === "scout" ? <p className="mt-2 text-sm text-mute">{SCOUT_BUYER_NOTE} {SCOUT_BILLING_PRIVACY_NOTE}</p> : null}
               {current ? (
                 <p className="mt-4 text-sm font-semibold">Your current plan</p>
               ) : active ? null : (
