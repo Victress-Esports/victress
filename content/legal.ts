@@ -3,6 +3,7 @@
 // Facts below come from the code and schema: Supabase Auth, database and file storage; Vercel hosting; Resend email; Stripe for
 // paid plans; no advertising or third party tracking tags. Prices come from content/pricing.ts and are repeated on the refunds page.
 import { CONTACT_EMAIL } from "@/content/copy";
+import { LEGAL_VERSIONS, effectiveLabel } from "@/content/legal-versions";
 
 export interface LegalSection {
   h: string;
@@ -16,11 +17,11 @@ export interface LegalDoc {
   sections: LegalSection[];
 }
 
-const UPDATED = "Effective November 7, 2026";
+const UPDATED = "Effective November 7, 2026"; // refunds page: not a tracked acceptance
 
 export const privacyDoc: LegalDoc = {
   title: "Privacy",
-  updated: UPDATED,
+  updated: effectiveLabel(LEGAL_VERSIONS.privacy),
   intro:
     "This page explains what Victress collects, why, who sees it and how you control it. Victress is an esports player development and recruitment platform. We keep it plain and we describe only what we do today.",
   sections: [
@@ -112,7 +113,7 @@ export const privacyDoc: LegalDoc = {
 
 export const termsDoc: LegalDoc = {
   title: "Terms",
-  updated: UPDATED,
+  updated: effectiveLabel(LEGAL_VERSIONS.terms),
   intro:
     "These terms are the rules for using Victress, an esports player development and recruitment platform run by Victress LLC. By creating an account or using the site you agree to them.",
   sections: [
