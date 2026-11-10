@@ -12,7 +12,7 @@ const LINKS = [
   { href: "/dashboard/privacy", label: "Privacy" },
 ];
 
-export function DashboardNav() {
+export function DashboardNav({ showPartner = false }: { showPartner?: boolean }) {
   const path = usePathname() ?? "";
   // usePathname sees the browser URL (not the internal /a rewrite), so these match directly.
   const active = (href: string) => (href === "/dashboard" ? path === href : path === href || path.startsWith(href + "/"));
@@ -20,7 +20,7 @@ export function DashboardNav() {
   return (
     <nav aria-label="Dashboard" className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
       <ul className="flex gap-1">
-        {LINKS.map((l) => (
+        {(showPartner ? [...LINKS, { href: "/dashboard/partner", label: "Partner" }] : LINKS).map((l) => (
           <li key={l.href}>
             <Link
               href={l.href}

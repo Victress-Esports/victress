@@ -4,7 +4,7 @@ import { StatusChip } from "@/components/app/StatusChip";
 import { buttonClass } from "@/components/ui/Button";
 import { Section } from "@/components/ui/form";
 import { seo } from "@/content/seo";
-import { currentTier, planName } from "@/lib/entitlements";
+import { billingEnabled, currentTier, planName } from "@/lib/entitlements";
 import { loadMe } from "@/lib/me";
 import { privateMetadata } from "@/lib/seo";
 
@@ -52,6 +52,11 @@ export default async function Dashboard() {
         <div className="flex items-center gap-2" aria-label="Your plan">
           <span className="text-sm text-mute">Plan</span>
           <StatusChip tone="on">{planName(tier)}</StatusChip>
+          {billingEnabled() ? (
+            <Link href="/settings/billing" className="text-sm font-semibold underline underline-offset-2">
+              Plan and billing
+            </Link>
+          ) : null}
         </div>
       </div>
 

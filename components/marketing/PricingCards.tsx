@@ -4,12 +4,14 @@ import { useState } from "react";
 import { ButtonLink } from "@/components/ui/Button";
 import { WaitlistButton } from "@/components/marketing/WaitlistButton";
 import { copy } from "@/content/copy";
-import { PLANS, formatUsd } from "@/content/pricing";
+import { PLANS, SCOUT_BUYER_NOTE, formatUsd } from "@/content/pricing";
 import { appUrl } from "@/lib/urls";
 
 export function PricingCards() {
   const [annual, setAnnual] = useState(false);
   const p = copy.pricing;
+  // When billing is on, the paid plans go to checkout. When it is off (Production today) nothing changes: waitlist buttons and Coming soon badges.
+  const billing = process.env.NEXT_PUBLIC_BILLING_ENABLED === "true";
 
   return (
     <div>
@@ -42,7 +44,7 @@ export function PricingCards() {
             >
               <div className="flex items-center justify-between">
                 <h2 className="font-display text-xl font-bold">{plan.name}</h2>
-                {!plan.live ? (
+                {!plan.live && !(billing && plan.id !== "rookie") ? (
                   <span className="rounded-full bg-surface-2 px-3 py-1 text-xs font-semibold text-coral">{p.soonBadge}</span>
                 ) : null}
               </div>
@@ -52,8 +54,13 @@ export function PricingCards() {
               </p>
               <p className="mt-4 flex-1 text-mute">{plan.blurb}</p>
               {plan.note ? <p className="mt-4 text-sm text-mute">{plan.note}</p> : null}
+              {billing && plan.id === "scout" ? <p className="mt-4 text-sm text-mute">{SCOUT_BUYER_NOTE}</p> : null}
               <div className="mt-6">
-                {plan.live ? (
+                {billing && plan.id !== "rookie" ? (
+                  <ButtonLink href={appUrl("/settings/billing")} className="w-full">
+                    {`Choose ${plan.name}`}
+                  </ButtonLink>
+                ) : plan.live ? (
                   <ButtonLink href={appUrl("/login")} className="w-full">
                     {p.liveCta}
                   </ButtonLink>

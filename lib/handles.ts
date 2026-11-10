@@ -6,6 +6,8 @@ export const RESERVED_HANDLES = [
   "dashboard", "onboarding", "join", "settings", "pricing", "teams", "team", "about", "privacy", "terms",
   "staff", "help", "mod", "moderator", "official", "root", "null", "undefined", "auth",
   "leaderboard", "leaderboards", "games", "stats", "profile", "profiles", "signup", "logout",
+  // /partner is a route on victress.gg (Partner account)
+  "partner",
 ];
 
 /** Signup-generated placeholder handles look like p + 12 hex characters. Nobody can pick one. */

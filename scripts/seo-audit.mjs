@@ -99,7 +99,7 @@ async function auditPage({ host, path, index, types = [], og = true, hidden = fa
       let ldj = null; try { ldj = JSON.parse(blk[1]); } catch {}
       if (ldj) for (const d of walk(ldj)) { ok(!tagline.test(d) && !unbuilt.test(d), `JSON-LD description mentions the tagline, coming soon, planned or an unbuilt product: ${d.slice(0, 80)}`); }
     }
-    if (host === MARKETING && index) ok(/ \| Victress$/.test(title), `marketing title is not "<what the page is> | Victress": ${title}`);
+    if (host === MARKETING && index) ok(/ \| Victress$/.test(title) || (path === "/partnerships" && title === "Partner with Victress | Women in Esports"), `marketing title is not "<what the page is> | Victress": ${title}`); // the founder specified this one title exactly (2026-11-10)
   }
   if (seen.title.has(title)) fail(`title duplicates ${seen.title.get(title)}`);
   else seen.title.set(title, label);
@@ -259,7 +259,7 @@ const pages = [
   mk(MARKETING, "/pricing", true, ["FAQPage", "BreadcrumbList"]),
   mk(MARKETING, "/teams", true, ["BreadcrumbList"]),
   mk(MARKETING, "/about", true, ["BreadcrumbList"]),
-  { host: MARKETING, path: "/partnerships", index: true, types: ["BreadcrumbList"], contains: ["mailto:hello@victressesports.com", "Collegiate esports programs", "Tournament organizers"] },
+  { host: MARKETING, path: "/partnerships", index: true, types: ["BreadcrumbList"], exact: { title: "Partner with Victress | Women in Esports", description: "Support player development, recruitment and competitive players in esports. Partner with Victress to open doors in collegiate gaming." }, contains: ["Back the next generation.", "Partner with Victress to grow Women in Esports.", "Sign up.", "Choose a plan.", "Start.", "Join the community.", "Fund what players need.", "Lead the change.", "Own your category.", "No payment needed.", "Community Partner", "Supporting Partner", "Anchor Partner", "Anchor Partner with Category Exclusivity", "$85,000", "Direct subsidization of Scrim Intelligence access for developing rosters", "10 Scout Desk seats", "Exclusive rights within an agreed category", "Custom research reports", "Sample", "Overview", "Challenges", "Participation", "Opportunities", "Impact", "Four ways to participate.", "Expertise and Mentorship", "Infrastructure", "Barriers down. Opportunities up.", "Partners do not get player profiles or private data. Players decide what is shared.", "Become a Partner"], notContains: ["mailto:", "hello@victressesports.com", "Questions about partnering", "Email us", "Terms are discussed case by case", "Nothing on this page is a commitment", "handled directly with Victress", "Collegiate esports programs", "Tournament organizers", "Victress Women in Esports", "Contact us"] },
   { host: MARKETING, path: "/contact", index: true, types: ["BreadcrumbList"], contains: ["mailto:hello@victressesports.com", "Teams and organizations", "Individual players", "Request access", "Apply for Design Partner"] },
   { host: MARKETING, path: "/platform", index: true, types: ["BreadcrumbList"], contains: ["Practice", "Performance Evidence", "Development", "Recognition", "Opportunity", "Scrim Intelligence", "Player Resume", "Scout Desk", "Coming soon"] },
   { host: MARKETING, path: "/women-in-esports", index: true, types: ["BreadcrumbList"], contains: ["Women in Esports", "Victress is called Victress for a purpose.", "Delivered through", "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment."] },
@@ -291,7 +291,7 @@ if (!LIVE) {
 }
 
 const mPaths = ["/", "/platform", "/women-in-esports", "/design-partner", "/pricing", "/teams", "/partnerships", "/about", "/contact", "/privacy", "/terms", "/refunds"];
-const aPrivate = ["/dashboard", "/dashboard/profile", "/dashboard/team", "/onboarding", "/login", "/auth/callback", "/auth/signout", "/join/abc123", "/api/waitlist", "/api/handle-check"];
+const aPrivate = ["/dashboard", "/dashboard/profile", "/dashboard/team", "/partner", "/dashboard/partner", "/onboarding", "/login", "/auth/callback", "/auth/signout", "/join/abc123", "/api/waitlist", "/api/handle-check"];
 await auditSite(MARKETING, APP, mPaths, ["/api/waitlist", "/api/handle-check"]);
 const appUrls = await auditSite(
   APP,
@@ -312,7 +312,7 @@ ok(appUrls.filter((u) => /\/(mock_|dashboard_fan)/.test(u.loc)).length === 5, `e
 ok(!appUrls.some((u) => /\/(p[0-9a-f]{12})$/.test(u.loc)), "placeholder handle listed in sitemap");
 
 console.log("\n######## PRIVATE ROUTES: noindex headers ########");
-for (const [h, p] of [[APP, "/auth/callback"], [APP, "/login"], [APP, "/dashboard"], [APP, "/dashboard/stats"], [APP, "/onboarding"], [APP, "/join/abc123def"], [APP, "/api/handle-check?handle=abc"], [APP, "/api/waitlist"]]) {
+for (const [h, p] of [[APP, "/auth/callback"], [APP, "/login"], [APP, "/dashboard"], [APP, "/dashboard/stats"], [APP, "/partner"], [APP, "/dashboard/partner"], [APP, "/onboarding"], [APP, "/join/abc123def"], [APP, "/api/handle-check?handle=abc"], [APP, "/api/waitlist"]]) {
   const r = await get(h, p);
   const x = r.headers["x-robots-tag"] ?? "";
   console.log(`   ${p.padEnd(34)} status ${r.status}  x-robots-tag: ${x || "(none)"}`);
