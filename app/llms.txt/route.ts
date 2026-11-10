@@ -27,7 +27,7 @@ const body = () => `# Victress
 - [Pricing](${MARKETING_URL}/pricing): plans and pricing questions.
 - [For teams](${MARKETING_URL}/teams): running a club roster.
 - [About](${MARKETING_URL}/about): what Victress is and what it does.
-- [Partnerships](${MARKETING_URL}/partnerships): Partner accounts for organizations: four plans, sign up and start in your dashboard.
+- [Partnerships](${MARKETING_URL}/partnerships): how organizations partner with Victress: four partnership levels, started through a conversation with the team.
 - [Contact](${MARKETING_URL}/contact): hello@victressesports.com.
 - [Privacy](${MARKETING_URL}/privacy), [Terms](${MARKETING_URL}/terms) and [Cancellation and Refunds](${MARKETING_URL}/refunds): how Victress handles data, the rules for using it, and billing.
 
