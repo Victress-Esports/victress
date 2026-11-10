@@ -33,7 +33,7 @@ export const seo = {
     },
     partnerships: {
       title: "Esports Partnerships | Victress",
-      description: "Partnership conversations for collegiate esports programs, competitive teams and tournament organizers.",
+      description: "Partner to grow Women in Esports. Sign up, choose a plan and start in your Partner dashboard.",
     },
     contact: {
       title: "Contact the Team | Victress",

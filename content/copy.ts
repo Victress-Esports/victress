@@ -435,25 +435,6 @@ export const copy = {
     cta: "Get started",
   },
 
-  partnerships: {
-    title: "Partnerships.",
-    line: "Victress is open to conversations with groups that run or develop competitive esports.",
-    groups: [
-      {
-        title: "Collegiate esports programs",
-        line: "Roster management and player development for your program.",
-      },
-      {
-        title: "Competitive teams",
-        line: "Roster management and shared scrim review.",
-      },
-      {
-        title: "Tournament organizers",
-        line: "Ways to connect competition results to player profiles.",
-      },
-    ],
-  },
-
   waitlist: {
     title: "Join the waitlist.",
     line: "We'll email you once.",
