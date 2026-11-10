@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { WingsBackdrop } from "@/components/brand/WingsBackdrop";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { ButtonLink } from "@/components/ui/Button";
-import { CONTACT_EMAIL, copy } from "@/content/copy";
+import Link from "next/link";
+import { copy } from "@/content/copy";
 import { seo } from "@/content/seo";
 import { marketingCrumbs } from "@/lib/jsonld";
 import { pageMetadata } from "@/lib/seo";
+import { appUrl } from "@/lib/urls";
 
 export const metadata: Metadata = pageMetadata({
   ...seo.marketing.womenInEsports,
@@ -112,23 +113,26 @@ export default function WomenInEsportsPage() {
         </div>
       </section>
 
-      <section aria-labelledby="pilot-title" className="border-t border-line">
-        <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-          <h2
-            id="pilot-title"
-            className="font-display text-3xl font-bold sm:text-4xl"
-          >
-            {w.pilotTitle}
+      <section aria-labelledby="part-title" className="border-t border-line">
+        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+          <h2 id="part-title" className="font-display text-3xl font-bold sm:text-4xl">
+            {w.takePartTitle}
           </h2>
-          <p className="mt-4 text-lg text-mute">{w.pilot}</p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <ButtonLink href="/design-partner">{w.pilotCta}</ButtonLink>
-            <ButtonLink href="/contact" variant="secondary">
-              {w.contactCta}
-            </ButtonLink>
-          </div>
+          <ul className="mt-10 grid gap-5 md:grid-cols-3">
+            {w.takePart.map((t) => (
+              <li key={t.id} className="flex flex-col rounded-2xl border border-line bg-surface p-6 sm:p-8">
+                <h3 className="font-display text-2xl font-bold">{t.title}</h3>
+                <p className="mt-2 text-mute">{t.line}</p>
+                <Link
+                  href={t.to.startsWith("app:") ? appUrl(t.to.slice(4)) : t.to}
+                  className="mt-auto inline-flex min-h-11 items-center pt-6 text-sm font-semibold text-coral underline underline-offset-4 hover:text-white"
+                >
+                  {t.cta} <span aria-hidden>&nbsp;→</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
           <p className="mt-10 max-w-2xl text-sm text-mute">{e.note}</p>
-          <p className="mt-2 text-sm text-mute">{CONTACT_EMAIL}</p>
         </div>
       </section>
     </div>

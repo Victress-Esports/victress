@@ -262,7 +262,7 @@ const pages = [
   { host: MARKETING, path: "/partnerships", index: true, types: ["BreadcrumbList"], exact: { title: "Partner with Victress | Women in Esports", description: "Support player development, recruitment and competitive players in esports. Partner with Victress to open doors in collegiate gaming." }, contains: ["Build something meaningful with Victress.", "Become a Partner", "Partner registration opens with the Partner platform.", "Your partnership, in one place.", "Sample", "Four ways to make a difference.", "Expertise and Mentorship", "Infrastructure", "Community Partner", "Supporting Partner", "Anchor Partner", "Anchor Partner with Category Exclusivity", "A dedicated Victress partnership representative", "A dedicated relationship manager, exclusivity coordination and strategic partnership support.", "Pricing is shared directly by the Victress team", "Direct subsidization of Scrim Intelligence access for developing rosters", "10 Scout Desk seats", "Exclusive rights within an agreed category", "Custom research reports", "Partners do not automatically receive player profiles or private player data. Players decide what information they share.", "Financial support does not buy access to private player information."], notContains: ["mailto:", "hello@victressesports.com", "Talk with our team", "login?role=partner", "Coming Soon", "$0", "$1,000", "$10,000", "$35,000", "$50,000", "$85,000", "per month", "per year", "Back the next generation", "Email us", "Victress Women in Esports"] },
   { host: MARKETING, path: "/contact", index: true, types: ["BreadcrumbList"], contains: ["mailto:hello@victressesports.com", "Partnership conversation", "Talk with our team", "Teams and organizations", "Individual players", "Request access", "Apply for Design Partner"] },
   { host: MARKETING, path: "/platform", index: true, types: ["BreadcrumbList"], contains: ["Practice", "Performance Evidence", "Development", "Recognition", "Opportunity", "Scrim Intelligence", "Player Resume", "Scout Desk", "Coming soon"] },
-  { host: MARKETING, path: "/women-in-esports", index: true, types: ["BreadcrumbList"], contains: ["Women in Esports", "Victress is called Victress for a purpose.", "Delivered through", "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment."] },
+  { host: MARKETING, path: "/women-in-esports", index: true, types: ["BreadcrumbList"], contains: ["Women in Esports", "Victress is called Victress for a purpose.", "Delivered through", "How to take part.", "Organizations", "Teams and programs", "Players", "Learn about partnering", "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment."], notContains: ["mailto:", "hello@victressesports.com", "Contact us"] },
   { host: MARKETING, path: "/design-partner", index: true, types: ["BreadcrumbList"], contains: ["Founding Design Partner pilot", "4 to 6 week", "What partners receive", "What we ask", "Applying does not guarantee a place.", "Active women", "Game Changers teams", "Collegiate programs"] },
   { host: MARKETING, path: "/privacy", index: true, types: ["BreadcrumbList"], contains: ["What we collect", "Who we share it with", "We do not sell your data", "private by default", "hello@victressesports.com", "at least 13"] },
   { host: MARKETING, path: "/refunds", index: true, types: ["BreadcrumbList"], contains: ["Cancel any time", "14 days", "7 day grace period", "$7.99 per month", "$75 per year", "$49 per month", "$249 per month", "per roster", "hello@victressesports.com"] },
@@ -438,25 +438,19 @@ console.log("\n######## STATUS WORDING, SELF-ENTERED STATS AND THE HOME HERO ###
   // unbuilt item carries one plain "Coming soon" label. (2) Victress does not publish stats players enter themselves.
   const FORBIDDEN = [/in development/i, /under development/i, /being built/i, /\bbeta\b/i, /\bearly\b/i, /pilot stage/i, /pilot phase/i, /initial pilot/i, /\bplanned\b/i, /work in progress/i, /not available yet/i, /not open yet/i, /not built/i, /in testing/i, /available now/i, /legal review/i, /\bcounsel\b/i, /pending/i, /draft text/i];
   const STATS = [/self[- ]reported/i, /your own stats/i, /enter your (own )?stats/i, /add (your )?stats/i, /stats you (enter|made)/i, /every number shows where it came from/i, /entered by players/i];
-  // content/pricing.ts holds founder approved verbatim plan text that still says "Track your stats, share your progress" and "share it with teams".
-  // It is reported below as a known conflict and not edited without approval.
-  const KNOWN_PRICING = /Track your stats, share your progress[^.]*\.|share it with teams/gi;
   const visibleText = (html) => decode(html.replace(/<(script|style)[\s\S]*?<\/\1>/g, " ").replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ");
   const sources = [];
   for (const host of [MARKETING, APP]) {
     for (const path of host === MARKETING ? mPaths : ["/", "/login"]) sources.push([`${host}${path}`, (await get(host, path)).body]);
   }
   const llmsBody = (await get(MARKETING, "/llms.txt")).body;
-  let knownPricing = 0;
   for (const [label, html] of [...sources, ["llms.txt", llmsBody]]) {
     const raw = label === "llms.txt" ? llmsBody : visibleText(html);
-    if (/pricing/.test(label)) knownPricing += (raw.match(KNOWN_PRICING) ?? []).length;
-    const text = raw.replace(KNOWN_PRICING, " ");
+    const text = raw; // the plan descriptions are held to the same rules as every other page (updated by the founder 2026-11-10)
     const jsonld = label === "llms.txt" ? "" : [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => m[1]).join(" ").replace(/"slogan":"[^"]*"/g, "");
     for (const re of FORBIDDEN) ok(!re.test(text) && !re.test(jsonld), `${label} contains status wording ${re}`);
     for (const re of STATS) ok(!re.test(text) && !re.test(jsonld), `${label} mentions stats players enter ${re}`);
   }
-  if (knownPricing) console.log(`   KNOWN CONFLICT (not a failure): ${knownPricing} approved verbatim pricing phrase(s) in content/pricing.ts mention players tracking or sharing stats. Needs the founder's approval to change.`);
 
   // Public profile pages show no self-entered stat, even for a player whose record holds stats and who listed everything (mock data).
   if (!LIVE) {
