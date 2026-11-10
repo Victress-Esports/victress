@@ -396,17 +396,12 @@ export const copy = {
       },
       {
         title: "One dashboard.",
-        line: "See everyone's game and rank.",
+        line: "See everyone's game and role.",
         soon: false,
       },
       {
         title: "Shared scrim review.",
         line: "Review scrim performance together.",
-        soon: true,
-      },
-      {
-        title: "Team standings.",
-        line: "See how your team compares with others.",
         soon: true,
       },
       {

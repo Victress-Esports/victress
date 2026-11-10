@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { TeamRoster } from "@/components/marketing/TeamRoster";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { ButtonLink } from "@/components/ui/Button";
@@ -22,9 +23,14 @@ export default function Teams() {
         <header>
           <h1 className="font-display text-5xl font-bold leading-tight sm:text-6xl">{t.title}</h1>
           <p className="mt-5 text-lg text-mute">{t.line}</p>
-          <ButtonLink href={appUrl("/login?next=/dashboard/team")} className="mt-8">
+          <ButtonLink href={appUrl("/login?role=team")} className="mt-8">
             {t.cta}
           </ButtonLink>
+          <p className="mt-4">
+            <Link href="/design-partner" className="inline-flex min-h-11 items-center text-sm font-semibold underline underline-offset-4 hover:text-coral">
+              Or apply to the Design Partner pilot
+            </Link>
+          </p>
         </header>
         <div className="flex justify-center">
           <TeamRoster />

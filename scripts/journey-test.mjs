@@ -103,6 +103,25 @@ await journey({ role: "recruiter", cardName: "Scout or recruiter", expectHeading
   await ctx.close();
 }
 
+// Teams, Platform and About: no stale claims, one primary action each, no repeated sections.
+{
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await ctx.newPage();
+  await page.goto(`${MKT}/teams`);
+  let t = await text(page);
+  check(!/\brank\b/i.test(t) && !/standings/i.test(t), "teams: no manual rank and no standings claim (self reported stats and leaderboards are retired)");
+  await page.getByRole("link", { name: "Start your team" }).click();
+  await page.waitForURL(/\/login/);
+  check(/role=team/.test(page.url()), "teams: Start your team opens the team registration");
+  await page.goto(`${MKT}/platform`);
+  const primary = await page.locator("main a.bg-crimson, #main a.bg-crimson").count();
+  check(primary === 1, `platform: one primary action (found ${primary})`);
+  await page.goto(`${MKT}/about`);
+  t = await text(page);
+  check(!/Three connected capabilities/.test(t) && !/From practice to opportunity/.test(t) && /Women in Esports/.test(t), "about: no sections repeated from Platform; its own Women in Esports section stays");
+  await ctx.close();
+}
+
 // A scout account sees only the Scout Desk shell: no player data, and the Partner workspace does not exist.
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
