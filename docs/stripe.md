@@ -37,8 +37,10 @@ Stripe test mode prices (ids are not secrets; set them as server env vars on the
 |---|---|---|---|
 | Supporting Partner | $1,000 per month | `STRIPE_PRICE_PARTNER_SUPPORTING_MONTHLY` | `price_1Ua3keP3pSL2v8NHkQZLgZUE` |
 | Supporting Partner | $10,000 per year | `STRIPE_PRICE_PARTNER_SUPPORTING_ANNUAL` | `price_1Ua3keP3pSL2v8NH8uMUb9qS` |
-| Anchor Partner | $50,000 per year | `STRIPE_PRICE_PARTNER_ANCHOR_ANNUAL` | not received yet |
-| Anchor Partner with Category Exclusivity | $85,000 per year | `STRIPE_PRICE_PARTNER_ANCHOR_EXCLUSIVE_ANNUAL` | not received yet |
+| Anchor Partner | $50,000 per year | `STRIPE_PRICE_PARTNER_ANCHOR_ANNUAL` | `price_1Ua3lDP3pSL2v8NHhsCZGaDZ` |
+| Anchor Partner with Category Exclusivity | $85,000 per year (recurring annual) | `STRIPE_PRICE_PARTNER_ANCHOR_EXCLUSIVE_ANNUAL` | `price_1Ua3oLP3pSL2v8NH4yWgAmKv` |
+
+The exclusivity upgrade invoice never attaches a price to an invoice item. It reads the unit amount of the two prices (`GET /prices/{id}`) and creates the invoice item with `amount` (the $35,000 difference) and `currency`, so a recurring $85,000 price works. Not yet exercised against the Stripe sandbox.
 
 
 - Separate server only switch: `PARTNER_BILLING_ENABLED` (default `false`). `NEXT_PUBLIC_BILLING_ENABLED` stays `false`. With the switch off, a paid choice creates the organization on Community Partner and shows an Upgrade note in Organization Settings.
