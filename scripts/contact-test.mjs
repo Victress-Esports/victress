@@ -17,7 +17,9 @@ const stub = http.createServer((req, res) => {
 }).listen(4020);
 let failed = 0;
 const check = (ok, name) => { console.log(`${ok ? "PASS" : "FAIL"} ${name}`); if (!ok) failed++; };
-const post = (body) => fetch(`http://127.0.0.1:${PORT}/api/contact`, { method: "POST", headers: { "content-type": "application/json", host: "victressesports.com" }, body: JSON.stringify(body) });
+// Each request comes from its own address so the per IP limit (5 a minute) does not interfere with the checks.
+let ipn = 0;
+const post = (body) => fetch(`http://127.0.0.1:${PORT}/api/contact`, { method: "POST", headers: { "content-type": "application/json", host: "victressesports.com", "x-forwarded-for": `198.51.100.${++ipn}` }, body: JSON.stringify(body) });
 
 let r = await post({ kind: "organization", name: "Pat Coach", email: "pat@example.test", organization: "Example Club", role: "Coach", teamType: "Women's roster", game: "CS2", message: "SECRET-MESSAGE-TEXT" });
 check(r.status === 200 && (await r.json()).ok === true, "an organization application returns ok");
@@ -35,6 +37,24 @@ sent.length = 0;
 r = await post({ kind: "player", name: "Sam", email: "sam@example.test", game: "VALORANT", message: "" });
 check(r.status === 200, "a player request returns ok");
 check(sent.some((m) => /access request/.test(m.text ?? "")), "the player acknowledgement names the access request");
+
+// partnership conversation
+sent.length = 0;
+r = await post({ kind: "partnership", name: "Jo Partner", email: "jo@example.test", organization: "Example Brand", message: "PARTNER-SECRET" });
+check(r.status === 200 && (await r.json()).ok === true, "a partnership conversation returns ok");
+const pTeam = sent.find((m) => String(m.subject) === "[Victress site] Partnership conversation: Example Brand");
+const pAck = sent.find((m) => String(m.subject) === "We received your message");
+check(!!pTeam && JSON.stringify(pTeam.to).includes("hello@victressesports.com") && /Organization: Example Brand/.test(pTeam.text) && /PARTNER-SECRET/.test(pTeam.text) && !/Design partner/i.test(pTeam.subject), "the team gets the partnership conversation, labeled as such, with the organization and message");
+check(!!pTeam && JSON.stringify(pTeam.reply_to ?? pTeam.replyTo ?? "").includes("jo@example.test"), "replying goes to the person who wrote");
+check(!!pAck && JSON.stringify(pAck.to).includes("jo@example.test") && /partnership conversation request/.test(pAck.text) && !/pilot|guarantee a place/i.test(pAck.text), "the partner gets an acknowledgement that does not mention the pilot");
+check(!!pAck && !/PARTNER-SECRET|Example Brand|Jo Partner/.test(pAck.text) && !/[-–—]/.test(pAck.text) && !/\b(within|hours|days|soon|will reply)\b/i.test(pAck.text), "the partnership acknowledgement repeats nothing typed, has no dashes and promises no timing");
+r = await post({ kind: "partnership", name: "Jo", email: "jo@example.test", message: "no org" });
+check(r.status === 400, "a partnership conversation without an organization is refused");
+r = await post({ kind: "partnership", name: "Jo", email: "not-an-email", organization: "X" });
+check(r.status === 400, "a partnership conversation with a bad email is refused");
+sent.length = 0;
+r = await post({ kind: "partnership", name: "Bot", email: "bot@example.test", organization: "Spam", website: "http://spam.test" });
+check(r.status === 200 && sent.length === 0, "a filled honeypot on the partnership form sends nothing");
 
 sent.length = 0; failAck = true;
 r = await post({ kind: "player", name: "Lee", email: "lee@example.test", game: "", message: "" });

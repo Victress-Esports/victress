@@ -37,7 +37,7 @@ export const seo = {
     },
     contact: {
       title: "Contact the Team | Victress",
-      description: "Contact Victress: apply to the design partner pilot, request access as a player, or email the team.",
+      description: "Contact Victress: start a partnership conversation, apply to the design partner pilot, request access as a player, or email the team.",
     },
     privacy: {
       title: "Privacy Policy | Victress",

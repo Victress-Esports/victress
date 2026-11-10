@@ -305,6 +305,9 @@ export const copy = {
   contactPage: {
     title: "Contact.",
     line: "Choose the option that fits.",
+    partnerTitle: "Partnership conversation",
+    partnerLine: "Tell us about your organization and what you would like to build with Victress.",
+    partnerSubmit: "Talk with our team",
     orgTitle: "Teams and organizations",
     orgLine: "Apply for the Founding Design Partner pilot.",
     orgSubmit: "Apply for Design Partner",
@@ -330,6 +333,7 @@ export const copy = {
     game: "Main game",
     games: "Other",
     message: "Anything else we should know (optional)",
+    partnershipMessage: "What would you like to talk about? (optional)",
     notice: "We use these details to reply to you.",
     privacy: "Privacy Policy",
     sending: "Sending…",
