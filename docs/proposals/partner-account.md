@@ -57,3 +57,12 @@ Basis: `docs/partner/` (decision authority, the approved brief and the Partner E
 7. **Stripe invoice payment methods** (card, ACH, bank transfer) must be enabled on the Victress Stripe account for invoices. Not verified; no sandbox access here.
 8. **Invoice price type.** The exclusivity price is used as an invoice item. If Stripe rejects a recurring price there, create it as a one time price.
 9. **Not built from the specification** (outside this task): PDF reports, the Offer Support discussion thread, multi user roles beyond owner and member, an in-app admin console (the table editor is used), manual check recording, payment history and invoices list in Settings.
+
+## Update 2026-11-10 (second): founder answers and the next build queue
+Answers recorded: (1) $85,000 Anchor with Category Exclusivity replaces $50,000 Anchor and includes everything in it; an existing Anchor Partner who upgrades is invoiced the difference ($35,000), nothing cancelled or credited automatically. (2) Build Anchor by Stripe invoice, card or ACH. (3) Anchor ends, exclusivity ends and the category is freed. (4) The hyphen rule on victressesports.com stays; victress.gg shows approved wording. (5) Statuses stay in the entitlements config; `PARTNER_BILLING_ENABLED` stays off until the founder decides how planned benefits are shown to people about to pay; Scout Desk seats are opt-in players only, never minors. (6) Build order: admin console, payment history, roles beyond owner and member, PDF reports, Offer Support discussion thread, manual check recording.
+
+Built in this update: exclusivity upgrade invoice for the difference; Anchor by Stripe invoice (and Checkout); admin console at `/dashboard/admin` (exclusivity approvals, opportunity review, verification, action log; migration `20261110000200_partner_admin.sql`, admins are rows in `partner_admins` added by the founder with the service role; non admins get a 404; every action is logged in `partner_admin_log`); payment history in Organization Settings.
+
+Still to build, in order: roles beyond owner and member, PDF reports, Offer Support discussion thread, manual check recording.
+
+Open: what happens to the $50,000 Anchor subscription at renewal after the upgrade invoice is paid (the subscription still bills $50,000 unless the founder decides to change it in Stripe). Nothing is changed automatically.

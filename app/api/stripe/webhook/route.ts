@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { choiceForPrice, retrieveSubscription, verifyStripeSignature, type StripeSubscription } from "@/lib/partner-stripe";
+import { choiceForPrice, invoiceSubscriptionId, retrieveInvoice, retrieveSubscription, verifyStripeSignature, type StripeInvoice, type StripeSubscription } from "@/lib/partner-stripe";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
@@ -39,11 +39,24 @@ async function apply(sub: StripeSubscription, eventType: string, eventAt: number
     return NextResponse.json({ error: "unknown price" }, { status: 500 });
   }
 
+  // A subscription paid by hosted invoice (collection_method send_invoice) is "active" in Stripe the moment it exists, before anyone has paid.
+  // Never grant paid access from that. Until its FIRST invoice is paid it is recorded as incomplete (which the database does not treat as paid).
+  // Later invoices (renewals) follow Stripe's own status: past_due is set by Stripe if a renewal goes unpaid.
+  let status = sub.status;
+  if (!ended && sub.collection_method === "send_invoice" && status === "active") {
+    const invId = typeof sub.latest_invoice === "string" ? sub.latest_invoice : sub.latest_invoice?.id;
+    if (!invId) status = "incomplete";
+    else {
+      const inv = await retrieveInvoice(invId);
+      if (inv.status !== "paid" && inv.billing_reason === "subscription_create") status = "incomplete";
+    }
+  }
+
   const { data, error } = await sb.rpc("partner_apply_billing", {
     p_org: orgId,
     p_plan: ended ? null : choice!.plan,
     p_interval: ended ? null : choice!.interval,
-    p_status: sub.status,
+    p_status: status,
     p_customer: customer,
     p_subscription: sub.id,
     p_ended: ended,
@@ -57,8 +70,20 @@ async function apply(sub: StripeSubscription, eventType: string, eventAt: number
 }
 
 /** Exclusivity invoices. The request is found by the invoice id Victress stored, so a forged metadata field cannot point at another request. */
+/** invoice.paid for a partner subscription paid by invoice: read the subscription and apply it, now that its invoice is paid. Other invoices are ignored. */
+async function applySubscriptionInvoice(inv: StripeInvoice, eventAt: number): Promise<NextResponse> {
+  const subId = invoiceSubscriptionId(inv);
+  if (!subId) return ok("no subscription");
+  const sub = await retrieveSubscription(subId);
+  if (sub.metadata?.kind !== "partner" || sub.collection_method !== "send_invoice") return ok("not an invoiced partner subscription");
+  // This invoice is paid, so it may be the one that the subscription's latest_invoice points at; make that explicit for apply().
+  sub.latest_invoice = inv.id;
+  return apply(sub, "invoice.paid", eventAt);
+}
+
 async function applyInvoice(inv: Record<string, unknown>, type: string, eventAt: number): Promise<NextResponse> {
   const meta = (inv.metadata ?? {}) as Record<string, string>;
+  if (meta.kind !== "partner_exclusivity" && type === "invoice.paid" && typeof inv.id === "string") return applySubscriptionInvoice(inv as unknown as StripeInvoice, eventAt);
   if (meta.kind !== "partner_exclusivity" || typeof inv.id !== "string") return ok("not exclusivity");
   const sb = supabaseAdmin();
   if (!sb) return NextResponse.json({ error: "database unavailable" }, { status: 500 });

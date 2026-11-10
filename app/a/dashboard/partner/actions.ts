@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { OPPORTUNITY_TYPE_IDS, ORG_TYPE_IDS, WAY_IDS } from "@/content/partner";
 import { requirePartner } from "@/lib/partner";
-import { createExclusivityInvoice, createPartnerCheckout, createPortalSession, isValidChoice, partnerBillingEnabled } from "@/lib/partner-stripe";
+import { createAnchorInvoiceSubscription, createExclusivityInvoice, createPartnerCheckout, createPortalSession, isValidChoice, partnerBillingEnabled } from "@/lib/partner-stripe";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { APP_URL } from "@/lib/urls";
 
@@ -41,7 +41,7 @@ export async function updateOrganizationAction(input: z.input<typeof orgSchema>)
 // ---------------------------------------------------------------- billing (owner)
 
 /** Starts Stripe Checkout for an upgrade. The plan changes only when the verified webhook arrives. */
-export async function startUpgradeAction(plan: string, interval: string): Promise<Result> {
+export async function startUpgradeAction(plan: string, interval: string, payment: string = "checkout"): Promise<Result> {
   const { user, org, isOwner, paid } = await requirePartner();
   if (!isOwner) return fail("Only the owner can change the plan.");
   if (!partnerBillingEnabled()) return fail("Paid plans are not open yet. You stay on Community Partner.");
@@ -56,7 +56,8 @@ export async function startUpgradeAction(plan: string, interval: string): Promis
   }
   let url: string;
   try {
-    url = await createPartnerCheckout({ orgId: org.id, choice: { plan, interval: iv as "monthly" | "annual" }, email: user.email, customerId, returnBase: APP_URL });
+    if (plan === "anchor" && payment === "invoice") url = (await createAnchorInvoiceSubscription({ orgId: org.id, orgName: org.name, email: user.email, customerId })).url;
+    else url = await createPartnerCheckout({ orgId: org.id, choice: { plan, interval: iv as "monthly" | "annual" }, email: user.email, customerId, returnBase: APP_URL });
   } catch (e) {
     console.error("partner checkout failed", e instanceof Error ? e.message : e);
     return fail("Checkout could not start. Try again in a moment.");

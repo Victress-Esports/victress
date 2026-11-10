@@ -32,7 +32,15 @@ const fakeSupabase = http.createServer((req, res) => {
     res.writeHead(404).end("{}");
   });
 }).listen(4010);
+subs.sub_inv = { id: "sub_inv", customer: "cus_2", status: "active", collection_method: "send_invoice", latest_invoice: "in_paid", metadata: { kind: "partner", org_id: ORG, plan: "anchor", interval: "annual" }, items: { data: [{ price: { id: "price_aa" } }] } };
+const invoices = {
+  in_open: { id: "in_open", status: "open", billing_reason: "subscription_create" },
+  in_paid: { id: "in_paid", status: "paid", billing_reason: "subscription_create" },
+  in_renewal: { id: "in_renewal", status: "open", billing_reason: "subscription_cycle" },
+};
 const fakeStripe = http.createServer((req, res) => {
+  const im = req.url?.match(/^\/invoices\/(.+)$/);
+  if (im && invoices[im[1]]) return res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify(invoices[im[1]]));
   const m = req.url?.match(/^\/subscriptions\/(.+)$/);
   if (m && subs[m[1]]) return res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify(subs[m[1]]));
   res.writeHead(404, { "content-type": "application/json" }).end(JSON.stringify({ error: { message: "not found" } }));
@@ -163,6 +171,33 @@ e = ev("checkout.session.completed", { id: "cs_3", mode: "payment", metadata: { 
 body = JSON.stringify(e); rpcCalls.length = 0;
 r = await post(e, { "stripe-signature": sign(body) }, body);
 ok(r.status === 200 && rpcCalls.length === 0, "a one time payment checkout is ignored");
+
+// Anchor paid by Stripe invoice: a send_invoice subscription is "active" in Stripe before anyone pays. It must not grant access until its first invoice is paid.
+const invSub = (over = {}) => subObj({ id: "sub_inv", customer: "cus_2", collection_method: "send_invoice", status: "active", metadata: { kind: "partner", org_id: ORG, plan: "anchor", interval: "annual" }, items: { data: [{ price: { id: "price_aa" } }] }, ...over });
+for (const [inv, expected, why] of [
+  ["in_open", "incomplete", "an unpaid first invoice is recorded as incomplete, not active"],
+  ["in_paid", "active", "a paid first invoice keeps the subscription status"],
+  ["in_renewal", "active", "an unpaid renewal follows Stripe's own status"],
+]) {
+  e = ev("customer.subscription.created", invSub({ latest_invoice: inv }));
+  body = JSON.stringify(e); rpcCalls.length = 0;
+  r = await post(e, { "stripe-signature": sign(body) }, body);
+  ok(r.status === 200 && rpcCalls[0]?.p_status === expected && rpcCalls[0]?.p_plan === "anchor", `invoice subscription: ${why}`);
+}
+e = ev("customer.subscription.updated", invSub({ latest_invoice: null }));
+body = JSON.stringify(e); rpcCalls.length = 0;
+await post(e, { "stripe-signature": sign(body) }, body);
+ok(rpcCalls[0]?.p_status === "incomplete", "an invoice subscription with no invoice is never active");
+
+e = ev("invoice.paid", { id: "in_paid", subscription: "sub_inv", metadata: {} });
+body = JSON.stringify(e); rpcCalls.length = 0;
+r = await post(e, { "stripe-signature": sign(body) }, body);
+ok(r.status === 200 && rpcCalls[0]?.p_status === "active" && rpcCalls[0]?.p_plan === "anchor" && rpcCalls[0]?.p_interval === "annual", "invoice.paid on an Anchor invoice subscription grants Anchor");
+
+e = ev("invoice.paid", { id: "in_x", subscription: "sub_live", metadata: {} });
+body = JSON.stringify(e); rpcCalls.length = 0;
+r = await post(e, { "stripe-signature": sign(body) }, body);
+ok(r.status === 200 && rpcCalls.length === 0, "invoice.paid on a subscription paid by card is ignored (Checkout already handled it)");
 
 const get = await fetch(`http://127.0.0.1:${PORT}/api/stripe/webhook`, { headers: { host: "victress.gg" } });
 ok(get.status === 405, "GET is not allowed");

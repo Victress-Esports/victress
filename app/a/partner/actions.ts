@@ -4,7 +4,7 @@ import { z } from "zod";
 import { redirect } from "next/navigation";
 import { ORG_TYPE_IDS, PARTNER_TERMS_VERSION } from "@/content/partner";
 import { requireUser } from "@/lib/auth";
-import { createPartnerCheckout, isValidChoice, partnerBillingEnabled } from "@/lib/partner-stripe";
+import { createAnchorInvoiceSubscription, createPartnerCheckout, isValidChoice, partnerBillingEnabled } from "@/lib/partner-stripe";
 import { APP_URL } from "@/lib/urls";
 
 export type PartnerSignupResult = { ok: false; message: string };
@@ -23,6 +23,8 @@ const schema = z.object({
   website: z.string().trim().max(200),
   plan: z.enum(["community", "supporting", "anchor"]),
   interval: z.enum(["monthly", "annual"]),
+  /** Anchor only: pay by Stripe hosted invoice instead of Checkout (card or ACH). */
+  payment: z.enum(["checkout", "invoice"]).default("checkout"),
   authorized: z.literal(true),
 });
 
@@ -63,7 +65,9 @@ export async function createPartnerOrgAction(input: z.input<typeof schema>): Pro
   if (!isValidChoice(v.plan, interval)) redirect("/dashboard/partner/settings?billing=error");
   let url: string;
   try {
-    url = await createPartnerCheckout({ orgId: res.org_id, choice: { plan: v.plan, interval }, email: user.email, returnBase: APP_URL });
+    if (v.plan === "anchor" && v.payment === "invoice") {
+      url = (await createAnchorInvoiceSubscription({ orgId: res.org_id, orgName: v.name, email: user.email })).url;
+    } else url = await createPartnerCheckout({ orgId: res.org_id, choice: { plan: v.plan, interval }, email: user.email, returnBase: APP_URL });
   } catch (e) {
     console.error("partner checkout failed", e instanceof Error ? e.message : e);
     redirect("/dashboard/partner/settings?billing=error");

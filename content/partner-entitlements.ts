@@ -36,6 +36,8 @@ export interface PartnerPlan {
   name: string;
   price: string;
   priceLine: string;
+  /** Annual price in cents, for the plan comparison only (Stripe holds the billed amounts). Supporting is 1,000 per month or 10,000 per year. */
+  annualCents: number;
   intervals: PartnerInterval[];
   /** The plan whose benefits this plan includes in full. */
   includes: PartnerPlanId | null;
@@ -51,6 +53,7 @@ export const PARTNER_PLANS: PartnerPlan[] = [
     name: "Community Partner",
     price: "$0",
     priceLine: "Free",
+    annualCents: 0,
     intervals: [],
     includes: null,
     purchase: "free",
@@ -66,6 +69,7 @@ export const PARTNER_PLANS: PartnerPlan[] = [
     name: "Supporting Partner",
     price: "$1,000",
     priceLine: "per month, or $10,000 per year",
+    annualCents: 1000000,
     intervals: ["monthly", "annual"],
     includes: "community",
     purchase: "checkout",
@@ -83,6 +87,7 @@ export const PARTNER_PLANS: PartnerPlan[] = [
     name: "Anchor Partner",
     price: "$50,000",
     priceLine: "per year",
+    annualCents: 5000000,
     intervals: ["annual"],
     includes: "supporting",
     purchase: "checkout_or_invoice",
@@ -100,9 +105,10 @@ export const PARTNER_PLANS: PartnerPlan[] = [
     name: "Anchor Partner with Category Exclusivity",
     price: "$85,000",
     priceLine: "per year",
+    annualCents: 8500000,
     intervals: ["annual"],
     includes: "anchor",
-    purchase: "request_then_invoice",
+    purchase: "request_then_invoice", // an upgrade from Anchor: the difference is invoiced
     benefits: [
       { id: "exclusive_rights", label: "Exclusive rights within an agreed category across platform-wide events and initiatives", marketingLabel: "Exclusive rights within an agreed category across platform wide events and initiatives", status: "in_development", note: "Requesting, approving and reserving a category is built, so the same category is never sold twice. The rights themselves are applied through the agreement." },
       { id: "exclusive_research", label: "Custom research reports", status: "planned" },
@@ -110,6 +116,12 @@ export const PARTNER_PLANS: PartnerPlan[] = [
     ],
   },
 ];
+
+/**
+ * Anchor Partner with Category Exclusivity REPLACES Anchor Partner and includes everything in it (founder decision, 2026-11-10).
+ * An Anchor Partner who upgrades is invoiced the difference (85,000 minus 50,000 = 35,000). Nothing is cancelled or credited automatically.
+ */
+export const EXCLUSIVITY_UPGRADE_CENTS = 8500000 - 5000000;
 
 export const PLAN_IDS = PARTNER_PLANS.map((p) => p.id) as [PartnerPlanId, ...PartnerPlanId[]];
 export const SIGNUP_PLANS = PARTNER_PLANS.filter((p) => p.id !== "anchor_exclusive") as (PartnerPlan & { id: SignupPlanId })[];

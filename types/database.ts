@@ -238,6 +238,7 @@ export type Database = {
         };
         Returns: string;
       };
+      partner_is_admin: { Args: Record<string, never>; Returns: boolean };
       partner_is_anchor_owner: { Args: { p_org: string }; Returns: boolean };
       partner_category_taken: { Args: { p_category: string }; Returns: boolean };
       partner_exclusivity_active: { Args: { p_org: string }; Returns: boolean };

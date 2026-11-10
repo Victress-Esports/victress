@@ -76,6 +76,23 @@ function PlanPicker({
   );
 }
 
+/** Anchor Partner only: how to pay. Both ways go through Stripe and access starts when Stripe confirms the payment. */
+function PaymentPicker({ value, onChange }: { value: "checkout" | "invoice"; onChange: (v: "checkout" | "invoice") => void }) {
+  return (
+    <fieldset className="flex flex-col gap-2">
+      <legend className="text-sm font-semibold">How to pay</legend>
+      <label className="flex items-start gap-3 text-sm">
+        <input type="radio" name="payment" checked={value === "checkout"} onChange={() => onChange("checkout")} className="mt-1" />
+        <span>Card or bank account (ACH), paid now in Stripe Checkout.</span>
+      </label>
+      <label className="flex items-start gap-3 text-sm">
+        <input type="radio" name="payment" checked={value === "invoice"} onChange={() => onChange("invoice")} className="mt-1" />
+        <span>Stripe invoice, for organizations whose accounting team pays against an invoice. Your plan starts when the invoice is paid.</span>
+      </label>
+    </fieldset>
+  );
+}
+
 export function PartnerSignupForm({ billingOpen }: { billingOpen: boolean }) {
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState("");
@@ -84,6 +101,7 @@ export function PartnerSignupForm({ billingOpen }: { billingOpen: boolean }) {
   const [website, setWebsite] = useState("");
   const [plan, setPlan] = useState<SignupPlanId>("community");
   const [interval, setInterval] = useState<PartnerInterval>("monthly");
+  const [payment, setPayment] = useState<"checkout" | "invoice">("checkout");
   const [authorized, setAuthorized] = useState(false);
 
   function submit(e: FormEvent) {
@@ -91,7 +109,7 @@ export function PartnerSignupForm({ billingOpen }: { billingOpen: boolean }) {
     setMsg("");
     start(async () => {
       const iv = plan === "anchor" ? "annual" : interval;
-      const r = await createPartnerOrgAction({ name, type: type as never, website, plan, interval: iv, authorized: authorized as true });
+      const r = await createPartnerOrgAction({ name, type: type as never, website, plan, interval: iv, payment, authorized: authorized as true });
       // On success the action redirects, so a result only comes back for a problem.
       if (r && !r.ok) setMsg(r.message);
     });
@@ -118,6 +136,7 @@ export function PartnerSignupForm({ billingOpen }: { billingOpen: boolean }) {
         <input id="org-website" value={website} onChange={(e) => setWebsite(e.target.value)} maxLength={200} inputMode="url" placeholder="https://example.org" className={inputClass} />
       </Labeled>
       <PlanPicker plan={plan} interval={interval} onPlan={setPlan} onInterval={setInterval} withCommunity />
+      {plan === "anchor" ? <PaymentPicker value={payment} onChange={setPayment} /> : null}
       {plan !== "community" && !billingOpen ? (
         <p className="rounded-xl border border-line bg-surface-2 px-4 py-3 text-sm text-mute">
           Paid plans are not open yet. Your organization will start on Community Partner, and you can upgrade from Organization Settings when billing opens.
@@ -327,10 +346,12 @@ export function UpgradePanel() {
   const { pending, msg, run } = useAction();
   const [plan, setPlan] = useState<SignupPlanId>("supporting");
   const [interval, setInterval] = useState<PartnerInterval>("monthly");
+  const [payment, setPayment] = useState<"checkout" | "invoice">("checkout");
   return (
     <div className="flex flex-col gap-4">
       <PlanPicker plan={plan} interval={interval} onPlan={setPlan} onInterval={setInterval} withCommunity={false} />
-      <button type="button" disabled={pending} onClick={() => run(() => startUpgradeAction(plan, plan === "anchor" ? "annual" : interval))} className={buttonClass("primary", "w-full sm:w-auto")}>
+      {plan === "anchor" ? <PaymentPicker value={payment} onChange={setPayment} /> : null}
+      <button type="button" disabled={pending} onClick={() => run(() => startUpgradeAction(plan, plan === "anchor" ? "annual" : interval, payment))} className={buttonClass("primary", "w-full sm:w-auto")}>
         {pending ? "Opening checkout…" : "Upgrade"}
       </button>
       <FormMessage message={msg} />

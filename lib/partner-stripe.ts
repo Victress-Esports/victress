@@ -99,14 +99,23 @@ export async function createPortalSession(customerId: string, returnUrl: string)
   return s.url;
 }
 
-/** The Stripe price for "Anchor Partner with Category Exclusivity" ($85,000 per year). It is only ever used on an invoice for an approved request, never in Checkout. */
+/** The Stripe price for "Anchor Partner with Category Exclusivity" ($85,000 per year). Read only to work out the upgrade difference; never used in Checkout. */
 export const exclusivityPriceId = () => process.env.STRIPE_PRICE_PARTNER_ANCHOR_EXCLUSIVE_ANNUAL || null;
 
+/** Unit amount in cents of a Stripe price. */
+async function priceCents(id: string): Promise<number> {
+  const p = await stripeGet<{ unit_amount?: number | null }>(`prices/${encodeURIComponent(id)}`);
+  if (typeof p.unit_amount !== "number") throw new Error(`Stripe price ${id} has no unit amount`);
+  return p.unit_amount;
+}
+
 /**
- * A Stripe hosted invoice for an APPROVED exclusivity request. Never a subscription and never Checkout: the person pays on the hosted invoice page
+ * A Stripe hosted invoice for an APPROVED exclusivity request. Anchor Partner with Category Exclusivity replaces Anchor and includes
+ * everything in it, so an Anchor Partner who upgrades is invoiced the DIFFERENCE between the two prices (85,000 minus 50,000 as Stripe
+ * has them configured). Nothing is cancelled or credited automatically. Never Checkout: the person pays on the hosted invoice page
  * (card, ACH or bank transfer, whatever the Victress Stripe account has enabled for invoices) and exclusivity activates only when the
  * invoice.paid webhook arrives. Idempotency keys make a double click or a retry return the same customer, invoice and item.
- * Stripe is asked not to email anyone: collection_method send_invoice with auto_advance false, so the person is sent to the hosted page by the app.
+ * collection_method send_invoice with auto_advance false, so Stripe emails no one: the app sends the person to the hosted page.
  */
 export async function createExclusivityInvoice(opts: {
   orgId: string;
@@ -114,9 +123,14 @@ export async function createExclusivityInvoice(opts: {
   orgName: string;
   email?: string | null;
   customerId?: string | null;
-}): Promise<{ customerId: string; invoiceId: string; url: string }> {
-  const price = exclusivityPriceId();
-  if (!price) throw new Error("STRIPE_PRICE_PARTNER_ANCHOR_EXCLUSIVE_ANNUAL is not set");
+}): Promise<{ customerId: string; invoiceId: string; url: string; amountCents: number }> {
+  const exclusive = exclusivityPriceId();
+  const anchor = partnerPriceId({ plan: "anchor", interval: "annual" });
+  if (!exclusive) throw new Error("STRIPE_PRICE_PARTNER_ANCHOR_EXCLUSIVE_ANNUAL is not set");
+  if (!anchor) throw new Error("STRIPE_PRICE_PARTNER_ANCHOR_ANNUAL is not set");
+  const amountCents = (await priceCents(exclusive)) - (await priceCents(anchor));
+  if (amountCents <= 0) throw new Error("The exclusivity price must be higher than the Anchor price");
+
   const meta = { kind: "partner_exclusivity", org_id: opts.orgId, request_id: opts.requestId };
   const withMeta = (p: URLSearchParams) => {
     for (const [k, v] of Object.entries(meta)) p.set(`metadata[${k}]`, v);
@@ -135,16 +149,90 @@ export async function createExclusivityInvoice(opts: {
     withMeta(new URLSearchParams({ customer: customerId, collection_method: "send_invoice", days_until_due: "30", auto_advance: "false", pending_invoice_items_behavior: "exclude" })),
     idem("invoice"),
   );
-  await stripe("invoiceitems", withMeta(new URLSearchParams({ customer: customerId, invoice: inv.id, "price": price })), idem("item"));
+  await stripe(
+    "invoiceitems",
+    withMeta(new URLSearchParams({
+      customer: customerId,
+      invoice: inv.id,
+      amount: String(amountCents),
+      currency: "usd",
+      description: "Upgrade from Anchor Partner to Anchor Partner with Category Exclusivity (the difference between the two annual prices)",
+    })),
+    idem("item"),
+  );
   const done = await stripe<{ id: string; hosted_invoice_url?: string | null }>(`invoices/${encodeURIComponent(inv.id)}/finalize`, new URLSearchParams({ auto_advance: "false" }), idem("finalize"));
   if (!done.hosted_invoice_url) throw new Error("Stripe returned no hosted invoice URL");
-  return { customerId, invoiceId: done.id, url: done.hosted_invoice_url };
+  return { customerId, invoiceId: done.id, url: done.hosted_invoice_url, amountCents };
+}
+
+/**
+ * Anchor Partner paid by Stripe hosted invoice (the other ways are card or ACH through Checkout). A subscription with
+ * collection_method send_invoice: Stripe marks it active as soon as it exists, so access is NOT granted from the subscription events.
+ * The webhook records such a subscription as incomplete until its first invoice is paid (see app/api/stripe/webhook/route.ts).
+ */
+export async function createAnchorInvoiceSubscription(opts: {
+  orgId: string;
+  orgName: string;
+  email?: string | null;
+  customerId?: string | null;
+}): Promise<{ url: string }> {
+  const price = partnerPriceId({ plan: "anchor", interval: "annual" });
+  if (!price) throw new Error("No Stripe price is configured for anchor annual");
+  const meta = { kind: "partner", org_id: opts.orgId, plan: "anchor", interval: "annual" };
+  let customerId = opts.customerId ?? null;
+  if (!customerId) {
+    const c = new URLSearchParams({ name: opts.orgName });
+    if (opts.email) c.set("email", opts.email);
+    for (const [k, v] of Object.entries(meta)) c.set(`metadata[${k}]`, v);
+    customerId = (await stripe<{ id: string }>("customers", c, `anchor-invoice-customer-${opts.orgId}`)).id;
+  }
+  const p = new URLSearchParams({
+    customer: customerId,
+    "items[0][price]": price,
+    "items[0][quantity]": "1",
+    collection_method: "send_invoice",
+    days_until_due: "30",
+    "expand[0]": "latest_invoice",
+  });
+  for (const [k, v] of Object.entries(meta)) p.set(`metadata[${k}]`, v);
+  const sub = await stripe<{ latest_invoice?: { id: string; hosted_invoice_url?: string | null; status?: string } | null }>("subscriptions", p, `anchor-invoice-sub-${opts.orgId}`);
+  const inv = sub.latest_invoice;
+  if (!inv) throw new Error("Stripe returned no invoice for the subscription");
+  let url = inv.hosted_invoice_url ?? null;
+  if (!url && inv.status === "draft") url = (await stripe<{ hosted_invoice_url?: string | null }>(`invoices/${encodeURIComponent(inv.id)}/finalize`, new URLSearchParams({ auto_advance: "false" }))).hosted_invoice_url ?? null;
+  if (!url) throw new Error("Stripe returned no hosted invoice URL");
+  return { url };
+}
+
+export interface StripeInvoice {
+  id: string;
+  status?: string | null;
+  billing_reason?: string | null;
+  amount_due?: number;
+  amount_paid?: number;
+  currency?: string;
+  created?: number;
+  number?: string | null;
+  description?: string | null;
+  hosted_invoice_url?: string | null;
+  subscription?: string | null;
+  parent?: { subscription_details?: { subscription?: string | null } | null } | null;
+  metadata?: Record<string, string>;
+}
+export const invoiceSubscriptionId = (inv: StripeInvoice) => inv.subscription ?? inv.parent?.subscription_details?.subscription ?? null;
+export const retrieveInvoice = (id: string) => stripeGet<StripeInvoice>(`invoices/${encodeURIComponent(id)}`);
+/** Payment history for the organization's Stripe customer: newest first. Read only. */
+export async function listInvoices(customerId: string, limit = 24): Promise<StripeInvoice[]> {
+  const r = await stripeGet<{ data?: StripeInvoice[] }>(`invoices?customer=${encodeURIComponent(customerId)}&limit=${limit}`);
+  return (r.data ?? []).filter((i) => i.status !== "draft");
 }
 
 export interface StripeSubscription {
   id: string;
   customer: string | { id: string };
   status: string;
+  collection_method?: string;
+  latest_invoice?: string | { id: string } | null;
   metadata?: Record<string, string>;
   items?: { data?: { price?: { id?: string } }[] };
 }
