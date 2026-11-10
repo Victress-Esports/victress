@@ -239,27 +239,27 @@ const pages = [
     path: "/",
     index: true,
     types: ["Organization", "WebSite", "WebApplication"],
-    // Apple One style: the name, one short line, one sentence, ONE button with one small line. Below it: what brings you here
-    // (role picker), the three products, simple pricing, Women in Esports, questions and answers.
+    // One front door: the name, one sentence, ONE button with one small line. Below it: who are you (every group goes straight to
+    // the one registration), the three products, Women in Esports. Pricing and questions live on /pricing, not repeated here.
     contains: [
       "Your competitive career. All in one place.",
-      "Track performance. Build your player profile. Connect with opportunities.",
-      "Join the Design Partner Pilot", "Claim your Player Resume", "Free 4 to 6 week pilot for teams and programs.", "Sign up", "Log in",
-      "What brings you to Victress?", "Three products. One connected platform.", "Scrim Intelligence", "Player Resume", "Scout Desk", "Coming soon",
-      "Simple pricing. Start free.", "Women in Esports", "Questions? Answers.",
+      "Build your Player Resume. Bring your team together.",
+      "Get started", "Free for players.", "Log in",
+      "Where do you belong?", "Player", "Coach or team", "Scout or recruiter", "College program", "Partner organization", "/partnerships",
+      "Three products. One connected platform.", "Scrim Intelligence", "Player Resume", "Scout Desk", "Coming soon", "Women in Esports",
       "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment.",
     ],
     // Approved homepage values. The wings are the logo (nav and footer) and a faint cropped backdrop; the full-size art file itself must not be a hero visual.
     exact: {
       title: "Esports Player Development and Recruitment | Victress",
-      description: "Esports player development and recruitment for players, teams, coaches and collegiate programs. Create an account with source labeled stats and manage rosters.",
+      description: "Esports player development and recruitment for players, teams, coaches and collegiate programs. Create a Player Resume and manage rosters.",
     },
-    notContains: ["wings-480", "wings-720", "/brand/wings.webp", "Claim your name", "Available now", "shareable player profile", "share one link", "Explore the Platform", "Get started"],
+    notContains: ["wings-480", "wings-720", "/brand/wings.webp", "Claim your name", "Available now", "shareable player profile", "share one link", "Explore the Platform", "Join the Design Partner Pilot", "Simple pricing. Start free.", "Questions? Answers."],
   },
   mk(MARKETING, "/pricing", true, ["FAQPage", "BreadcrumbList"]),
   mk(MARKETING, "/teams", true, ["BreadcrumbList"]),
   mk(MARKETING, "/about", true, ["BreadcrumbList"]),
-  { host: MARKETING, path: "/partnerships", index: true, types: ["BreadcrumbList"], exact: { title: "Partner with Victress | Women in Esports", description: "Support player development, recruitment and competitive players in esports. Partner with Victress to open doors in collegiate gaming." }, contains: ["Build something meaningful with Victress.", "Talk with our team", 'href="/contact"', "One place for your partnership.", "Sample", "Discover", "Participate", "Support", "Measure", "Four ways to make a difference.", "Expertise and Mentorship", "Infrastructure", "You work with people, not just an account.", "Community Partner", "Supporting Partner", "Anchor Partner", "Anchor Partner with Category Exclusivity", "A dedicated Victress partnership representative", "A dedicated relationship manager, exclusivity coordination and strategic partnership support.", "Pricing is discussed with the Victress team", "Direct subsidization of Scrim Intelligence access for developing rosters", "10 Scout Desk seats", "Exclusive rights within an agreed category", "Custom research reports", "Partners do not automatically receive player profiles or private player data. Players decide what information they share.", "Financial support does not buy access to private player information."], notContains: ["mailto:", "hello@victressesports.com", "victress.gg/partner", "Become a Partner", "Coming Soon", "Coming soon", "$0", "$1,000", "$10,000", "$35,000", "$50,000", "$85,000", "per month", "per year", "Back the next generation", "Email us", "Nothing on this page is a commitment", "Victress Women in Esports"] },
+  { host: MARKETING, path: "/partnerships", index: true, types: ["BreadcrumbList"], exact: { title: "Partner with Victress | Women in Esports", description: "Support player development, recruitment and competitive players in esports. Partner with Victress to open doors in collegiate gaming." }, contains: ["Build something meaningful with Victress.", "Become a Partner", "Partner registration opens with the Partner platform.", "Your partnership, in one place.", "Sample", "Four ways to make a difference.", "Expertise and Mentorship", "Infrastructure", "Community Partner", "Supporting Partner", "Anchor Partner", "Anchor Partner with Category Exclusivity", "A dedicated Victress partnership representative", "A dedicated relationship manager, exclusivity coordination and strategic partnership support.", "Pricing is shared directly by the Victress team", "Direct subsidization of Scrim Intelligence access for developing rosters", "10 Scout Desk seats", "Exclusive rights within an agreed category", "Custom research reports", "Partners do not automatically receive player profiles or private player data. Players decide what information they share.", "Financial support does not buy access to private player information."], notContains: ["mailto:", "hello@victressesports.com", "Talk with our team", "login?role=partner", "Coming Soon", "$0", "$1,000", "$10,000", "$35,000", "$50,000", "$85,000", "per month", "per year", "Back the next generation", "Email us", "Victress Women in Esports"] },
   { host: MARKETING, path: "/contact", index: true, types: ["BreadcrumbList"], contains: ["mailto:hello@victressesports.com", "Partnership conversation", "Talk with our team", "Teams and organizations", "Individual players", "Request access", "Apply for Design Partner"] },
   { host: MARKETING, path: "/platform", index: true, types: ["BreadcrumbList"], contains: ["Practice", "Performance Evidence", "Development", "Recognition", "Opportunity", "Scrim Intelligence", "Player Resume", "Scout Desk", "Coming soon"] },
   { host: MARKETING, path: "/women-in-esports", index: true, types: ["BreadcrumbList"], contains: ["Women in Esports", "Victress is called Victress for a purpose.", "Delivered through", "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment."] },
@@ -291,7 +291,7 @@ if (!LIVE) {
 }
 
 const mPaths = ["/", "/platform", "/women-in-esports", "/design-partner", "/pricing", "/teams", "/partnerships", "/about", "/contact", "/privacy", "/terms", "/refunds"];
-const aPrivate = ["/dashboard", "/dashboard/profile", "/dashboard/team", "/onboarding", "/consent", "/login", "/auth/callback", "/auth/signout", "/join/abc123", "/api/waitlist", "/api/handle-check"];
+const aPrivate = ["/partner", "/dashboard", "/dashboard/profile", "/dashboard/team", "/onboarding", "/consent", "/login", "/auth/callback", "/auth/signout", "/join/abc123", "/api/waitlist", "/api/handle-check"];
 await auditSite(MARKETING, APP, mPaths, ["/api/waitlist", "/api/handle-check"]);
 const appUrls = await auditSite(
   APP,
@@ -478,20 +478,22 @@ console.log("\n######## STATUS WORDING, SELF-ENTERED STATS AND THE HOME HERO ###
     for (const re of STATS) ok(!re.test(src), `${f} mentions stats players enter ${re}`);
   }
 
-  // Home: one idea above the fold. Two doorways (pilot for teams, app for players), one small line. (The retired tagline is checked on every page above.)
+  // Home: one idea above the fold. One doorway (registration), one small line. (The retired tagline is checked on every page above.)
   const home = (await get(MARKETING, "/")).body;
   ok((home.match(/<h1[\s>]/g) ?? []).length === 1 && /<h1[^>]*>\s*Your competitive career\. All in one place\.\s*<\/h1>/.test(home), "the home page has one h1: the headline");
   const hero = home.slice(home.indexOf("<section"), home.indexOf("</section>"));
   const heroLinks = [...hero.matchAll(/<a\b[^>]*href="([^"]*)"/g)].map((m) => m[1]);
-  ok(heroLinks.length === 2 && heroLinks[0] === "/design-partner" && (/^https:\/\/victress\.gg\/login/.test(heroLinks[1]) || /__site\/app/.test(heroLinks[1])), `the hero has exactly two links: the pilot first, then victress.gg (found ${JSON.stringify(heroLinks)})`);
-  ok(!/<button\b/.test(hero), "the hero has no buttons besides the two links");
-  ok(/Free 4 to 6 week pilot for teams and programs\./.test(hero), "the hero shows the one small line under the buttons");
+  ok(heroLinks.length === 1 && (/^https:\/\/victress\.gg\/login/.test(heroLinks[0]) || /__site\/app/.test(heroLinks[0])), `the hero has exactly one link, to registration on victress.gg (found ${JSON.stringify(heroLinks)})`);
+  ok(!/<button\b/.test(hero), "the hero has no buttons besides the one link");
+  ok(/Free for players\./.test(hero), "the hero shows the one small line under the button");
   ok(!/\b(badge|counter)\b/i.test(hero), "the hero has no badges or counters");
   const header = home.slice(home.indexOf("<header"), home.indexOf("</header>"));
-  const navCtas = [...header.matchAll(/<a\b[^>]*href="([^"]*)"[^>]*>\s*Sign up\s*<\/a>/g)].map((m) => m[1]);
-  ok(navCtas.length >= 1 && navCtas.every((h) => /^https:\/\/victress\.gg/.test(h) || /__site\/app/.test(h)), `the nav has a Sign up button that goes to victress.gg (found ${JSON.stringify(navCtas)})`);
-  const order = ["What brings you to Victress?", "Three products. One connected platform.", "Simple pricing. Start free.", "id=\"women-title\"", "Questions? Answers."].map((t) => home.indexOf(t));
-  ok(order.every((i, n) => i > 0 && (n === 0 || i > order[n - 1])), "below the fold the sections run in order: role picker, products, pricing, Women in Esports, questions");
+  const navCtas = [...header.matchAll(/<a\b[^>]*href="([^"]*)"[^>]*>\s*Get started\s*<\/a>/g)].map((m) => m[1]);
+  ok(navCtas.length >= 1 && navCtas.every((h) => /^https:\/\/victress\.gg/.test(h) || /__site\/app/.test(h)), `the nav has a Get started button that goes to victress.gg (found ${JSON.stringify(navCtas)})`);
+  const order = ["Where do you belong?", "id=\"women-title\"", "Three products. One connected platform."].map((t) => home.indexOf(t));
+  for (const role of ["player", "team", "recruiter"]) ok(new RegExp(`href="[^"]*login\\?role=${role}"`).test(home), `home: the ${role} card goes straight to registration with the role`);
+  ok(/href="\/partnerships"/.test(home), "home: the partner organization card goes to Partnerships");
+  ok(order.every((i, n) => i > 0 && (n === 0 || i > order[n - 1])), "below the fold the sections run in order: role picker, Women in Esports, products");
 }
 
 console.log(`\n${checks} checks run, ${failures} failed${LIVE ? " (live production)" : ""}`);

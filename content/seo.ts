@@ -5,7 +5,7 @@ export const seo = {
   marketing: {
     home: {
       title: "Esports Player Development and Recruitment | Victress",
-      description: "Esports player development and recruitment for players, teams, coaches and collegiate programs. Create an account with source labeled stats and manage rosters.",
+      description: "Esports player development and recruitment for players, teams, coaches and collegiate programs. Create a Player Resume and manage rosters.",
     },
     pricing: {
       title: "Pricing and Plans | Victress",

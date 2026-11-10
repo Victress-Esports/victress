@@ -7,6 +7,7 @@ import { LoginForm } from "@/components/app/LoginForm";
 import { copy } from "@/content/copy";
 import { safeNext } from "@/lib/auth";
 import { checkHandle } from "@/lib/handles";
+import { getRole } from "@/lib/roles";
 import { supabaseServer } from "@/lib/supabase/server";
 import { marketingUrl } from "@/lib/urls";
 
@@ -15,7 +16,7 @@ export const metadata: Metadata = privateMetadata(seo.app.login.title, seo.app.l
 export default async function Login({
   searchParams,
 }: {
-  searchParams: Promise<{ claim?: string; next?: string; error?: string; deleted?: string }>;
+  searchParams: Promise<{ claim?: string; next?: string; error?: string; role?: string; deleted?: string }>;
 }) {
   const sp = await searchParams;
   const next = safeNext(sp.next, "");
@@ -28,6 +29,7 @@ export default async function Login({
 
   const { verdict, handle } = checkHandle(sp.claim ?? "");
   const claim = verdict === "ok" ? handle : "";
+  const role = getRole(sp.role);
 
   return (
     <main id="main" className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-8 px-4 py-16">
@@ -37,6 +39,7 @@ export default async function Login({
           {claim ? `Claim ${claim}.` : "Sign in or create your account."}
         </h1>
         {claim ? <p className="mt-3 text-mute">{`Sign in or create your account to claim ${claim}.`}</p> : null}
+        {role ? <p className="mt-3 text-mute">{`Creating an account as: ${role.title}.`}</p> : null}
       </div>
       {sp.deleted ? (
         <p role="status" className="rounded-xl border border-line bg-surface px-4 py-3 text-sm">
@@ -49,7 +52,7 @@ export default async function Login({
           That link didn&apos;t work. Try again.
         </p>
       ) : null}
-      <LoginForm claim={claim} next={next} />
+      <LoginForm claim={claim} next={next} role={role?.id ?? ""} />
       <p className="text-xs text-mute">
         {copy.auth.ageNotice}{" "}
         <a href={marketingUrl("/terms")} className="font-semibold text-white underline underline-offset-2">

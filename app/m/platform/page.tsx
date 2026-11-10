@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { copy } from "@/content/copy";
 import { seo } from "@/content/seo";
 import { marketingCrumbs } from "@/lib/jsonld";
+import { WomenStrip } from "@/components/marketing/WomenStrip";
 import { pageMetadata } from "@/lib/seo";
 import { appUrl } from "@/lib/urls";
 
@@ -22,6 +23,7 @@ export default function Platform() {
   const p = copy.platform;
   const h = copy.home;
   return (
+    <>
     <div>
       <JsonLd data={marketingCrumbs("Platform", "/platform")} />
       <header className="mx-auto max-w-6xl px-4 pb-12 pt-16 sm:px-6 sm:pt-24">
@@ -116,5 +118,7 @@ export default function Platform() {
         </div>
       </section>
     </div>
+    <WomenStrip />
+    </>
   );
 }

@@ -194,7 +194,9 @@ const text = async (page) => (await page.locator("body").innerText()).replace(/\
   await page.waitForURL(/\/onboarding/);
   check(/\/onboarding/.test(page.url()), "new user: then sent to onboarding");
   check(/How will you use Victress\?/.test(await text(page)), "onboarding: starts with the account type step");
-  await page.getByRole("button", { name: /Recruiter or scout/ }).click();
+  for (const r of ["Player", "Coach or team", "Scout or recruiter"]) check((await page.getByRole("button", { name: new RegExp(`^${r}`) }).count()) === 1, `onboarding: ${r} is a choice when no role came from the website`);
+  check((await page.getByRole("button", { name: /^(College program|Partner organization)/ }).count()) === 0, `onboarding: no personal account is offered for a college program or a partner organization`);
+  await page.getByRole("button", { name: /Scout or recruiter/ }).click();
   check(/Pick your name/.test(await text(page)), "onboarding: account type leads to the name step");
   await ctx.close();
 }
