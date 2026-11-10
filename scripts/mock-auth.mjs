@@ -15,6 +15,7 @@ export const PERSONAS = {
   scout: { n: 3, label: "Recruiter or scout", note: "Account type recruiter. Plan is still Rookie: Scout Desk stays locked", account_type: "recruiter", onboarded: true },
   partner: { n: 5, label: "Approved design partner", note: "On the upload allowlist (uploads still need the flag on)", account_type: "player", onboarded: true, allowlisted: true },
   oldterms: { n: 6, label: "Terms changed", note: "Onboarded, accepted an older Terms and Privacy version: must accept again", account_type: "player", onboarded: true, oldTerms: true },
+  soloteam: { n: 7, label: "Solo team owner", note: "Owns a team with no other players", account_type: "team", onboarded: true },
   new: { n: 4, label: "New user", note: "Not onboarded yet: starts at the account type step", account_type: undefined, onboarded: false },
 };
 
@@ -37,16 +38,18 @@ function seed(key) {
     T.player_games.push({ profile_id: uid, game: "VALORANT", role: "Duelist", rank: "Gold", is_primary: true, created_at: now() });
     T.stat_entries.push({ id: randomUUID(), profile_id: uid, game: "VALORANT", season: "Current", metrics: { acs: 241, kd: 1.18, matches: 52 }, source: "manual", created_at: now() });
   }
-  if (key === "team") {
-    const tid = id(900);
+  if (key === "team" || key === "soloteam") {
+    const tid = id(key === "team" ? 900 : 901);
     me.team_id = tid;
     T.teams.push({ id: tid, name: "Mock Squad", owner_id: uid, created_at: now() });
-    T.profiles.push(profile(21, "mock_mate_one", { team_id: tid }), profile(22, "mock_mate_two", { team_id: tid, role: "Controller", rank: "Silver" }));
-    T.team_members.push(
-      { team_id: tid, profile_id: uid, role: "owner", joined_at: new Date(Date.now() - 5 * day).toISOString() },
-      { team_id: tid, profile_id: id(21), role: "member", joined_at: new Date(Date.now() - 3 * day).toISOString() },
-      { team_id: tid, profile_id: id(22), role: "member", joined_at: new Date(Date.now() - 1 * day).toISOString() },
-    );
+    T.team_members.push({ team_id: tid, profile_id: uid, role: "owner", joined_at: new Date(Date.now() - 5 * day).toISOString() });
+    if (key === "team") {
+      T.profiles.push(profile(21, "mock_mate_one", { team_id: tid }), profile(22, "mock_mate_two", { team_id: tid, role: "Controller", rank: "Silver" }));
+      T.team_members.push(
+        { team_id: tid, profile_id: id(21), role: "member", joined_at: new Date(Date.now() - 3 * day).toISOString() },
+        { team_id: tid, profile_id: id(22), role: "member", joined_at: new Date(Date.now() - 1 * day).toISOString() },
+      );
+    }
   }
   // Everyone except the new user has confirmed their age and accepted the current documents (the oldterms persona an older version).
   if (key !== "new") {

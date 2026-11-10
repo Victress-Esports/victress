@@ -55,6 +55,7 @@ async function session(persona) {
   await page.waitForSelector("text=You own a team with other players");
   const s = await state();
   check(s.deletedUsers.length === 0, "delete: a team owner with players is refused and nothing is deleted");
+  check(s.tables.teams === 1 && s.tables.team_members === 3 && s.tables.profiles === 3, "delete: the refusal changed nothing (the team, its members and profiles are all still there)");
   await ctx.close();
 }
 
@@ -72,6 +73,19 @@ async function session(persona) {
   check(Object.values(s.tables).every((n) => n === 0), "delete: no rows remain for the player");
   await page.goto(`http://app.localhost:${APP}/dashboard`);
   check(/\/login/.test(page.url()), "delete: the session is gone");
+  await ctx.close();
+}
+
+// --- a sole team owner: the team goes with the account, in the one final step
+{
+  const { ctx, page } = await session("soloteam");
+  await page.goto(`http://app.localhost:${APP}/dashboard/account`);
+  check(true, "solo owner: reaches the account page");
+  await page.fill("#delete-confirm", "mock_soloteam");
+  await page.getByRole("button", { name: "Delete my account" }).click();
+  await page.waitForURL(/\/login\?deleted=1/, { timeout: 15000 });
+  const s = await state();
+  check(s.deletedUsers.includes("00000000-0000-4000-9000-000000000007") && s.tables.teams === 0, "solo owner: the account and the team it owned alone are gone");
   await ctx.close();
 }
 
