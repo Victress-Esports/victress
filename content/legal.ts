@@ -28,9 +28,8 @@ export const privacyDoc: LegalDoc = {
       h: "What we collect",
       list: [
         "Your account: your email address, and the sign in method you choose (an email link, Discord or Google). If you use Discord or Google, we receive the details that service shares for sign in. We do not copy your real name or photo from them into your profile.",
-        "Your profile: the name you pick, and anything you add such as a display name, bio, profile photo, your games, roles and ranks, tournaments, and links to highlights you host elsewhere.",
+        "Your profile: the name you pick, and anything you add such as a display name, bio, profile photo, your games and roles, and links to highlights you host elsewhere.",
         "Your team: a team name and who is on the roster, if you start or join a team. Invite links are codes that let someone join your team.",
-        "Your match log: practice matches you record. It is private to you.",
         "Practice files: if you are approved as a design partner and upload a demo or replay file, it is stored privately with the file name and size.",
         "Game stats from earlier versions: earlier versions of Victress let players enter game stats. We still hold what was entered. We do not show it to anyone.",
         "Messages you send us: the contact and design partner forms send your details to our email inbox. They are not stored in the Victress database.",

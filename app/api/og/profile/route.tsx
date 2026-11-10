@@ -13,7 +13,7 @@ export async function GET(req: Request) {
   if (!p?.handle) return new Response("Not found", { status: 404 });
 
   const name = p.display_name || p.handle;
-  const facts = [p.game, p.role, p.rank].filter(Boolean).join("  ·  ");
+  const facts = [p.game, p.role].filter(Boolean).join("  ·  ");
 
   return new ImageResponse(
     (

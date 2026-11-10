@@ -32,7 +32,6 @@ export async function claimNameAction(raw: string): Promise<{ status: ClaimStatu
 const finishSchema = z.object({
   game: z.enum(GAME_IDS).nullable().optional(),
   role: z.string().max(40).nullable().optional(),
-  rank: z.string().max(40).nullable().optional(),
   account_type: z.enum(["player", "team", "recruiter"]).optional(),
 });
 
@@ -45,8 +44,7 @@ export async function finishOnboardingAction(input: z.input<typeof finishSchema>
   const cfg = getGame(parsed.data.game);
   if (cfg) {
     const role = parsed.data.role && cfg.roles.includes(parsed.data.role) ? parsed.data.role : null;
-    const rank = parsed.data.rank && cfg.ranks.includes(parsed.data.rank) ? parsed.data.rank : null;
-    if (!(await savePlayerGame(sb, user.id, cfg, role, rank))) return { ok: false as const };
+    if (!(await savePlayerGame(sb, user.id, cfg, role))) return { ok: false as const };
   }
 
   // account_type records what the person said they are. It is not an entitlement: it grants no access to anyone's data.

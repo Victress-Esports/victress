@@ -5,6 +5,8 @@
 
 Victress is building connected infrastructure for esports player development, performance intelligence and talent discovery, for the broader esports ecosystem (not one demographic, game or level). Practice → Performance Evidence → Development → Recognition → Opportunity.
 
+**Current work, branches, PRs, test results and blockers live in [DEVELOPMENT_STATUS.md](DEVELOPMENT_STATUS.md).** Keep it updated as work completes; do not duplicate the roadmap here.
+
 ## 1. One company, one platform, Creating Shared Value
 - Victress is a technology business. **Creating Shared Value is the business strategy**, not a marketing overlay, a charity program or a separate corporate responsibility activity. Social value and business value come from the same products, infrastructure and relationships.
 - Three product pillars work together, and there are only three:

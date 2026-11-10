@@ -55,11 +55,8 @@ const text = async (page) => (await page.locator("body").innerText()).replace(/\
   await page.goto(`http://app.localhost:${OFF}/dashboard/resume`);
   t = await text(page);
   check(!/Self-reported|Add or update stats|Every stat/i.test(t), "resume: no self-reported stats section and no way to add stats");
-  await page.fill("#t-name", "Spring Open");
-  await page.fill("#t-place", "3rd");
-  await page.getByRole("button", { name: "Add tournament" }).click();
-  await page.waitForSelector("text=Spring Open");
-  check(true, "resume: a tournament can be added and shows in the list");
+  check(!/Tournament history/i.test(t) && (await page.locator("#t-name").count()) === 0, "resume: no tournament history entry");
+  check((await page.locator("label:has-text('Rank') select").count()) === 0 && !/\brank\b/i.test(t), "resume: no manual rank entry");
   await page.fill("#h-title", "Clutch");
   await page.fill("#h-url", "http://insecure.example/clip");
   await page.getByRole("button", { name: "Add highlight" }).click();
@@ -74,7 +71,7 @@ const text = async (page) => (await page.locator("body").innerText()).replace(/\
   check(true, "resume: a highlight can be removed");
   // visibility preview responds to ticks
   const before = await text(page);
-  await page.getByLabel("Role and rank").check();
+  await page.getByLabel("Role", { exact: true }).check();
   check((await text(page)) !== before, "resume: the preview changes when a field is ticked");
 
   // resume: edit profile text and games in place
@@ -90,11 +87,6 @@ const text = async (page) => (await page.locator("body").innerText()).replace(/\
   await page.getByRole("button", { name: /^\+ Counter-Strike 2$/ }).click();
   await page.getByRole("button", { name: "Remove Counter-Strike 2" }).waitFor();
   check(true, "resume: a game can be added in place");
-  const rankSelect = page.locator("label:has-text('Rank') select").last();
-  await rankSelect.selectOption({ index: 2 });
-  await page.waitForTimeout(600);
-  await page.reload();
-  check((await page.locator("label:has-text('Rank') select").last().inputValue()) !== "", "resume: a rank saved for the new game persists after a reload");
   await page.getByRole("button", { name: "Remove Counter-Strike 2" }).click();
   await page.waitForTimeout(600);
   check((await page.getByRole("button", { name: "Remove Counter-Strike 2" }).count()) === 0, "resume: a game can be removed");
@@ -111,29 +103,9 @@ const text = async (page) => (await page.locator("body").innerText()).replace(/\
   check(/Uploads are not open yet/.test(t) && (await page.locator('input[type="file"]').count()) === 0, "scrims: no uploader while the flag is off");
   check(!/Where every number comes from|Self-reported/i.test(t) && /Automated analysis\s*Coming soon/.test(t), "scrims: no provenance paragraph; analysis carries one Coming soon label");
   check(!/\d+(\.\d+)?\s*(ACS|K\/D)/i.test(t), "scrims: no stats are shown");
-  // match log
-  check(/Match log/.test(t) && /No matches logged yet/.test(t), "scrims: the match log starts empty");
-  await page.fill("#m-opp", "Mock Rivals");
-  await page.fill("#m-score", "13-9");
-  await page.fill("#m-map", "Ascent");
-  await page.getByRole("button", { name: "Log match" }).click();
-  await page.waitForSelector("text=Win · 13-9 vs Mock Rivals");
-  check(true, "scrims: a match with opponent, score, map and date can be logged");
-  check(/1 wins · 0 losses · 0 draws, counted from the 1 match you logged/.test(await text(page)), "scrims: the tally is counted only from the player's own entries");
-  await page.selectOption("#m-result", "loss");
-  await page.fill("#m-score", "nine to thirteen");
-  await page.getByRole("button", { name: "Log match" }).click();
-  await page.waitForSelector("text=Write the score like 13-9.");
-  check(true, "scrims: a free text score is refused");
-  await page.fill("#m-score", "7:13");
-  await page.getByRole("button", { name: "Log match" }).click();
-  await page.waitForSelector("text=Loss · 7:13");
-  await page.reload();
-  check(/1 wins · 1 losses/.test(await text(page)), "scrims: logged matches persist after a reload");
-  await page.getByRole("button", { name: /^Remove match .* vs Mock Rivals$/ }).first().click();
-  await page.waitForFunction(() => /1 wins · 0 losses|0 wins · 1 losses/.test(document.body.innerText));
-  check(true, "scrims: a match can be removed");
-  check((await page.locator('input[type="file"]').count()) === 0, "scrims: the match log adds no file upload control");
+  // the manual match log is gone
+  check(!/Match log|Log match/i.test(t) && (await page.locator("#m-opp").count()) === 0, "scrims: no manual match log");
+  check((await page.locator('input[type="file"]').count()) === 0, "scrims: no file upload control while the flag is off");
   check(errors.length === 0, `rookie: no page errors ${errors.join(" | ")}`);
   await ctx.close();
 }

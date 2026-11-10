@@ -52,7 +52,7 @@ export default async function ScoutDesk() {
         <dl className="grid gap-4 sm:grid-cols-3">
           <div>
             <dt className="font-semibold">Discovery</dt>
-            <dd className="mt-1 text-sm text-mute">Find players who opted in, filtered by game, role and rank.</dd>
+            <dd className="mt-1 text-sm text-mute">Find players who opted in, filtered by game and role.</dd>
           </div>
           <div>
             <dt className="font-semibold">Evaluation</dt>

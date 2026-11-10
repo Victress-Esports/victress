@@ -5,11 +5,11 @@ import { buttonClass } from "@/components/ui/Button";
 import { claimNameAction, finishOnboardingAction } from "@/app/a/onboarding/actions";
 import type { GameConfig } from "@/content/games";
 
-type Step = "type" | "name" | "game" | "role" | "rank";
+type Step = "type" | "name" | "game" | "role";
 type AccountType = "player" | "team" | "recruiter";
 
 const TYPES: { id: AccountType; title: string; line: string }[] = [
-  { id: "player", title: "Player", line: "Add your games, roles and ranks." },
+  { id: "player", title: "Player", line: "Add your games and roles." },
   { id: "team", title: "Team or coach", line: "Run a roster and follow your team." },
   { id: "recruiter", title: "Recruiter or scout", line: "Scout Desk is coming soon. You can still create a player profile." },
 ];
@@ -36,35 +36,34 @@ export function OnboardingWizard({ games, needsName }: { games: GameConfig[]; ne
 
   // Games without fixed roles (Rocket League) skip the role step.
   const hasRoles = (g: GameConfig | null) => !g || g.roles.length > 0;
-  const progressSteps: Step[] = ["game", ...(hasRoles(game) ? (["role"] as const) : []), "rank"];
+  const progressSteps: Step[] = ["game", ...(hasRoles(game) ? (["role"] as const) : [])];
   const pct = step === "name" || step === "type" ? 0 : Math.round(((progressSteps.indexOf(step) + 1) / progressSteps.length) * 100);
 
-  const finish = (g: GameConfig | null, r: string | null, k: string | null) =>
+  const finish = (g: GameConfig | null, r: string | null) =>
     start(async () => {
-      await finishOnboardingAction({ game: g?.id ?? null, role: r, rank: k, account_type: accountType });
+      await finishOnboardingAction({ game: g?.id ?? null, role: r, account_type: accountType });
     });
 
   function pickGame(g: GameConfig) {
     setGame(g);
     setRole(null);
-    setStep(g.roles.length ? "role" : "rank");
+    if (g.roles.length) setStep("role");
+    else finish(g, null); // no fixed roles (Rocket League): nothing left to ask
   }
   function pickRole(r: string) {
     setRole(r);
-    setStep("rank");
+    finish(game, r);
   }
   function skip() {
-    if (step === "game") return finish(null, null, null); // no game: nothing left to ask
-    if (step === "role") return setStep("rank");
-    if (step === "rank") return finish(game, role, null);
+    if (step === "game") return finish(null, null); // no game: nothing left to ask
+    if (step === "role") return finish(game, null);
   }
   function pickType(t: AccountType) {
     setAccountType(t);
     setStep(needsName ? "name" : "game");
   }
   function back() {
-    if (step === "rank") setStep(game && game.roles.length ? "role" : "game");
-    else if (step === "role") setStep("game");
+    if (step === "role") setStep("game");
   }
 
   function submitName(e: React.FormEvent) {
@@ -85,9 +84,7 @@ export function OnboardingWizard({ games, needsName }: { games: GameConfig[]; ne
       ? "Pick your name."
       : step === "game"
         ? "Pick your game."
-        : step === "role"
-          ? `Pick your ${(game?.roleLabel ?? "role").toLowerCase()}.`
-          : "Pick your rank.";
+        : `Pick your ${(game?.roleLabel ?? "role").toLowerCase()}.`;
   const line =
     step === "type"
       ? "This sets up your account. It does not give access to anyone else's data."
@@ -95,11 +92,7 @@ export function OnboardingWizard({ games, needsName }: { games: GameConfig[]; ne
       ? "Choose the name on your account. Use 3 to 20 letters, numbers or underscores."
       : step === "game"
         ? "Where do you compete? You can add more later."
-        : step === "role"
-          ? "How do you play?"
-          : game
-            ? `Your current ${game.name} rank.`
-            : "Where are you today?";
+        : "How do you play?";
 
   return (
     <div className="flex flex-col gap-8">
@@ -178,16 +171,6 @@ export function OnboardingWizard({ games, needsName }: { games: GameConfig[]; ne
           {game.roles.map((r) => (
             <button key={r} type="button" aria-pressed={role === r} onClick={() => pickRole(r)} className={card}>
               {r}
-            </button>
-          ))}
-        </div>
-      ) : null}
-
-      {step === "rank" && game ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {game.ranks.map((k) => (
-            <button key={k} type="button" disabled={pending} onClick={() => finish(game, role, k)} className={card}>
-              {k}
             </button>
           ))}
         </div>

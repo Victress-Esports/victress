@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: { params: Promise<{ handle: s
   const { profile } = found;
   const handle = profile.handle;
   const cfg = getGame(profile.game);
-  const facts = [cfg?.name, profile.role, profile.rank].filter(Boolean).join(" · ");
+  const facts = [cfg?.name, profile.role].filter(Boolean).join(" · ");
   const { title, description } = profileSeo({ name: profile.display_name, handle, facts, bio: profile.bio });
 
   const meta = pageMetadata({
@@ -87,7 +87,6 @@ export default async function PublicProfile({ params }: { params: Promise<{ hand
           avatarUrl={profile.avatar_url}
           game={profile.game}
           role={profile.role}
-          rank={profile.rank}
           teamName={profile.team_name}
           alsoPlays={alsoPlays}
           isDemo={!!profile.is_demo}

@@ -2,12 +2,11 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { addHighlightAction, addTournamentAction, removeHighlightAction, removeTournamentAction } from "@/app/a/dashboard/resume/actions";
+import { addHighlightAction, removeHighlightAction } from "@/app/a/dashboard/resume/actions";
 import { buttonClass } from "@/components/ui/Button";
 import { Field, FormMessage, inputClass } from "@/components/ui/form";
 import { GAME_LIST, getGame } from "@/content/games";
 
-export type TournamentRow = { id: string; game: string; name: string; placement: string | null; team_name: string | null; played_on: string | null };
 export type HighlightRow = { id: string; game: string; title: string; url: string; note: string | null };
 
 function GameSelect({ id, value, onChange, options }: { id: string; value: string; onChange: (v: string) => void; options: string[] }) {
@@ -19,86 +18,6 @@ function GameSelect({ id, value, onChange, options }: { id: string; value: strin
         </option>
       ))}
     </select>
-  );
-}
-
-export function TournamentSection({ rows, games }: { rows: TournamentRow[]; games: string[] }) {
-  const router = useRouter();
-  const [pending, start] = useTransition();
-  const options = games.length ? games : GAME_LIST.map((g) => g.id);
-  const [game, setGame] = useState(options[0]);
-  const [name, setName] = useState("");
-  const [placement, setPlacement] = useState("");
-  const [team, setTeam] = useState("");
-  const [date, setDate] = useState("");
-  const [msg, setMsg] = useState("");
-
-  function add(e: React.FormEvent) {
-    e.preventDefault();
-    start(async () => {
-      const r = await addTournamentAction({ game: game as never, name, placement, team_name: team, played_on: date });
-      setMsg(r.message ?? "");
-      if (r.ok) {
-        setName("");
-        setPlacement("");
-        setTeam("");
-        setDate("");
-        router.refresh();
-      }
-    });
-  }
-  function remove(id: string) {
-    start(async () => {
-      await removeTournamentAction(id);
-      router.refresh();
-    });
-  }
-
-  return (
-    <div className="flex flex-col gap-5">
-      {rows.length ? (
-        <ul className="flex flex-col gap-2">
-          {rows.map((t) => (
-            <li key={t.id} className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface-2 px-4 py-3">
-              <div className="min-w-0">
-                <p className="truncate font-semibold">{t.name}</p>
-                <p className="truncate text-sm text-mute">
-                  {[getGame(t.game)?.name ?? t.game, t.placement, t.team_name, t.played_on].filter(Boolean).join(" · ")}
-                </p>
-              </div>
-              <button type="button" onClick={() => remove(t.id)} disabled={pending} className={buttonClass("ghost", "min-h-11 px-3 text-sm")} aria-label={`Remove ${t.name}`}>
-                Remove
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-mute">No tournaments yet. Add the events you have played.</p>
-      )}
-      <form onSubmit={add} className="grid gap-4 sm:grid-cols-2">
-        <Field id="t-name" label="Tournament">
-          <input id="t-name" value={name} maxLength={80} onChange={(e) => setName(e.target.value)} className={inputClass} required />
-        </Field>
-        <Field id="t-game" label="Game">
-          <GameSelect id="t-game" value={game} onChange={setGame} options={options} />
-        </Field>
-        <Field id="t-place" label="Placement (optional)">
-          <input id="t-place" value={placement} maxLength={40} onChange={(e) => setPlacement(e.target.value)} className={inputClass} />
-        </Field>
-        <Field id="t-team" label="Team (optional)">
-          <input id="t-team" value={team} maxLength={60} onChange={(e) => setTeam(e.target.value)} className={inputClass} />
-        </Field>
-        <Field id="t-date" label="Date (optional)">
-          <input id="t-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputClass} />
-        </Field>
-        <div className="flex items-end gap-4">
-          <button type="submit" disabled={pending} className={buttonClass("primary")}>
-            Add tournament
-          </button>
-          <FormMessage message={msg} />
-        </div>
-      </form>
-    </div>
   );
 }
 

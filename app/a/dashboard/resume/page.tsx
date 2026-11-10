@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ComingSoonNote } from "@/components/app/ComingSoonNote";
 import { GamesManager } from "@/components/app/GamesManager";
 import { ProfileForm } from "@/components/app/ProfileForm";
-import { HighlightSection, TournamentSection, type HighlightRow, type TournamentRow } from "@/components/app/ResumeSections";
+import { HighlightSection, type HighlightRow } from "@/components/app/ResumeSections";
 import { ResumeVisibility } from "@/components/app/ResumeVisibility";
 import { Section } from "@/components/ui/form";
 import { isMissingTable } from "@/lib/db-errors";
@@ -11,22 +11,18 @@ import { loadMe } from "@/lib/me";
 import { appHost } from "@/lib/profiles";
 import { privateMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = privateMetadata("Player Resume | Victress", "Your games, roles, ranks, tournaments and highlights.");
+export const metadata: Metadata = privateMetadata("Player Resume | Victress", "Your games, roles and highlight links.");
 
 export default async function ResumePage() {
   const { sb, user, profile, games, team } = await loadMe();
-  const [{ data: tournaments, error: tournamentsError }, { data: highlights, error: highlightsError }] = await Promise.all([
-    sb
-      .from("tournament_entries")
-      .select("id, game, name, placement, team_name, played_on")
-      .eq("profile_id", user.id)
-      .order("played_on", { ascending: false, nullsFirst: false })
-      .order("created_at", { ascending: false }),
-    sb.from("highlights").select("id, game, title, url, note").eq("profile_id", user.id).order("created_at", { ascending: false }),
-  ]);
+  const { data: highlights, error: highlightsError } = await sb
+    .from("highlights")
+    .select("id, game, title, url, note")
+    .eq("profile_id", user.id)
+    .order("created_at", { ascending: false });
 
-  // The tables behind these two sections come from a migration that may not be applied yet: say so instead of showing forms that cannot save.
-  const resumeExtrasMissing = isMissingTable(tournamentsError) || isMissingTable(highlightsError);
+  // The table behind this section comes from a migration that may not be applied yet: say so instead of showing a form that cannot save.
+  const resumeExtrasMissing = isMissingTable(highlightsError);
 
   const gameIds = games.map((g) => g.game);
 
@@ -41,12 +37,8 @@ export default async function ResumePage() {
         <ProfileForm displayName={profile.display_name ?? ""} bio={profile.bio ?? ""} />
       </Section>
 
-      <Section title="Games, role and rank" line="Add every game you play and mark one as primary. Your primary game shows first.">
+      <Section title="Games and role" line="Add every game you play and mark one as primary. Your primary game shows first.">
         <GamesManager games={games} />
-      </Section>
-
-      <Section title="Tournament history" line={resumeExtrasMissing ? "Coming soon" : "Events you have played. Private for now."}>
-        {resumeExtrasMissing ? <ComingSoonNote what="Tournament history" /> : <TournamentSection rows={(tournaments ?? []) as TournamentRow[]} games={gameIds} />}
       </Section>
 
       <Section title="Highlights" line={resumeExtrasMissing ? "Coming soon" : "Links to clips you host elsewhere. Private for now."}>
@@ -69,7 +61,6 @@ export default async function ResumePage() {
             teamName: team?.name ?? null,
             game: profile.game,
             role: profile.role,
-            rank: profile.rank,
             appHost: appHost(),
           }}
         />
