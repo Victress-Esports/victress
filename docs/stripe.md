@@ -31,6 +31,16 @@ Configured in the Stripe sandbox by the founder:
 
 ## Partner billing (implemented on branch, test mode, not deployed)
 
+Stripe test mode prices (ids are not secrets; set them as server env vars on the staging deployment):
+
+| Product | Price | Env var | Test mode id |
+|---|---|---|---|
+| Supporting Partner | $1,000 per month | `STRIPE_PRICE_PARTNER_SUPPORTING_MONTHLY` | `price_1Ua3keP3pSL2v8NHkQZLgZUE` |
+| Supporting Partner | $10,000 per year | `STRIPE_PRICE_PARTNER_SUPPORTING_ANNUAL` | `price_1Ua3keP3pSL2v8NH8uMUb9qS` |
+| Anchor Partner | $50,000 per year | `STRIPE_PRICE_PARTNER_ANCHOR_ANNUAL` | not received yet |
+| Anchor Partner with Category Exclusivity | $85,000 per year | `STRIPE_PRICE_PARTNER_ANCHOR_EXCLUSIVE_ANNUAL` | not received yet |
+
+
 - Separate server only switch: `PARTNER_BILLING_ENABLED` (default `false`). `NEXT_PUBLIC_BILLING_ENABLED` stays `false`. With the switch off, a paid choice creates the organization on Community Partner and shows an Upgrade note in Organization Settings.
 - Prices (create in Stripe test mode, then set as server env vars). Products: "Supporting Partner", "Anchor Partner" and "Anchor Partner with Category Exclusivity"; Community Partner is free and needs none. `STRIPE_PRICE_PARTNER_SUPPORTING_MONTHLY` ($1,000 per month), `STRIPE_PRICE_PARTNER_SUPPORTING_ANNUAL` ($10,000 per year), `STRIPE_PRICE_PARTNER_ANCHOR_ANNUAL` ($50,000 per year), `STRIPE_PRICE_PARTNER_ANCHOR_EXCLUSIVE_ANNUAL` ($85,000 per year, used only on the hosted invoice for an approved request). Also needs `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET`.
 - Checkout is a subscription. Metadata on the session and the subscription: `kind=partner`, `org_id`, `plan`, `interval`.
