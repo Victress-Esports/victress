@@ -81,6 +81,28 @@ await journey({ role: "recruiter", cardName: "Scout or recruiter", expectHeading
   await ctx.close();
 }
 
+// Women in Esports: what it is, and a clear way in for each group, without a contact form.
+{
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await ctx.newPage();
+  await page.goto(`${MKT}/women-in-esports`);
+  const t = await text(page);
+  check(/How to take part/.test(t) && /Organizations/.test(t) && /Teams and programs/.test(t) && /Players/.test(t), "women in esports: organizations, teams and programs, and players each have a way in");
+  check((await page.locator('a[href*="/contact"]').count()) <= 1 && !/mailto:/.test(await page.content()), "women in esports: no contact form path (footer link only)");
+  await page.getByRole("link", { name: /Start your team/ }).click();
+  await page.waitForURL(/\/login/);
+  check(/role=team/.test(page.url()), "women in esports: Start your team opens the team registration");
+  await page.goto(`${MKT}/women-in-esports`);
+  await page.getByRole("link", { name: /Learn about partnering/ }).click();
+  await page.waitForURL(/\/partnerships/);
+  check(true, "women in esports: organizations go to Partnerships");
+  for (const path of ["/", "/platform", "/pricing", "/teams", "/about", "/partnerships"]) {
+    await page.goto(`${MKT}${path}`);
+    check((await page.locator('a[href="/women-in-esports"]').count()) >= 2, `women in esports: reachable from the menu and from the page itself on ${path}`);
+  }
+  await ctx.close();
+}
+
 // A scout account sees only the Scout Desk shell: no player data, and the Partner workspace does not exist.
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
