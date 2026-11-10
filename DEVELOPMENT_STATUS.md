@@ -11,7 +11,15 @@ Milestone 1, Foundation. Current: remove manual competitive entry (done, in PR b
 - Manual scrim match log, tournament history entry and manual rank entry removed (UI, server actions and public display). Database tables and columns are untouched (no migration). Existing saved values are no longer shown anywhere.
 
 ## In progress
+- Website stage 1 (front door), PR open, not merged. Tests: tsc, lint, build; SEO audit 1652/0 failed; `scripts/journey-test.mjs` (5 role journeys from the marketing site through registration and onboarding to the destination, Partnerships, navigation on 7 pages); signed-in flows 59 pass; contact tests pass.
 - Branch `claude/zealous-thompson-3lz759`: remove manual entry (see above). Open PR, not merged: it changes the app that production serves, so it waits for approval.
+
+## Website sequence (founder direction 2026-11-10: one connected experience, Apple and Airbnb simplicity)
+Rule for every stage: short copy, one primary action, no repeated explanations, no invented activity, no feature promised that does not exist. Contact is never the conversion path.
+1. **Front door (PR open):** short main navigation (Platform, Partners, Women in Esports, Pricing, Log in, Get started); homepage cut to hero, "Where do you belong?" and the three products; one registration entry (`/login?role=`) with five roles (player, coach or team, scout or recruiter, college program, partner organization); onboarding follows the role and ends at that role's destination; Partnerships reduced to one next step, Become a Partner. Roles whose own experience is not built say so and save the account.
+2. **Rest of the marketing site, same layout and length:** Platform, For teams, Pricing, About, Women in Esports (what it is and how organizations take part, kept distinct from the platform), Design Partner (pilot application, linked from teams, not from the hero). Remove repeated sections, one visual per idea, phone first pass.
+3. **Role experiences in the app, in roadmap order:** player and team (Foundation, in progress); consent and account controls; scout (after launch); college program; Partner platform on its own branch (PR #42 and the Partner phases), at which point `partner` accounts route into it.
+Each stage is its own PR, tested as user journeys, staging first.
 
 ## Foundation requirements still outstanding
 - New responsive design (mobile, tablet, desktop)

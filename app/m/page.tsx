@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { FaqList } from "@/components/marketing/FaqList";
-import { IntentPicker } from "@/components/marketing/IntentPicker";
-import { PricingCards } from "@/components/marketing/PricingCards";
+import { RolePicker } from "@/components/marketing/RolePicker";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { ButtonLink } from "@/components/ui/Button";
 import { copy } from "@/content/copy";
@@ -42,16 +40,13 @@ export default function Home() {
           </h1>
           <p className="mt-6 max-w-2xl text-lg text-mute sm:text-xl">{h.hero.sentence}</p>
           <div className="mt-10 flex flex-wrap justify-center gap-3">
-            <ButtonLink href="/design-partner">{h.hero.primary}</ButtonLink>
-            <ButtonLink href={appUrl("/login")} variant="secondary">
-              {h.hero.secondary}
-            </ButtonLink>
+            <ButtonLink href={appUrl("/login")}>{h.hero.primary}</ButtonLink>
           </div>
           <p className="mt-3 text-sm text-mute">{h.hero.note}</p>
         </div>
       </section>
 
-      <IntentPicker playerHref={appUrl("/login")} teamHref={appUrl("/login?next=/dashboard/team")} />
+      <RolePicker />
 
       <section aria-labelledby="products-title" className={section}>
         <div className={inner}>
@@ -84,23 +79,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section aria-labelledby="pricing-title" className={section}>
-        <div className={inner}>
-          <h2 id="pricing-title" className={`${h2} text-center`}>
-            {h.pricingTitle}
-          </h2>
-          <div className="mt-12">
-            <PricingCards />
-          </div>
-          <p className="mt-8 text-center">
-            <Link href="/pricing" className="inline-flex min-h-11 items-center text-sm font-semibold underline underline-offset-4 hover:text-coral">
-              {h.pricingMore}
-            </Link>
-          </p>
-        </div>
-      </section>
-
-      <section aria-labelledby="women-title" className="px-4 sm:px-6">
+      <section aria-labelledby="women-title" className="px-4 pb-20 sm:px-6 sm:pb-28">
         <div className="mx-auto grid max-w-6xl items-end gap-10 rounded-3xl bg-crimson p-8 sm:p-14 md:grid-cols-2">
           <h2 id="women-title" className="font-display text-3xl font-bold leading-tight text-white sm:text-5xl">
             {e.title}
@@ -115,16 +94,6 @@ export default function Home() {
         </div>
       </section>
 
-      <section aria-labelledby="faq-title" className="mt-20 border-t border-line sm:mt-28">
-        <div className="mx-auto max-w-3xl px-4 py-20 sm:px-6 sm:py-28">
-          <h2 id="faq-title" className={`${h2} text-center`}>
-            {h.faqTitle}
-          </h2>
-          <div className="mt-12">
-            <FaqList items={h.faq} />
-          </div>
-        </div>
-      </section>
     </>
   );
 }

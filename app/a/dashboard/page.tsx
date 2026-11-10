@@ -6,6 +6,7 @@ import { Section } from "@/components/ui/form";
 import { seo } from "@/content/seo";
 import { currentTier, planName } from "@/lib/entitlements";
 import { loadMe } from "@/lib/me";
+import { getRole } from "@/lib/roles";
 import { privateMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = privateMetadata(seo.app.dashboard.title, seo.app.dashboard.description);
@@ -34,6 +35,7 @@ export default async function Dashboard() {
   const { user, profile, games, team } = await loadMe();
   const tier = await currentTier();
   const listed = profile.directory_listed;
+  const role = getRole(user.user_metadata?.account_type);
 
   const next =
     games.length === 0
@@ -55,6 +57,16 @@ export default async function Dashboard() {
         </div>
       </div>
 
+      {role?.soon ? (
+        <div className="rounded-2xl border border-line bg-surface p-5">
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="font-display text-xl font-bold">{role.title}</h2>
+            <StatusChip>Coming soon</StatusChip>
+          </div>
+          <p className="mt-2 text-mute">Your account is saved. Your {role.title.toLowerCase()} experience is not open yet, and nothing here is shown on your behalf.</p>
+        </div>
+      ) : null}
+
       {next ? (
         <div className="rounded-2xl border border-dashed border-line p-5">
           <p className="text-mute">{next.text}</p>
@@ -66,7 +78,7 @@ export default async function Dashboard() {
 
       <section aria-label="Modules" className="grid gap-4 sm:grid-cols-2">
         <ModuleCard href="/dashboard/resume" title="Player Resume" line="Your games, roles and highlight links." chip={null} />
-        <ModuleCard href="/dashboard/scrims" title="Scrims" line="Log your practice matches." chip={null} />
+        <ModuleCard href="/dashboard/scrims" title="Scrims" line="Your private practice files." chip={null} />
         <ModuleCard href="/dashboard/privacy" title="Privacy" line="Your profile is private by default. You choose what to share." chip={null} />
         <ModuleCard href="/dashboard/team" title="Team" line="Create a team, invite players with a link, and see your roster." chip={null} />
         <ModuleCard
