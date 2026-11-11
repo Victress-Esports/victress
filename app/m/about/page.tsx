@@ -4,6 +4,7 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { copy } from "@/content/copy";
 import { seo } from "@/content/seo";
 import { marketingCrumbs } from "@/lib/jsonld";
+import { WomenStrip } from "@/components/marketing/WomenStrip";
 import { pageMetadata } from "@/lib/seo";
 import { appUrl } from "@/lib/urls";
 
@@ -15,6 +16,7 @@ export default function About() {
   const h2 = "font-display text-2xl font-bold";
   const list = "mt-4 list-disc space-y-2 pl-5 text-lg text-mute";
   return (
+    <>
     <div className="mx-auto max-w-3xl px-4 py-20 sm:px-6 sm:py-28">
       <JsonLd data={marketingCrumbs("About", "/about")} />
       <h1 className="font-display text-5xl font-bold sm:text-6xl">{a.title}</h1>
@@ -94,5 +96,7 @@ export default function About() {
         {a.cta}
       </ButtonLink>
     </div>
+    <WomenStrip />
+    </>
   );
 }

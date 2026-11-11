@@ -11,18 +11,16 @@ export const copy = {
   nav: {
     links: [
       { href: "/platform", label: "Platform" },
+      { href: "/partnerships", label: "Partners" },
       { href: "/women-in-esports", label: "Women in Esports" },
       { href: "/pricing", label: "Pricing" },
     ],
     // Also listed in the phone menu (and, with the footer links, at the bottom of every page).
     more: [
-      { href: "/design-partner", label: "Design Partner" },
       { href: "/teams", label: "For teams" },
       { href: "/about", label: "About" },
-      { href: "/partnerships", label: "Partnerships" },
-      { href: "/contact", label: "Contact" },
     ],
-    cta: "Sign up",
+    cta: "Get started",
     login: "Log in",
     menuOpen: "Open menu",
     menuClose: "Close menu",
@@ -46,14 +44,14 @@ export const copy = {
     // Above the fold: the name, one short line, one sentence, two doorways (teams to the pilot, players to the app), one small line.
     hero: {
       title: "Your competitive career. All in one place.",
-      sentence: "Track performance. Build your player profile. Connect with opportunities.",
-      primary: "Join the Design Partner Pilot",
-      secondary: "Claim your Player Resume",
-      note: "Free 4 to 6 week pilot for teams and programs. Free forever for players.",
+      sentence: "Build your Player Resume. Bring your team together.",
+      primary: "Get started",
+      secondary: "",
+      note: "Free for players.",
     },
     // 1. Visitor intent (the job to be done): pick a role, see that role's next step. Unbuilt items carry one plain "Coming soon" label.
     intent: {
-      title: "What brings you to Victress?",
+      title: "Where do you belong?",
       options: [
         {
           id: "player" as const,
@@ -117,15 +115,15 @@ export const copy = {
         soon: false,
         line: "Stop scattering your achievements across screenshots and spreadsheets. Build one competitive profile you control.",
         cta: "Build your resume",
-        href: "app:/login",
+        href: "app:/login?role=player",
       },
       {
         id: "scout",
         title: "Scout Desk",
         soon: true,
         line: "Give coaches, collegiate programs and recruiters a structured way to find emerging talent.",
-        cta: "Request recruiter access",
-        href: "/contact",
+        cta: "Create a recruiter account",
+        href: "app:/login?role=recruiter",
       },
     ],
     soonLabel: "Coming soon",
@@ -455,7 +453,7 @@ export const copy = {
     links: [
       { href: "/teams", label: "For teams" },
       { href: "/about", label: "About" },
-      { href: "/partnerships", label: "Partnerships" },
+      { href: "/design-partner", label: "Design Partner" },
       { href: "/contact", label: "Contact" },
       { href: "/privacy", label: "Privacy" },
       { href: "/terms", label: "Terms" },
