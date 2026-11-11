@@ -264,9 +264,9 @@ const pages = [
   { host: MARKETING, path: "/platform", index: true, types: ["BreadcrumbList"], contains: ["Practice", "Performance Evidence", "Development", "Recognition", "Opportunity", "Scrim Intelligence", "Player Resume", "Scout Desk", "Coming soon"] },
   { host: MARKETING, path: "/women-in-esports", index: true, types: ["BreadcrumbList"], contains: ["Women in Esports", "Victress is called Victress for a purpose.", "Delivered through", "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment."] },
   { host: MARKETING, path: "/design-partner", index: true, types: ["BreadcrumbList"], contains: ["Founding Design Partner pilot", "4 to 6 week", "What partners receive", "What we ask", "Applying does not guarantee a place.", "Active women", "Game Changers teams", "Collegiate programs"] },
-  { host: MARKETING, path: "/privacy", index: true, types: ["BreadcrumbList"], contains: ["What we collect", "Who we share it with", "We do not sell your data", "private by default", "hello@victressesports.com", "at least 13"] },
+  { host: MARKETING, path: "/privacy", index: true, types: ["BreadcrumbList"], contains: ["What we collect", "Who we share it with", "We do not sell your data", "private by default", "privacy@victressesports.com", "Victress Scrim Intelligence", "at least 13"] },
   { host: MARKETING, path: "/refunds", index: true, types: ["BreadcrumbList"], contains: ["Cancel any time", "14 days", "7 day grace period", "$7.99 per month", "$75 per year", "$49 per month", "$249 per month", "per roster", "hello@victressesports.com"] },
-  { host: MARKETING, path: "/terms", index: true, types: ["BreadcrumbList"], contains: ["at least 13 years old", "parent or guardian", "State of Utah", "Verification", "Stripe", "hello@victressesports.com", "Report"] },
+  { host: MARKETING, path: "/terms", index: true, types: ["BreadcrumbList"], contains: ["at least 13 years old", "parent or guardian", "State of Utah", "Verification", "Stripe", "privacy@victressesports.com", "Victress Scrim Intelligence", "Report"] },
   mk(APP, "/", true),
   ...(LIVE
     ? []
