@@ -27,7 +27,7 @@ export const privacyDoc: LegalDoc = {
   title: "Privacy",
   updated: "Effective November 10, 2026",
   intro:
-    "This page explains what Victress collects, why, who sees it and how you control it. Victress is an esports player development and recruitment platform run by Victress LLC. We keep it plain and describe how information is handled across the Victress website, platform and integrations, including Discord.",
+    "This page explains what Victress collects, why, who sees it and how you control it. Victress is an esports player development and recruitment platform run by Victress LLC. We keep it plain and describe how information is handled across the Victress website, platform and integrations, including Victress Scrim Intelligence, the Discord application run by Victress LLC (called the Discord integration on this page).",
   sections: [
     {
       h: "What we collect",
@@ -92,9 +92,11 @@ export const privacyDoc: LegalDoc = {
     {
       h: "Discord, teams and player consent",
       p: [
-        "A team administrator may install the Victress Discord integration in a server and configure the channels and team workflows it needs. Installing the integration gives it only the Discord permissions approved during installation and any additional permissions separately authorized later.",
+        "A team administrator or Discord server administrator may install Victress Scrim Intelligence in a server and configure the channels and team workflows it needs. Installing the integration gives it only the Discord permissions approved during installation and any additional permissions separately authorized later.",
         "A server administrator's decision to install the integration does not, by itself, give consent on behalf of every player to connect their individual Discord account to Victress, publish their profile, or make private profile information visible.",
         "Players must use the applicable Victress account linking and consent process to associate their own Discord identity with their Victress account. Team participation and scrim submission do not automatically change a player's profile visibility settings.",
+        "Team level processing and individual consent are separate. When a team or team representative submits a scrim, replay, match or roster, that is not consent from any player to publish their Victress profile, statistics or personal information. What others can see about a player on Victress comes only from that player's own privacy choices.",
+        "Information submitted for a team is used to provide that team's workflows and may be visible to the people on that team who are authorized to use those features. Anything the integration posts in a Discord channel, such as a reply or embed, can be seen by the people who can view that channel, and Discord's rules apply to it.",
         "Team representatives who submit match or roster information must have the authority to submit that information and must not submit information they have no right to share.",
         "If a team removes the integration from its Discord server, Victress will no longer receive new interactions from that installation. Removing the integration does not necessarily delete information already submitted to or stored by Victress. Account and data deletion requests are handled under the section below.",
       ],
@@ -148,7 +150,7 @@ export const termsDoc: LegalDoc = {
   title: "Terms",
   updated: "Effective November 10, 2026",
   intro:
-    "These terms are the rules for using Victress, an esports player development and recruitment platform run by Victress LLC. They apply to the Victress website, platform, services and integrations, including Victress Discord applications. By creating an account or using Victress, you agree to them.",
+    "These terms are the rules for using Victress, an esports player development and recruitment platform run by Victress LLC. They apply to the Victress website, platform, services and integrations, including Victress Scrim Intelligence, the Discord application run by Victress LLC (called the Discord integration in these terms). By creating an account or using Victress, you agree to them.",
   sections: [
     {
       h: "Who can use Victress",
@@ -173,6 +175,7 @@ export const termsDoc: LegalDoc = {
         "post information that is not yours or that you have no right to share, including other people's private details inside files you upload or match submissions you make;",
         "scrape the site, attack it, or try to get around its limits or privacy controls;",
         "use Victress to spam or mislead others;",
+        "submit false, altered or invented match, roster, replay or player data, or try to manipulate results, statistics or records;",
         "use the Discord integration to spam, harass, disrupt servers, or access information or channels without authorization;",
         "attempt to bypass Discord permissions, account linking checks, consent requirements or Victress privacy settings.",
       ],
@@ -194,8 +197,8 @@ export const termsDoc: LegalDoc = {
     {
       h: "Discord integration",
       p: [
-        "Victress may provide Discord applications and bots that allow teams to connect their Discord servers with Victress features.",
-        "A server administrator or other authorized person may install the integration and grant the permissions shown during installation. The integration can use those permissions to provide the features described in the product, such as team setup, account linking workflows, scrim submissions and match related commands.",
+        "Victress Scrim Intelligence is a Discord application run by Victress LLC. It allows teams to connect their Discord servers with Victress features and works together with your account on the Victress website and platform.",
+        "A server owner or administrator with the Discord permissions needed to add applications may install the integration and grant the permissions shown during installation. Server owners and administrators are responsible for the permissions they grant and how they configure the integration. The integration can use those permissions to provide the features described in the product, such as team setup, account linking workflows, scrim submissions and match related commands.",
         "You agree that:",
       ],
       list: [
@@ -207,9 +210,11 @@ export const termsDoc: LegalDoc = {
       ],
       after: [
         "Installing the integration in a server does not automatically link every member's Discord account to Victress, grant permission to publish player profiles, or override an individual's privacy choices.",
+        "A team submission is not consent from any player to publish their profile, statistics or personal information. Individual consent and profile visibility stay with each player, as described in our Privacy Policy.",
         "Players are responsible for completing any required account linking and consent steps for their own accounts. Team administrators are responsible for ensuring that their use of team and scrim features is authorized.",
         "Discord is a third party service. Your use of Discord is also subject to Discord's own terms, policies and rules. Victress does not control Discord and is not responsible for Discord's services, availability or decisions.",
-        "You can stop using the integration by disconnecting your account where available or by having a server administrator remove the integration. Removing the integration does not automatically delete information previously submitted to Victress.",
+        "You can stop using the integration by disconnecting your account where available or by having a server administrator remove the integration. Removing the integration or unlinking an account does not automatically delete information previously submitted to Victress. Deletion requests are handled as described in our Privacy Policy.",
+        "Victress Scrim Intelligence and its features may change, be limited, be unavailable or be discontinued, including because of Discord outages or changes to Discord's rules. We do not promise that it will always be available or error free.",
       ],
     },
     {
