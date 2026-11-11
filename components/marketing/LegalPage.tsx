@@ -27,6 +27,11 @@ export function LegalPage({ doc, crumb, path }: { doc: LegalDoc; crumb: string; 
               ))}
             </ul>
           ) : null}
+          {s.after?.map((t) => (
+            <p key={t} className="mt-4 text-lg text-mute">
+              {t}
+            </p>
+          ))}
         </section>
       ))}
     </div>
