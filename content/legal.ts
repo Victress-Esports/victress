@@ -4,6 +4,9 @@
 // paid plans; no advertising or third party tracking tags. Prices come from content/pricing.ts and are repeated on the refunds page.
 import { CONTACT_EMAIL } from "@/content/copy";
 
+// Privacy and Terms requests go to a dedicated inbox. Billing and general contact keep CONTACT_EMAIL.
+const PRIVACY_EMAIL = "privacy@victressesports.com";
+
 export interface LegalSection {
   h: string;
   p?: string[];
@@ -101,7 +104,7 @@ export const privacyDoc: LegalDoc = {
       p: [
         "You can change your profile, privacy choices and links in your dashboard at any time.",
         "You can disconnect an authorized Discord connection or stop using the Discord integration. A team administrator can remove the integration from their server. Disconnecting an integration does not necessarily delete information already stored in Victress.",
-        `To see your data, correct it, or delete your account, use the account controls when available or email ${CONTACT_EMAIL} from the address on your account. We delete your account, profile, team membership and uploaded files, subject to any limited retention required by law or reasonably necessary to prevent abuse. We confirm account deletion by email. We act on requests as quickly as we can and no later than 30 days.`,
+        `To see your data, correct it, or delete your account, use the account controls when available or email ${PRIVACY_EMAIL} from the address on your account. We delete your account, profile, team membership and uploaded files, subject to any limited retention required by law or reasonably necessary to prevent abuse. We confirm account deletion by email. We act on requests as quickly as we can and no later than 30 days.`,
         "If you ask us to delete Discord linked information, we will remove or disassociate the relevant information from your Victress account where applicable, subject to legitimate retention requirements. Information retained as part of a team's records or match history may need to be handled separately from your personal account and profile.",
         "If you are a parent or guardian and believe a child under 13 has given us information, email us and we will delete it.",
       ],
@@ -135,7 +138,7 @@ export const privacyDoc: LegalDoc = {
       h: "Changes and contact",
       p: [
         "If we change this page in a way that matters, we will update the date at the top and tell account holders by email.",
-        `Questions or requests: ${CONTACT_EMAIL}.`,
+        `Questions or requests: ${PRIVACY_EMAIL}.`,
       ],
     },
   ],
@@ -178,7 +181,7 @@ export const termsDoc: LegalDoc = {
       h: "Harassment and abuse",
       p: [
         "Everyone should be able to compete and be seen safely. We take harassment seriously, including harassment aimed at women competitors. To report a person, a profile or content, email " +
-          `${CONTACT_EMAIL} with the word Report in the subject and tell us what happened. We review reports, we may act without notice, and we do not tell the person reported who made the report.`,
+          `${PRIVACY_EMAIL} with the word Report in the subject and tell us what happened. We review reports, we may act without notice, and we do not tell the person reported who made the report.`,
       ],
     },
     {
@@ -256,7 +259,7 @@ export const termsDoc: LegalDoc = {
     {
       h: "Governing law and contact",
       p: [
-        `These terms are governed by the laws of the State of Utah, United States. Questions: ${CONTACT_EMAIL}.`,
+        `These terms are governed by the laws of the State of Utah, United States. Questions: ${PRIVACY_EMAIL}.`,
       ],
     },
   ],
