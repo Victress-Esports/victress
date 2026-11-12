@@ -6,7 +6,7 @@
 import { randomUUID } from "node:crypto";
 
 const day = 86400000;
-const CURRENT_VERSION = "2026-11-07"; // content/legal-versions.ts
+const CURRENT_VERSION = "2026-11-10"; // content/legal-versions.ts
 const now = () => new Date().toISOString();
 const id = (n) => `00000000-0000-4000-9000-${String(n).padStart(12, "0")}`;
 export const PERSONAS = {

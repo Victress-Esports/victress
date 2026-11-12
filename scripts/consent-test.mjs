@@ -67,7 +67,7 @@ const submit = async (page, birth) => {
   await page.waitForURL(/\/onboarding/, { timeout: 15000 });
   const s = await state();
   check(s.ages === 1, "age 13 today: accepted, age confirmation recorded once");
-  check(s.acceptances.length === 2 && s.acceptances.every((a) => a.version === "2026-11-07" && !!a.accepted_at) && new Set(s.acceptances.map((a) => a.document)).size === 2, "acceptance: Terms and Privacy recorded with the version and a timestamp");
+  check(s.acceptances.length === 2 && s.acceptances.every((a) => a.version === "2026-11-10" && !!a.accepted_at) && new Set(s.acceptances.map((a) => a.document)).size === 2, "acceptance: Terms and Privacy recorded with the version and a timestamp");
   check(/\/onboarding/.test(page.url()), "after accepting, a new user continues to onboarding");
   await page.goto(`http://app.localhost:${APP}/consent`);
   check(/\/onboarding|\/dashboard/.test(page.url()) && !/\/consent$/.test(page.url()), "an accepted player is not shown the consent page again");
@@ -110,7 +110,7 @@ const submit = async (page, birth) => {
   await page.waitForURL(/\/dashboard/, { timeout: 15000 });
   const s = await state();
   const versions = s.acceptances.map((a) => `${a.document}:${a.version}`).sort();
-  check(JSON.stringify(versions) === JSON.stringify(["privacy:2026-01-01", "privacy:2026-11-07", "terms:2026-01-01", "terms:2026-11-07"]), "reacceptance: new version rows added, the older acceptances are kept");
+  check(JSON.stringify(versions) === JSON.stringify(["privacy:2026-01-01", "privacy:2026-11-10", "terms:2026-01-01", "terms:2026-11-10"]), "reacceptance: new version rows added, the older acceptances are kept");
   await page.goto(`http://app.localhost:${APP}/dashboard/resume`);
   check(!/\/consent/.test(page.url()), "reacceptance: the dashboard is open again");
   await ctx.close();
