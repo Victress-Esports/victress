@@ -144,7 +144,6 @@ export function normalizeReplay(detail: unknown, who: { platform: string; id: st
 // ---------------------------------------------------------------- the import pipeline
 
 export type Deps = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   admin: any; // service role Supabase client
   client: { details(id: string): Promise<Record<string, unknown>>; ping(): Promise<boolean> };
   now?: () => Date;
