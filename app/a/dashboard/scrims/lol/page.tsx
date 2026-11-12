@@ -49,7 +49,7 @@ export default async function LolPage({ searchParams }: { searchParams: Promise<
 
       <Section title={acct ? "Your Riot ID" : "Link your Riot ID"} line={acct ? `${acct.display_name}#${acct.tag}, ${acct.region}. Ownership is not verified: Victress takes the Riot ID you enter at its word.` : "Enter your Riot ID to import recent matches. Only you can see what is imported."}>
         {configured ? (
-          <LolImportForm linked={acct ? { name: acct.display_name, tag: acct.tag, region: acct.region } : null} />
+          <LolImportForm linked={acct ? { name: acct.display_name ?? "", tag: acct.tag ?? "", region: acct.region ?? "americas" } : null} />
         ) : (
           <p className="rounded-xl border border-line bg-surface-2 px-4 py-3 text-sm text-mute">Riot import is not configured on this server.</p>
         )}

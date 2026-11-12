@@ -31,6 +31,12 @@ export default async function ScrimsPage() {
       </Section>
 
       {enabled ? (
+        <Section title="Rocket League" line="Submit Ballchasing replay links and see your own numbers. Private to you.">
+          <Link href="/dashboard/scrims/rocket-league" className={buttonClass("secondary")}>Open Rocket League</Link>
+        </Section>
+      ) : null}
+
+      {enabled ? (
         <Section title="League of Legends" line="Import your match history through the Riot API. Private to you.">
           <Link href="/dashboard/scrims/lol" className={buttonClass("secondary")}>Open League of Legends imports</Link>
         </Section>
