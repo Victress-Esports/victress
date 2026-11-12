@@ -30,19 +30,12 @@ export default async function ScrimsPage() {
         <p className="text-mute">Scrim Intelligence turns private practice files into performance information.</p>
       </Section>
 
-<<<<<<< HEAD
-=======
       {enabled ? (
         <Section title="League of Legends" line="Import your match history through the Riot API. Private to you.">
           <Link href="/dashboard/scrims/lol" className={buttonClass("secondary")}>Open League of Legends imports</Link>
         </Section>
       ) : null}
 
-      <Section title="Match log" line={matchLogMissing ? "Coming soon" : "Record your practice matches. Private to you."}>
-        {matchLogMissing ? <ComingSoonNote what="The match log" /> : <MatchLog rows={(matches ?? []) as MatchRow[]} games={games.map((g) => g.game)} />}
-      </Section>
-
->>>>>>> origin/claude/scrim-m1-lol-import
       <Section title="Your practice files" line="Demo and replay files, stored privately.">
         {enabled ? (
           <ScrimUploader userId={user.id} games={games.map((g) => g.game)} rows={(uploads ?? []) as UploadRow[]} />
