@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { PLACEHOLDER_HANDLE, safeNext } from "@/lib/auth";
+import { consentStatus, needsConsent } from "@/lib/consent";
 import { sendWelcome } from "@/lib/email";
 import { checkHandle } from "@/lib/handles";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -41,6 +42,9 @@ export async function GET(req: Request) {
     await sendWelcome(user.email, handle).catch((e) => console.error("welcome email failed", e));
     await sb.auth.updateUser({ data: { welcomed: true } });
   }
+
+  // First sign in, or the Terms or Privacy Policy changed: age and acceptance come before anything else. v_next stays for later.
+  if (needsConsent((await consentStatus(sb, user.id)).status)) return NextResponse.redirect(new URL("/consent", url.origin));
 
   const onboarded = !!user.user_metadata?.onboarded;
   if (onboarded) store.delete("v_next"); // otherwise onboarding finishes the trip to it

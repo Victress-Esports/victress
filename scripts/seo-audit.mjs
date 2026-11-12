@@ -291,7 +291,7 @@ if (!LIVE) {
 }
 
 const mPaths = ["/", "/platform", "/women-in-esports", "/design-partner", "/pricing", "/teams", "/partnerships", "/about", "/contact", "/privacy", "/terms", "/refunds"];
-const aPrivate = ["/dashboard", "/dashboard/profile", "/dashboard/team", "/onboarding", "/login", "/auth/callback", "/auth/signout", "/join/abc123", "/api/waitlist", "/api/handle-check"];
+const aPrivate = ["/dashboard", "/dashboard/profile", "/dashboard/team", "/onboarding", "/consent", "/login", "/auth/callback", "/auth/signout", "/join/abc123", "/api/waitlist", "/api/handle-check"];
 await auditSite(MARKETING, APP, mPaths, ["/api/waitlist", "/api/handle-check"]);
 const appUrls = await auditSite(
   APP,

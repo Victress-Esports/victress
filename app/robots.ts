@@ -31,6 +31,8 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
         "/dashboard/",
         "/onboarding$",
         "/onboarding/",
+        "/consent$",
+        "/consent/",
         "/login$",
         "/login/",
         "/join/",

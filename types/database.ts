@@ -96,6 +96,18 @@ export type Database = {
         Update: Record<string, never>;
         Relationships: [];
       };
+      age_confirmations: {
+        Row: { birth_date: string; confirmed_at: string; profile_id: string };
+        Insert: { birth_date: string; profile_id: string };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      legal_acceptances: {
+        Row: { accepted_at: string; document: "terms" | "privacy"; id: string; profile_id: string; version: string };
+        Insert: { document: "terms" | "privacy"; profile_id: string; version: string };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
       scrim_matches: {
         Row: { created_at: string; game: string; id: string; map: string | null; note: string | null; opponent: string | null; played_on: string; profile_id: string; result: "win" | "loss" | "draw"; score: string | null; source: string };
         Insert: { game: string; map?: string | null; note?: string | null; opponent?: string | null; played_on: string; profile_id: string; result: "win" | "loss" | "draw"; score?: string | null };
