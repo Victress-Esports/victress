@@ -6,7 +6,7 @@
 import { randomUUID } from "node:crypto";
 
 const day = 86400000;
-const CURRENT_VERSION = "2026-11-10"; // content/legal-versions.ts
+const CURRENT_VERSIONS = { terms: "2026-11-10", privacy: "2026-11-12" }; // content/legal-versions.ts
 const now = () => new Date().toISOString();
 const id = (n) => `00000000-0000-4000-9000-${String(n).padStart(12, "0")}`;
 export const PERSONAS = {
@@ -54,7 +54,7 @@ function seed(key) {
   // Everyone except the new user has confirmed their age and accepted the current documents (the oldterms persona an older version).
   if (key !== "new") {
     T.age_confirmations.push({ profile_id: uid, birth_date: "2000-01-01", confirmed_at: now() });
-    for (const document of ["terms", "privacy"]) T.legal_acceptances.push({ id: randomUUID(), profile_id: uid, document, version: p.oldTerms ? "2026-01-01" : CURRENT_VERSION, accepted_at: now() });
+    for (const document of ["terms", "privacy"]) T.legal_acceptances.push({ id: randomUUID(), profile_id: uid, document, version: p.oldTerms ? "2026-01-01" : CURRENT_VERSIONS[document], accepted_at: now() });
   }
   const meta = { ...(p.onboarded ? { onboarded: true } : {}), ...(p.account_type ? { account_type: p.account_type } : {}) };
   const user = { id: uid, aud: "authenticated", role: "authenticated", email: `${key}@example.invalid`, app_metadata: { provider: "email" }, user_metadata: meta, created_at: now() };
