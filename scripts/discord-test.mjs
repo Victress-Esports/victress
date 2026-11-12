@@ -1,0 +1,90 @@
+// Discord integration tests. No network, no real credentials: a throwaway Ed25519 key signs the test requests.
+//   node scripts/discord-test.mjs                run the module checks
+//   node scripts/discord-test.mjs <port>         also send signed requests to a built app on that port. Start the app with
+//                                                DISCORD_PUBLIC_KEY=$(node scripts/discord-test.mjs --print-key) DISCORD_APPLICATION_ID=111111111111111111
+import { createPrivateKey, createPublicKey, generateKeyPairSync, sign } from "node:crypto";
+import { verifyDiscordSignature } from "../lib/discord/verify.ts";
+import { handleInteraction, HELP_TEXT, PRIVACY_TEXT } from "../lib/discord/handler.ts";
+import { completeDeferred } from "../lib/discord/followup.ts";
+import { COMMANDS } from "../lib/discord/commands.ts";
+
+let failed = 0;
+const check = (ok, name) => { console.log(`${ok ? "PASS" : "FAIL"} ${name}`); if (!ok) failed++; };
+
+// A fixed TEST ONLY key (the seed is a label, not a secret) so a separately started app can share the public half.
+// It has nothing to do with the real Discord application's key.
+const privateKey = createPrivateKey({ key: Buffer.concat([Buffer.from("302e020100300506032b657004220420", "hex"), Buffer.alloc(32, 7)]), format: "der", type: "pkcs8" });
+const publicKey = createPublicKey(privateKey);
+const pubHex = publicKey.export({ format: "der", type: "spki" }).subarray(-32).toString("hex");
+if (process.argv[2] === "--print-key") { console.log(pubHex); process.exit(0); }
+const other = generateKeyPairSync("ed25519");
+const ts = () => String(Math.floor(Date.now() / 1000));
+const signed = (body, t = ts(), key = privateKey) => ({ body, t, sig: sign(null, Buffer.from(t + body), key).toString("hex") });
+const verify = (r, extra = {}) => verifyDiscordSignature({ publicKeyHex: pubHex, signatureHex: r.sig, timestamp: r.t, rawBody: r.body, ...extra });
+
+// Signature verification
+const ping = JSON.stringify({ type: 1 });
+check(verify(signed(ping)), "a correctly signed request verifies");
+check(!verify({ ...signed(ping), body: ping + " " }), "a tampered body is rejected");
+check(!verify(signed(ping, ts(), other.privateKey)), "a signature from a different key is rejected");
+check(!verify({ ...signed(ping), t: String(Number(ts()) + 1) }), "a changed timestamp is rejected");
+check(!verify(signed(ping, String(Math.floor(Date.now() / 1000) - 3600))), "a signed request older than five minutes is rejected (replay)");
+check(!verify(signed(ping, String(Math.floor(Date.now() / 1000) + 3600))), "a timestamp far in the future is rejected");
+check(!verify({ ...signed(ping), sig: null }) && !verify({ ...signed(ping), t: null }), "missing signature or timestamp is rejected");
+check(!verify({ ...signed(ping), sig: "zz".repeat(64) }) && !verify({ ...signed(ping), sig: "ab" }), "malformed signatures are rejected without throwing");
+check(!verifyDiscordSignature({ publicKeyHex: "nothex", signatureHex: signed(ping).sig, timestamp: ts(), rawBody: ping }), "a malformed public key is rejected");
+check(!verifyDiscordSignature({ publicKeyHex: "", signatureHex: signed(ping).sig, timestamp: ts(), rawBody: ping }), "an empty public key never verifies");
+
+// Handler
+const out = (i, o) => handleInteraction(i, o);
+check(JSON.stringify(out({ type: 1 }).body) === JSON.stringify({ type: 1 }), "PING is answered with PONG");
+const help = out({ type: 2, data: { name: "help" } });
+check(help.kind === "respond" && help.body.type === 4 && help.body.data.flags === 64, "/help replies, visible only to the user");
+check(help.body.data.allowed_mentions.parse.length === 0, "replies cannot mention anyone");
+check(HELP_TEXT.includes("https://victressesports.com/privacy") && HELP_TEXT.includes("https://victressesports.com/terms"), "/help links the published Terms and Privacy");
+check(/Coming soon/.test(HELP_TEXT) && !/can submit|will analyze|analyz(es|ing) your/i.test(HELP_TEXT), "/help marks unbuilt features Coming soon and promises nothing");
+const priv = out({ type: 2, data: { name: "privacy" } });
+check(priv.kind === "respond" && PRIVACY_TEXT.includes("privacy@victressesports.com") && PRIVACY_TEXT.includes("does not read ordinary messages"), "/privacy states the contact and that ordinary messages are not read");
+check(out({ type: 2, data: { name: "link" } }).body.data.content.includes("not available yet"), "an unregistered command is answered as not available");
+check(out({ type: 3 }).body.data.flags === 64, "unsupported interaction types get an ephemeral reply");
+check(out({ type: 2, application_id: "999", data: { name: "help" } }, { applicationId: "111" }).body.data.content.includes("not meant for"), "an interaction for another application is refused");
+check(out({ type: 2, application_id: "111", data: { name: "help" } }, { applicationId: "111" }).body.data.content === HELP_TEXT, "the matching application id is accepted");
+check(!/[–—]/.test(HELP_TEXT + PRIVACY_TEXT), "replies contain no em or en dashes");
+
+// Follow up
+const calls = [];
+const stub = async (url, init) => { calls.push({ url, init }); return { ok: true }; };
+check(await completeDeferred("111", "tok/en", { content: "x" }, stub) === true && calls[0].url === "https://discord.com/api/v10/webhooks/111/tok%2Fen/messages/@original" && calls[0].init.method === "PATCH", "a deferred reply edits the original message through the interaction webhook");
+check(await completeDeferred("111", "t", { content: "x" }, async () => { throw new Error("net"); }) === false, "a network failure is reported, not thrown");
+check(await completeDeferred("111", "t", { content: "x" }, async () => ({ ok: false })) === false, "a Discord error is reported as failure");
+
+// Command registry
+const names = COMMANDS.map((c) => c.name);
+check(names.join() === "help,privacy", "only implemented commands are registered");
+check(COMMANDS.every((c) => /^[-_\p{L}\p{N}]{1,32}$/u.test(c.name) && c.name === c.name.toLowerCase() && c.description.length <= 100), "command names and descriptions meet Discord's limits");
+check(COMMANDS.every((c) => JSON.stringify(c.contexts) === "[0]" && JSON.stringify(c.integration_types) === "[0]"), "commands are server only and guild installed (no DMs, no user install)");
+
+// Optional: the deployed route over HTTP
+const port = Number(process.argv[2]);
+if (port) {
+  const post = async (r, headers = {}) =>
+    fetch(`http://127.0.0.1:${port}/api/discord/interactions`, { method: "POST", headers: { "content-type": "application/json", "x-signature-ed25519": r.sig, "x-signature-timestamp": r.t, ...headers }, body: r.body });
+  let r = await post(signed(ping));
+  check(r.status === 200 && (await r.json()).type === 1, "route: signed PING returns PONG");
+  r = await post({ ...signed(ping), sig: signed(ping, ts(), other.privateKey).sig });
+  check(r.status === 401, "route: wrong signature returns 401");
+  r = await post({ body: ping, t: ts(), sig: "" });
+  check(r.status === 401, "route: missing signature returns 401");
+  const cmd = JSON.stringify({ type: 2, application_id: "111111111111111111", data: { name: "help" } });
+  r = await post(signed(cmd));
+  const j = await r.json();
+  check(r.status === 200 && j.type === 4 && j.data.flags === 64, "route: signed /help returns an ephemeral message");
+  r = await post(signed("not json"));
+  check(r.status === 400, "route: signed non JSON body returns 400");
+  r = await post(signed("x".repeat(120_000)));
+  check(r.status === 413, "route: an oversized body returns 413");
+  r = await fetch(`http://127.0.0.1:${port}/api/discord/interactions`);
+  check(r.status === 405, "route: GET is not allowed");
+}
+console.log(failed ? `\n${failed} FAILED` : "\nAll Discord checks passed.");
+process.exit(failed ? 1 : 0);

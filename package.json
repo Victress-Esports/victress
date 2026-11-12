@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "assets": "node scripts/make-wings.mjs && node scripts/make-icons.mjs",
     "seo:audit": "node scripts/seo-audit.mjs",
+    "test:discord": "node scripts/discord-test.mjs",
     "test:env": "node scripts/env-test.mjs"
   },
   "dependencies": {

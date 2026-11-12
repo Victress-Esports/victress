@@ -48,6 +48,7 @@ const config: NextConfig = {
       "/api/waitlist",
       "/api/contact",
       "/api/handle-check",
+      "/api/discord/:path*",
       "/auth/:path*",
       "/dashboard/:path*",
       "/onboarding/:path*",
