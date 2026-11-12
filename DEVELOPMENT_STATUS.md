@@ -36,7 +36,7 @@ Consent branch: tsc, lint, build pass. Local Postgres SQL suite 193 PASS, 0 FAIL
 Merged PRs: all automated checks passed before merge; contact form tested through both forms in a browser.
 
 ## Production
-Live now: PR #43 (superseded), #45, #46, #44. No production migrations have been run. Billing flag stays false. Production still needs, separately approved: migration `20261110000100` (and the earlier dashboard migrations already applied).
+Live now: PR #43 (superseded), #45, #46, #44. Correction (read only check 2026-11-12): the production database already has 14 migrations applied (core through `invite_info_revoke_public`, including the dashboard and scrim tables); none from #35, #42, #47, #50 or the pilot work. Billing flag stays false. Production still needs, separately approved: migration `20261110000100` (and the earlier dashboard migrations already applied).
 
 ## Staging verification (2026-11-10), what is and is not verified
 **How:** Vercel Previews are behind Vercel Deployment Protection (SSO), which was not bypassed, so no Preview was browsed. Instead the PR #50 code (which includes the consent flow from PR #47) was built and run locally, pointed at the real staging Supabase project (`cmvifuayvqhbfkeskoqi`: real Auth, database, row level security), signed in as staging-only test accounts (`@test.invalid`) through staging's password grant. This is **staging backend verification from a local app, not a Preview test**.
