@@ -37,6 +37,12 @@ export async function buildAccountExport(sb: SupabaseClient<Database>, user: Use
     team: team ? { ...(team as object), your_role: (membership?.[0] as { role?: string } | undefined)?.role ?? null } : null,
     share_links: await own("profile_share_links", "label, fields, created_at, expires_at, revoked_at, last_viewed_at, view_count"),
     practice_files: await own("scrim_uploads", "game, original_name, size_bytes, created_at"),
+    discord_link: await own("discord_links", "discord_user_id, linked_at, consent_version"),
+    game_imports: {
+      accounts: await own("game_accounts", "game, provider, platform, external_id, display_name, tag, region, ownership_verified, created_at, last_imported_at"),
+      matches: await own("game_matches", "game, source, source_detail, external_id, queue_kind, queue_label, played_at, duration_seconds, result, me, participants, objectives, imported_at"),
+      submissions: await own("import_jobs", "game, provider, status, external_ref, submitted_via, consent_at, imported, skipped_existing, failed_matches, error_message, created_at, finished_at"),
+    },
     consents: {
       age_confirmation: await own("age_confirmations", "birth_date, confirmed_at"),
       legal_acceptances: await own("legal_acceptances", "document, version, accepted_at"),

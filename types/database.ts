@@ -115,6 +115,12 @@ export type Database = {
         Relationships: [];
       };
       // Migration 20261108000100. Clients can only read and delete; the server writes with the service role after calling the game API.
+      discord_links: {
+        Row: { consent_version: string; discord_user_id: string; linked_at: string; profile_id: string };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       game_accounts: {
         Row: { created_at: string; display_name: string | null; external_id: string; game: string; id: string; last_imported_at: string | null; ownership_verified: boolean; platform: "steam" | "epic" | "xbox" | "ps4" | "switch" | null; profile_id: string; provider: "riot" | "rocket_league"; region: "americas" | "europe" | "asia" | "sea" | null; tag: string | null };
         Insert: { display_name?: string | null; external_id: string; game: string; platform?: "steam" | "epic" | "xbox" | "ps4" | "switch" | null; profile_id: string; provider: "riot" | "rocket_league"; region?: "americas" | "europe" | "asia" | "sea" | null; tag?: string | null; last_imported_at?: string | null };
@@ -221,6 +227,8 @@ export type Database = {
       set_primary_game: { Args: { p_game: string }; Returns: string };
       team_invite_code: { Args: Record<string, never>; Returns: string | null };
       team_invite_info: { Args: { p_code: string }; Returns: Json };
+      discord_link_preview: { Args: { p_code_hash: string }; Returns: Json };
+      discord_complete_link: { Args: { p_code_hash: string; p_consent_version: string }; Returns: string };
     };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };

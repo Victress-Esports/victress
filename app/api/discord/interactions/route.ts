@@ -1,4 +1,11 @@
 import { after } from "next/server";
+import { ballchasingClient } from "@/lib/ballchasing";
+import { runReplayImport } from "@/lib/ballchasing/rl";
+import { summarizeRl } from "@/lib/ballchasing/summary";
+import { scrimUploadsEnabled } from "@/lib/dashboard";
+import { DB_COMMANDS, runDeferred } from "@/lib/discord/commands-run";
+import { hashLinkCode, linkUrl, newLinkCode } from "@/lib/discord/link";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 import { completeDeferred } from "@/lib/discord/followup";
 import { handleInteraction, logLine } from "@/lib/discord/handler";
 import type { Interaction } from "@/lib/discord/types";
@@ -45,7 +52,27 @@ export async function POST(req: Request) {
 
   let outcome;
   try {
-    outcome = handleInteraction(interaction, { applicationId: process.env.DISCORD_APPLICATION_ID });
+    const wantedApp = process.env.DISCORD_APPLICATION_ID;
+    const forThisApp = !wantedApp || !interaction.application_id || interaction.application_id === wantedApp;
+    if (forThisApp && interaction.type === 2 && DB_COMMANDS.has(interaction.data?.name ?? "")) {
+      // Commands that use Victress data: acknowledge now, do the work afterwards (Discord allows 3 seconds to answer).
+      outcome = {
+        kind: "deferred" as const,
+        work: async () => {
+          const admin = supabaseAdmin();
+          if (!admin) return { content: "This is not available right now. Try again later.", flags: 64, allowed_mentions: { parse: [] as string[] } };
+          const bc = ballchasingClient();
+          return runDeferred(interaction, {
+            admin, appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "https://victress.gg", pilotOpen: scrimUploadsEnabled(), newCode: newLinkCode, hashCode: hashLinkCode, linkUrl,
+            importReplay: async (userId, link, o) =>
+              bc ? runReplayImport({ admin, client: bc }, userId, link, o) : { ok: false, message: "Rocket League replay import is not configured on this server yet." },
+            summarize: (rows, kind) => summarizeRl(rows as never, kind),
+          });
+        },
+      };
+    } else {
+      outcome = handleInteraction(interaction, { applicationId: wantedApp });
+    }
   } catch {
     logLine("handler_error", { type: interaction.type });
     return Response.json({ type: 4, data: { content: "Something went wrong. Try again.", flags: 64, allowed_mentions: { parse: [] } } });

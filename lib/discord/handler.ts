@@ -1,6 +1,6 @@
 // Decides how to answer a verified Discord interaction. Pure: no network, no database, no secrets, so it is easy to test.
-// Phase 1 answers only /help and /privacy. Commands that need a Victress account or data (/link, /scrim and the rest) are not
-// registered and not handled yet: anything unknown gets a plain "not available" reply instead of pretending to work.
+// Answers /help and /privacy. Commands that need a Victress account or data (/link, /unlink, /profile, /scrim) are handled by the route
+// through lib/discord/commands-run.ts; anything unknown gets a plain "not available" reply instead of pretending to work.
 import type { Interaction, InteractionResponse, MessageData, Outcome } from "./types";
 
 const PRIVACY_URL = "https://victressesports.com/privacy";
@@ -16,19 +16,23 @@ export const HELP_TEXT = [
   "**Victress Scrim Intelligence**",
   `This is the Discord interface to Victress (${APP_URL}). It answers slash commands only.`,
   "",
-  "Available now: `/help` and `/privacy`.",
-  "Coming soon: linking your Victress account, and submitting and checking scrims.",
+  "`/link` and `/unlink`: connect or disconnect this Discord account and your Victress account.",
+  "`/profile`: see your own linked profile.",
+  "`/scrim submit`, `/scrim status`, `/scrim stats`: submit a Ballchasing replay link for Rocket League and see your own numbers.",
+  "`/privacy`: what is saved, and the full policy.",
   "",
+  "Scrim commands are open to approved pilot players with a linked account. Other games are coming soon.",
   `Terms: ${TERMS_URL}`,
   `Privacy: ${PRIVACY_URL}`,
 ].join("\n");
 
-// Keep this text true. It describes Phase 1, where nothing from a command is saved. Update it in the same change that starts
-// saving anything (account linking, scrim submissions), and keep it consistent with the published Privacy page.
+// Keep this text true and consistent with the published Privacy page. Update it in the same change as anything new that is saved.
 export const PRIVACY_TEXT = [
   "**Privacy**",
   "Victress Scrim Intelligence responds to slash commands. It does not read ordinary messages in your server.",
-  "Right now it does not save anything from your commands to a Victress account or database.",
+  "When you link, Victress saves your Discord user ID with your Victress account. `/unlink` removes it.",
+  "When you submit a Ballchasing replay, Victress reads it from Ballchasing and saves your own numbers from it, privately to your account. Other players in the replay are not named.",
+  "Linking and submitting do not make your profile or numbers visible to anyone. You can delete saved Rocket League data in your dashboard.",
   "",
   `Full policy: ${PRIVACY_URL}`,
   "Questions or deletion requests: privacy@victressesports.com",

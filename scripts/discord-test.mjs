@@ -42,10 +42,10 @@ const help = out({ type: 2, data: { name: "help" } });
 check(help.kind === "respond" && help.body.type === 4 && help.body.data.flags === 64, "/help replies, visible only to the user");
 check(help.body.data.allowed_mentions.parse.length === 0, "replies cannot mention anyone");
 check(HELP_TEXT.includes("https://victressesports.com/privacy") && HELP_TEXT.includes("https://victressesports.com/terms"), "/help links the published Terms and Privacy");
-check(/Coming soon/.test(HELP_TEXT) && !/can submit|will analyze|analyz(es|ing) your/i.test(HELP_TEXT), "/help marks unbuilt features Coming soon and promises nothing");
+check(/coming soon/i.test(HELP_TEXT) && /pilot/.test(HELP_TEXT) && !/will analyze|analyz(es|ing) your/i.test(HELP_TEXT), "/help says scrims are for approved pilot players, other games coming soon, and promises nothing more");
 const priv = out({ type: 2, data: { name: "privacy" } });
 check(priv.kind === "respond" && PRIVACY_TEXT.includes("privacy@victressesports.com") && PRIVACY_TEXT.includes("does not read ordinary messages"), "/privacy states the contact and that ordinary messages are not read");
-check(out({ type: 2, data: { name: "link" } }).body.data.content.includes("not available yet"), "an unregistered command is answered as not available");
+check(out({ type: 2, data: { name: "nonsense" } }).body.data.content.includes("not available yet"), "an unregistered command is answered as not available");
 check(out({ type: 3 }).body.data.flags === 64, "unsupported interaction types get an ephemeral reply");
 check(out({ type: 2, application_id: "999", data: { name: "help" } }, { applicationId: "111" }).body.data.content.includes("not meant for"), "an interaction for another application is refused");
 check(out({ type: 2, application_id: "111", data: { name: "help" } }, { applicationId: "111" }).body.data.content === HELP_TEXT, "the matching application id is accepted");
@@ -60,8 +60,11 @@ check(await completeDeferred("111", "t", { content: "x" }, async () => ({ ok: fa
 
 // Command registry
 const names = COMMANDS.map((c) => c.name);
-check(names.join() === "help,privacy", "only implemented commands are registered");
-check(COMMANDS.every((c) => /^[-_\p{L}\p{N}]{1,32}$/u.test(c.name) && c.name === c.name.toLowerCase() && c.description.length <= 100), "command names and descriptions meet Discord's limits");
+check(names.join() === "help,privacy,link,unlink,profile,scrim", "exactly the implemented commands are registered");
+const walk = (c) => [c, ...(c.options ?? []).flatMap(walk)];
+check(COMMANDS.flatMap(walk).every((c) => /^[-_\p{L}\p{N}]{1,32}$/u.test(c.name) && c.name === c.name.toLowerCase() && c.description.length <= 100), "command, subcommand and option names and descriptions meet Discord's limits");
+const submit = COMMANDS.find((c) => c.name === "scrim").options.find((o) => o.name === "submit");
+check(submit.options.filter((o) => o.required).map((o) => o.name).join() === "link,authorized,consent" && submit.options.every((o, i, a) => i === 0 || !o.required || a[i - 1].required), "scrim submit requires the link, the authorization and the consent confirmations, required options first");
 check(COMMANDS.every((c) => JSON.stringify(c.contexts) === "[0]" && JSON.stringify(c.integration_types) === "[0]"), "commands are server only and guild installed (no DMs, no user install)");
 
 // Optional: the deployed route over HTTP
@@ -83,6 +86,13 @@ if (port) {
   check(r.status === 400, "route: signed non JSON body returns 400");
   r = await post(signed("x".repeat(120_000)));
   check(r.status === 413, "route: an oversized body returns 413");
+  for (const [body, name] of [[{ name: "link" }, "/link"], [{ name: "profile" }, "/profile"], [{ name: "scrim", options: [{ name: "status", type: 1 }] }, "/scrim status"]]) {
+    r = await post(signed(JSON.stringify({ type: 2, application_id: "111111111111111111", member: { user: { id: "123456789012345678", username: "t" } }, data: body })));
+    const j2 = await r.json();
+    check(r.status === 200 && j2.type === 5 && j2.data.flags === 64, `route: ${name} is acknowledged at once with a private deferred reply`);
+  }
+  r = await post(signed(JSON.stringify({ type: 2, application_id: "999", member: { user: { id: "123456789012345678" } }, data: { name: "link" } })));
+  check((await r.json()).data?.content?.includes("not meant for"), "route: a command meant for another application is refused, not run");
   r = await fetch(`http://127.0.0.1:${port}/api/discord/interactions`);
   check(r.status === 405, "route: GET is not allowed");
 }

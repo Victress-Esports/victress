@@ -4,15 +4,18 @@ export const ResponseType = { Pong: 1, ChannelMessage: 4, Deferred: 5 } as const
 /** Message flag: only the user who ran the command can see the reply. */
 export const EPHEMERAL = 64;
 
+export interface DiscordUser { id: string; username?: string; global_name?: string | null }
+export interface CommandOption { name: string; type: number; value?: unknown; options?: CommandOption[] }
+
 export interface Interaction {
   id?: string;
   type: number;
   application_id?: string;
   token?: string;
   guild_id?: string;
-  member?: { user?: { id: string } };
-  user?: { id: string };
-  data?: { name?: string; options?: { name: string; type: number; value?: unknown; options?: unknown[] }[] };
+  member?: { user?: DiscordUser };
+  user?: DiscordUser;
+  data?: { name?: string; options?: CommandOption[] };
 }
 
 export interface MessageData {
