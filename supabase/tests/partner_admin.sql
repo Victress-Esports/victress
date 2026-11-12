@@ -1,4 +1,4 @@
--- Partner admin console checks (after all migrations through 20261110000200). Rolls itself back; results are in the error message.
+-- Partner admin console checks (after all migrations through 20261111000200). Rolls itself back; results are in the error message.
 do $$
 declare
   r text[] := '{}';

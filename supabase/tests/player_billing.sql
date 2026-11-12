@@ -1,4 +1,4 @@
--- Player billing checks (after all migrations through 20261110000300). Rolls itself back; results are in the error message.
+-- Player billing checks (after all migrations through 20261111000300). Rolls itself back; results are in the error message.
 do $$
 declare
   r text[] := '{}';

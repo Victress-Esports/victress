@@ -6,7 +6,7 @@ Original status: prepared, tested on a throwaway local Postgres. Not applied to 
 
 Staging currently has the earlier Partner migration (`20261109000100_partner_account.sql`, applied 2026-11-09). Two additive migrations follow it, in this order.
 
-## 1. `20261110000100_partner_exclusivity.sql`
+## 1. `20261111000100_partner_exclusivity.sql`
 Adds
 - Table `partner_exclusivity`: one row per Category Exclusivity request (organization, category, duration of 1 to 5 whole years, note, status `requested`, `approved`, `declined`, `withdrawn`, `active`, `ended`, Stripe invoice id and hosted URL, invoice status, approval, activation and end dates).
 - Two unique indexes: one approved or active record per category (case and spacing ignored), and one open request per organization.
@@ -17,7 +17,7 @@ Replaces (same behavior, plus one thing)
 - `partner_apply_billing(...)`: identical, plus: when a subscription ends or the plan moves off Anchor, any approved or active exclusivity becomes `ended`, which frees the category.
 Does not change `partner_organizations`, any existing policy, any existing grant, or any data.
 
-## 2. `20261110000200_partner_admin.sql`
+## 2. `20261111000200_partner_admin.sql`
 Adds
 - Table `partner_admins` (who may use the admin console). Rows are added by the founder with the service role in the table editor. A signed in user can read only their own row.
 - Function `partner_is_admin()` (signed in users).
@@ -28,7 +28,7 @@ Being an admin grants no extra access through normal app roles. The console read
 `supabase/tests/local/run-partner.sh`: 163 checks pass (93 earlier, 55 exclusivity, 15 admin). Each test rolls itself back.
 
 ## Steps when approved
-1. Apply `20261110000100` then `20261110000200` to victress-staging (apply_migration), run the Supabase security advisors, and run a rolled back check of the same assertions.
+1. Apply `20261111000100` then `20261111000200` to victress-staging (apply_migration), run the Supabase security advisors, and run a rolled back check of the same assertions.
 2. Founder adds themself to `partner_admins` (profile id) in the table editor.
 3. Founder creates the Stripe test products and prices and sets the four `STRIPE_PRICE_PARTNER_*` env vars on the staging deployment. Billing stays off until the founder says otherwise.
 4. Only after separate authorization: signup and checkout or invoice test for each plan, and a real webhook delivery.
@@ -44,4 +44,4 @@ drop function public.partner_is_admin(), public.partner_is_anchor_owner(uuid), p
 ```
 
 ## Not part of the approved staging apply: player billing
-`20261110000300_player_billing.sql` (tables `billing_customers`, `subscriptions`, `stripe_events` and five service role functions) is prepared and tested locally only (34 checks). It is NOT applied to staging. It waits until the Partner staging tests are finished and the founder approves. Details: `docs/proposals/stripe-billing.md`, section 9.
+`20261111000300_player_billing.sql` (tables `billing_customers`, `subscriptions`, `stripe_events` and five service role functions) is prepared and tested locally only (34 checks). It is NOT applied to staging. It waits until the Partner staging tests are finished and the founder approves. Details: `docs/proposals/stripe-billing.md`, section 9.

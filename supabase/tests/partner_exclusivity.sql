@@ -1,4 +1,4 @@
--- Partner Category Exclusivity checks (after all migrations through 20261110000100). Rolls itself back; results are in the error message.
+-- Partner Category Exclusivity checks (after all migrations through 20261111000100). Rolls itself back; results are in the error message.
 -- Covers the four plans' database side: Community, Supporting, Anchor, and Anchor with Category Exclusivity (a request, an approval,
 -- a Stripe invoice and a confirmed payment; never granted by checkout, never by the person asking).
 do $$
