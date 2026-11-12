@@ -112,7 +112,8 @@ function rest(req, res, url, body) {
   const uid = state.user.id;
   const table = url.pathname.replace("/rest/v1/", "");
   const rows = state.tables[table];
-  if (!rows) return send(res, { message: `mock: no table ${table}` }, 404);
+  // Like PostgREST for a table whose migration is not applied.
+  if (!rows) return send(res, { code: "PGRST205", message: `Could not find the table 'public.${table}' in the schema cache` }, 404);
   const wantsOne = (req.headers.accept || "").includes("vnd.pgrst.object");
   const retRep = (req.headers.prefer || "").includes("return=representation");
   const filters = [...url.searchParams.entries()].filter(([k]) => !["select", "order", "limit", "offset", "on_conflict", "columns"].includes(k));

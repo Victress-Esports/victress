@@ -87,7 +87,7 @@ if (port) {
   r = await post(signed("x".repeat(120_000)));
   check(r.status === 413, "route: an oversized body returns 413");
   for (const [body, name] of [[{ name: "link" }, "/link"], [{ name: "profile" }, "/profile"], [{ name: "scrim", options: [{ name: "status", type: 1 }] }, "/scrim status"]]) {
-    r = await post(signed(JSON.stringify({ type: 2, application_id: "111111111111111111", member: { user: { id: "123456789012345678", username: "t" } }, data: body })));
+    r = await post(signed(JSON.stringify({ type: 2, application_id: "111111111111111111", token: "interaction-token", member: { user: { id: "123456789012345678", username: "t" } }, data: body })));
     const j2 = await r.json();
     check(r.status === 200 && j2.type === 5 && j2.data.flags === 64, `route: ${name} is acknowledged at once with a private deferred reply`);
   }

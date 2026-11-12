@@ -12,6 +12,7 @@
     "seo:audit": "node scripts/seo-audit.mjs",
     "test:discord": "node scripts/discord-test.mjs && node scripts/discord-commands-test.mjs",
     "test:rl": "node scripts/rl-link-test.mjs",
+    "test:pilot-pages": "node scripts/pilot-pages-test.mjs 3200 3201",
     "test:env": "node scripts/env-test.mjs",
     "test:riot": "node scripts/riot-test.mjs && node scripts/riot-import-test.mjs",
     "riot:check": "node scripts/riot-check.mjs"
