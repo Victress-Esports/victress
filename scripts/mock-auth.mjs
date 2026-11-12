@@ -15,6 +15,7 @@ export const PERSONAS = {
   scout: { n: 3, label: "Recruiter or scout", note: "Account type recruiter. Plan is still Rookie: Scout Desk stays locked", account_type: "recruiter", onboarded: true },
   partner: { n: 5, label: "Approved design partner", note: "On the upload allowlist (uploads still need the flag on)", account_type: "player", onboarded: true, allowlisted: true },
   oldterms: { n: 6, label: "Terms changed", note: "Onboarded, accepted an older Terms and Privacy version: must accept again", account_type: "player", onboarded: true, oldTerms: true },
+  soloteam: { n: 7, label: "Solo team owner", note: "Owns a team with no other players", account_type: "team", onboarded: true },
   new: { n: 4, label: "New user", note: "Not onboarded yet: starts at the account type step", account_type: undefined, onboarded: false },
 };
 
@@ -37,16 +38,18 @@ function seed(key) {
     T.player_games.push({ profile_id: uid, game: "VALORANT", role: "Duelist", rank: "Gold", is_primary: true, created_at: now() });
     T.stat_entries.push({ id: randomUUID(), profile_id: uid, game: "VALORANT", season: "Current", metrics: { acs: 241, kd: 1.18, matches: 52 }, source: "manual", created_at: now() });
   }
-  if (key === "team") {
-    const tid = id(900);
+  if (key === "team" || key === "soloteam") {
+    const tid = id(key === "team" ? 900 : 901);
     me.team_id = tid;
     T.teams.push({ id: tid, name: "Mock Squad", owner_id: uid, created_at: now() });
-    T.profiles.push(profile(21, "mock_mate_one", { team_id: tid }), profile(22, "mock_mate_two", { team_id: tid, role: "Controller", rank: "Silver" }));
-    T.team_members.push(
-      { team_id: tid, profile_id: uid, role: "owner", joined_at: new Date(Date.now() - 5 * day).toISOString() },
-      { team_id: tid, profile_id: id(21), role: "member", joined_at: new Date(Date.now() - 3 * day).toISOString() },
-      { team_id: tid, profile_id: id(22), role: "member", joined_at: new Date(Date.now() - 1 * day).toISOString() },
-    );
+    T.team_members.push({ team_id: tid, profile_id: uid, role: "owner", joined_at: new Date(Date.now() - 5 * day).toISOString() });
+    if (key === "team") {
+      T.profiles.push(profile(21, "mock_mate_one", { team_id: tid }), profile(22, "mock_mate_two", { team_id: tid, role: "Controller", rank: "Silver" }));
+      T.team_members.push(
+        { team_id: tid, profile_id: id(21), role: "member", joined_at: new Date(Date.now() - 3 * day).toISOString() },
+        { team_id: tid, profile_id: id(22), role: "member", joined_at: new Date(Date.now() - 1 * day).toISOString() },
+      );
+    }
   }
   // Everyone except the new user has confirmed their age and accepted the current documents (the oldterms persona an older version).
   if (key !== "new") {
@@ -59,7 +62,7 @@ function seed(key) {
 }
 
 /** Test tooling only: what the mock holds right now (for assertions). */
-export const getState = () => ({ deletedUsers: state?.deletedUsers ?? [], tables: state ? Object.fromEntries(Object.entries(state.tables).map(([k, v]) => [k, v.length])) : {}, acceptances: state?.tables.legal_acceptances ?? [], ages: (state?.tables.age_confirmations ?? []).length });
+export const getState = () => ({ deletedUsers: state?.deletedUsers ?? [], waitlistDeletes: state?.waitlistDeletes ?? [], tables: state ? Object.fromEntries(Object.entries(state.tables).map(([k, v]) => [k, v.length])) : {}, acceptances: state?.tables.legal_acceptances ?? [], ages: (state?.tables.age_confirmations ?? []).length });
 
 const b64u = (o) => Buffer.from(typeof o === "string" ? o : JSON.stringify(o)).toString("base64url");
 export function sessionCookie(key, supaUrl) {
@@ -218,6 +221,17 @@ function rpc(res, name, args) {
       me.team_id = tid;
       return send(res, { status: "ok", team_id: tid });
     }
+    case "leave_team": {
+      const mine = T.team_members.find((m) => m.profile_id === uid);
+      if (!mine) return send(res, "not_in_team");
+      if (mine.role === "owner") {
+        if (T.team_members.some((m) => m.team_id === mine.team_id && m.profile_id !== uid)) return send(res, "owner_has_members");
+        T.teams = T.teams.filter((t) => t.id !== mine.team_id);
+      }
+      T.team_members = T.team_members.filter((m) => !(m.team_id === mine.team_id && m.profile_id === uid));
+      me.team_id = null;
+      return send(res, "ok");
+    }
     default: return send(res, { message: `mock: no rpc ${name}` }, 404);
   }
 }
@@ -260,7 +274,7 @@ export function handleUserRequest(req, res, url, body, raw) {
   if (!user) return false;
   if (p.startsWith("/rest/v1/rpc/")) {
     const name = p.replace("/rest/v1/rpc/", "");
-    const known = ["handle_change_available_at", "team_invite_code", "team_roster", "claim_handle", "set_primary_game", "create_team", "upload_allowed"];
+    const known = ["handle_change_available_at", "team_invite_code", "team_roster", "claim_handle", "set_primary_game", "create_team", "upload_allowed", "leave_team"];
     if (!known.includes(name)) return false;
     return rpc(res, name, body ?? {}), true;
   }
@@ -282,6 +296,10 @@ export function handleServiceRequest(req, res, url, body) {
     const bucket = url.pathname.split("/").pop();
     for (const k of body.prefixes ?? []) state.files.delete(`${bucket}/${k}`);
     return send(res, []), true;
+  }
+  if (req.method === "DELETE" && url.pathname === "/rest/v1/waitlist") {
+    state.waitlistDeletes = [...(state.waitlistDeletes ?? []), (url.searchParams.get("email") ?? "").replace(/^eq\./, "")];
+    return send(res, undefined, 204), true;
   }
   if (req.method === "GET" && url.pathname === `/auth/v1/admin/users/${state.user.id}`) return send(res, state.user), true;
   if (req.method === "DELETE" && url.pathname === `/auth/v1/admin/users/${state.user.id}`) {

@@ -33,7 +33,7 @@ export async function submitConsentAction(input: z.input<typeof schema>): Promis
     const age = ageOn(p.data.birthDate);
     if (age === null) return { ok: false, message: "Enter a real date of birth." };
     if (age < MINIMUM_AGE) {
-      await deleteAccount(user.id);
+      await deleteAccount(user.id, user.email);
       await sb.auth.signOut();
       return { ok: false, underage: true, message: `You must be ${MINIMUM_AGE} or older to use Victress.` };
     }
@@ -41,7 +41,7 @@ export async function submitConsentAction(input: z.input<typeof schema>): Promis
     if (error && error.code !== "23505") {
       // The database refuses under 13 itself, in case the check above was bypassed.
       if (error.message.includes("under_minimum_age")) {
-        await deleteAccount(user.id);
+        await deleteAccount(user.id, user.email);
         await sb.auth.signOut();
         return { ok: false, underage: true, message: `You must be ${MINIMUM_AGE} or older to use Victress.` };
       }

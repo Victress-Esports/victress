@@ -10,6 +10,7 @@ const LINKS = [
   { href: "/dashboard/scrims", label: "Scrims" },
   { href: "/dashboard/team", label: "Team" },
   { href: "/dashboard/privacy", label: "Privacy" },
+  { href: "/dashboard/account", label: "Account" },
 ];
 
 export function DashboardNav() {
