@@ -6,8 +6,6 @@ export const CONTACT_EMAIL = "hello@victressesports.com";
 export const copy = {
   brand: {
     name: "Victress",
-    // The one tagline. Do not stack other slogans under it.
-    tagline: "Turn practice into progress.",
   },
 
   nav: {
@@ -45,49 +43,119 @@ export const copy = {
   },
 
   home: {
-    // Above the fold: the headline (the tagline, used once), one sentence, ONE button, one small line, one labeled sample.
+    // Above the fold: the name, one short line, one sentence, two doorways (teams to the pilot, players to the app), one small line.
     hero: {
-      title: "Turn practice into progress.",
-      sentence:
-        "Victress is where competitive esports players build a Player Resume and teams manage their rosters.",
-      primary: "Become a Design Partner",
-      note: "Free 4 to 6 week pilot for one competitive team.",
+      title: "Your competitive career. All in one place.",
+      sentence: "Track performance. Build your player profile. Connect with opportunities.",
+      primary: "Join the Design Partner Pilot",
+      secondary: "Claim your Player Resume",
+      note: "Free 4 to 6 week pilot for teams and programs. Free forever for players.",
     },
-    // 1. The three products, one line each. A product that is not built carries one plain "Coming soon" label.
-    productsTitle: "Three products.",
+    // 1. Visitor intent (the job to be done): pick a role, see that role's next step. Unbuilt items carry one plain "Coming soon" label.
+    intent: {
+      title: "What brings you to Victress?",
+      options: [
+        {
+          id: "player" as const,
+          title: "I'm a player",
+          line: "Build my competitive profile.",
+          link: "Explore player tools",
+        },
+        {
+          id: "team" as const,
+          title: "I'm a coach or team",
+          line: "Manage a roster and support player development.",
+          link: "Explore team tools",
+        },
+        {
+          id: "recruiter" as const,
+          title: "I'm a recruiter",
+          line: "Discover and evaluate competitive players.",
+          link: "Explore recruiting",
+        },
+      ],
+      player: {
+        title: "Your Player Resume.",
+        line: "Your games, roles and highlight links in one resume you control. Free to start.",
+        cta: "Create your Player Resume",
+        steps: ["Create your account", "Add your games and roles", "Add your highlight links"],
+      },
+      team: {
+        title: "Bring your roster into one place.",
+        line: "Start a team, invite players with a link, and help shape Scrim Intelligence as a Design Partner.",
+        cta: "Start your team",
+        secondary: "Become a Design Partner",
+        items: [
+          { label: "Team page and roster", soon: false },
+          { label: "A Player Resume for every teammate", soon: false },
+          { label: "Scrim Intelligence", soon: true },
+        ],
+      },
+      recruiter: {
+        title: "Scout Desk.",
+        soon: true,
+        line: "Structured discovery and evaluation for teams, coaches and collegiate programs. Tell us what your recruiting process needs.",
+        cta: "Get in touch",
+        items: ["Player search and filters", "Profile and performance review", "Recruiting workflows for programs"],
+      },
+    },
+    // 2. The three products, one line each. A product that is not built carries one plain "Coming soon" label.
+    productsTitle: "Three products. One connected platform.",
     // `soon` puts one plain "Coming soon" label next to the product; nothing else about status.
     pillars: [
       {
         id: "scrim",
         title: "Scrim Intelligence",
         soon: true,
-        line: "Turn private practice into performance information.",
+        line: "Turn your team's practice into insights for player development.",
+        cta: "Explore team features",
+        href: "/design-partner",
       },
       {
         id: "resume",
         title: "Player Resume",
         soon: false,
-        line: "Your games, roles, ranks, tournaments and highlights in one resume you control.",
+        line: "Stop scattering your achievements across screenshots and spreadsheets. Build one competitive profile you control.",
+        cta: "Build your resume",
+        href: "app:/login",
       },
       {
         id: "scout",
         title: "Scout Desk",
         soon: true,
-        line: "Structured discovery and evaluation for teams, coaches and collegiate programs.",
+        line: "Give coaches, collegiate programs and recruiters a structured way to find emerging talent.",
+        cta: "Request recruiter access",
+        href: "/contact",
       },
     ],
     soonLabel: "Coming soon",
     learnMore: "Learn more",
-    // 2. How it works, three short steps (each one is something a player can do on Victress).
-    howTitle: "How it works.",
-    steps: [
-      { title: "Create your account", line: "Add your games, roles and ranks." },
-      { title: "Build your Player Resume", line: "Add your tournaments and highlights." },
-      { title: "Start a team", line: "Invite players with a link." },
+    // 3. Pricing (approved plans from content/pricing.ts). 4. Women in Esports band. 5. Questions.
+    pricingTitle: "Simple pricing. Start free.",
+    pricingMore: "Compare plans",
+    faqTitle: "Questions? Answers.",
+    faq: [
+      {
+        q: "Who is Victress for?",
+        a: "Competitive esports players, coaches, teams, collegiate programs and recruiters.",
+      },
+      {
+        q: "Is Victress free?",
+        a: "Yes. Rookie is free forever. Paid plans are Coming soon.",
+      },
+      {
+        q: "Which games can I add?",
+        a: "VALORANT, CS2, Rocket League, League of Legends, Apex Legends and Overwatch 2.",
+      },
+      {
+        q: "Can my team use Victress?",
+        a: "Yes. You can start a team and invite players with a link on the free plan.",
+      },
+      {
+        q: "When is Scout Desk available?",
+        a: "Scout Desk is Coming soon. Recruiters and programs can get in touch and tell us what their process needs.",
+      },
     ],
-    // 3. The design partner pilot (terms are in designPartner below). 4. One closing button.
-    pilotTitle: "The design partner pilot.",
-    closing: { cta: "Become a Design Partner" },
     final: { title: "Get started.", cta: "Get started", login: "Log in" },
     sharedValueLink: "About Women in Esports",
   },
@@ -162,8 +230,8 @@ export const copy = {
       scrim: { points: [] as string[] },
       resume: {
         points: [
-          "Your games, roles and ranks in one place.",
-          "Tournament history and highlights.",
+          "Your games and roles in one place.",
+          "Highlight links you host elsewhere.",
           "Privacy controls: your profile is private by default.",
         ],
       },
@@ -237,6 +305,9 @@ export const copy = {
   contactPage: {
     title: "Contact.",
     line: "Choose the option that fits.",
+    partnerTitle: "Partnership conversation",
+    partnerLine: "Tell us about your organization and what you would like to build with Victress.",
+    partnerSubmit: "Talk with our team",
     orgTitle: "Teams and organizations",
     orgLine: "Apply for the Founding Design Partner pilot.",
     orgSubmit: "Apply for Design Partner",
@@ -262,6 +333,7 @@ export const copy = {
     game: "Main game",
     games: "Other",
     message: "Anything else we should know (optional)",
+    partnershipMessage: "What would you like to talk about? (optional)",
     notice: "We use these details to reply to you.",
     privacy: "Privacy Policy",
     sending: "Sending…",
@@ -358,35 +430,13 @@ export const copy = {
     nowTitle: "What Victress does",
     // `soon` puts one plain "Coming soon" label next to the item.
     offers: [
-      { text: "Player accounts with your games, roles and ranks.", soon: false },
+      { text: "Player accounts with your games and roles.", soon: false },
       { text: "Team rosters with invite links.", soon: false },
       { text: "A profile that is private by default, so you choose what to share.", soon: false },
       { text: "Scrim Intelligence: private practice into performance information.", soon: true },
       { text: "Scout Desk: discovery and evaluation for teams, coaches and collegiate programs.", soon: true },
     ],
     cta: "Get started",
-  },
-
-  partnerships: {
-    title: "Partnerships.",
-    line: "Victress is open to conversations with groups that run or develop competitive esports.",
-    groups: [
-      {
-        title: "Collegiate esports programs",
-        line: "Roster management and player development for your program.",
-      },
-      {
-        title: "Competitive teams",
-        line: "Roster management and shared scrim review.",
-      },
-      {
-        title: "Tournament organizers",
-        line: "Ways to connect competition results to player profiles.",
-      },
-    ],
-    note: "Nothing on this page is a commitment. Terms are discussed case by case.",
-    cta: "Email us",
-    subject: "Victress partnership",
   },
 
   waitlist: {

@@ -1,4 +1,3 @@
-import { copy } from "@/content/copy";
 import { getGame } from "@/content/games";
 import { clip } from "@/content/seo";
 import { APP_URL, MARKETING_URL } from "@/lib/urls";
@@ -17,7 +16,6 @@ export function organizationAndWebsite() {
         legalName: "Victress LLC",
         url: MARKETING_URL,
         logo: `${MARKETING_URL}/icon-512.png`,
-        slogan: copy.brand.tagline,
         contactPoint: {
           "@type": "ContactPoint",
           contactType: "customer support",

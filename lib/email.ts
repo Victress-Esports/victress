@@ -48,13 +48,17 @@ const oneLine = (v: string) => v.replace(/[\r\n]+/g, " ").trim();
  * Plain text acknowledgement to the person who submitted the contact or design partner form. Fixed wording: it repeats nothing
  * the visitor typed, promises no reply time and no outcome. Best effort: the caller must not fail the form if this fails.
  */
-export async function sendContactAcknowledgement(to: string, kind: "organization" | "player") {
+export type ContactKind = "organization" | "player" | "partnership";
+
+export async function sendContactAcknowledgement(to: string, kind: ContactKind) {
   const resend = client();
   if (!resend) return;
   const what =
     kind === "organization"
       ? "your Design Partner pilot application"
-      : "your access request";
+      : kind === "partnership"
+        ? "your partnership conversation request"
+        : "your access request";
   const extra =
     kind === "organization"
       ? "\n\nApplying does not guarantee a place in the pilot."
@@ -74,11 +78,16 @@ export async function sendContactAcknowledgement(to: string, kind: "organization
  * Reply-To, so replying goes to them. Plain text only (no HTML to inject into). Nothing is stored.
  * Throws when email is not configured or Resend refuses it, so the form never reports success it did not achieve.
  */
-export async function sendContactMessage(msg: { kind: "organization" | "player"; replyTo: string; fields: [string, string][] }) {
+export async function sendContactMessage(msg: { kind: ContactKind; replyTo: string; fields: [string, string][] }) {
   const resend = client();
   if (!resend) throw new Error("email not configured");
   const org = msg.fields.find(([k]) => k === "Organization")?.[1];
-  const subject = msg.kind === "organization" ? `Design partner application${org ? `: ${oneLine(org).slice(0, 80)}` : ""}` : "Access request from a player";
+  const subject =
+    msg.kind === "organization"
+      ? `Design partner application${org ? `: ${oneLine(org).slice(0, 80)}` : ""}`
+      : msg.kind === "partnership"
+        ? `Partnership conversation${org ? `: ${oneLine(org).slice(0, 80)}` : ""}`
+        : "Access request from a player";
   const text = msg.fields.map(([k, v]) => `${k}: ${v}`).join("\n\n");
   const { error } = await resend.emails.send({
     from: `Victress <${from()}>`,

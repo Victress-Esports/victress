@@ -1,16 +1,13 @@
 import type { Metadata } from "next";
-import { ComingSoonNote } from "@/components/app/ComingSoonNote";
-import { MatchLog, type MatchRow } from "@/components/app/MatchLog";
 import { ScrimUploader, type UploadRow } from "@/components/app/ScrimUploader";
 import Link from "next/link";
 import { buttonClass } from "@/components/ui/Button";
 import { Section } from "@/components/ui/form";
 import { scrimUploadsEnabled } from "@/lib/dashboard";
-import { isMissingTable } from "@/lib/db-errors";
 import { loadMe } from "@/lib/me";
 import { privateMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = privateMetadata("Scrims | Victress", "Your practice match log and private practice files.");
+export const metadata: Metadata = privateMetadata("Scrims | Victress", "Your private practice files.");
 
 export default async function ScrimsPage() {
   const { sb, user, games } = await loadMe();
@@ -18,14 +15,6 @@ export default async function ScrimsPage() {
   // Only approved design partners can upload. The database enforces this too; this only decides what to show.
   const { data: approved } = flagOn ? await sb.rpc("upload_allowed") : { data: false };
   const enabled = flagOn && approved === true;
-  const { data: matches, error: matchesError } = await sb
-    .from("scrim_matches")
-    .select("id, game, played_on, opponent, result, score, map, note")
-    .eq("profile_id", user.id)
-    .order("played_on", { ascending: false })
-    .order("created_at", { ascending: false })
-    .limit(200);
-  const matchLogMissing = isMissingTable(matchesError);
   const { data: uploads } = enabled
     ? await sb.from("scrim_uploads").select("id, game, original_name, size_bytes, created_at").eq("profile_id", user.id).order("created_at", { ascending: false })
     : { data: [] };
@@ -46,10 +35,6 @@ export default async function ScrimsPage() {
           <Link href="/dashboard/scrims/lol" className={buttonClass("secondary")}>Open League of Legends imports</Link>
         </Section>
       ) : null}
-
-      <Section title="Match log" line={matchLogMissing ? "Coming soon" : "Record your practice matches. Private to you."}>
-        {matchLogMissing ? <ComingSoonNote what="The match log" /> : <MatchLog rows={(matches ?? []) as MatchRow[]} games={games.map((g) => g.game)} />}
-      </Section>
 
       <Section title="Your practice files" line="Demo and replay files, stored privately.">
         {enabled ? (

@@ -11,8 +11,8 @@ const body = () => `# Victress
 - Women in Esports: an intentional shared value commitment within Victress, delivered through the same three products: Player Resume for visibility, Scrim Intelligence (Coming soon) for development and Scout Desk (Coming soon) for opportunity. It is not a separate product, program or company, and Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment.
 
 ## What Victress does
-- Player accounts: sign in, choose a name, and add your games, roles and ranks. Profiles are private by default.
-- Player Resume: your games, roles, ranks, tournaments and highlights in one resume you control.
+- Player accounts: sign in, choose a name, and add your games and roles. Profiles are private by default.
+- Player Resume: your games, roles and highlight links in one resume you control.
 - Six supported games: VALORANT, Counter-Strike 2, Rocket League, League of Legends, Apex Legends, Overwatch 2.
 - Teams: create a team, share an invite link, roster of up to 10 (8 players and 2 coaches).
 - A free plan (Rookie). Pro, Team and Scout plans: Coming soon.
@@ -27,7 +27,7 @@ const body = () => `# Victress
 - [Pricing](${MARKETING_URL}/pricing): plans and pricing questions.
 - [For teams](${MARKETING_URL}/teams): running a club roster.
 - [About](${MARKETING_URL}/about): what Victress is and what it does.
-- [Partnerships](${MARKETING_URL}/partnerships): for collegiate programs, competitive teams and tournament organizers.
+- [Partnerships](${MARKETING_URL}/partnerships): how organizations partner with Victress: four partnership levels, started through a conversation with the team.
 - [Contact](${MARKETING_URL}/contact): hello@victressesports.com.
 - [Privacy](${MARKETING_URL}/privacy), [Terms](${MARKETING_URL}/terms) and [Cancellation and Refunds](${MARKETING_URL}/refunds): how Victress handles data, the rules for using it, and billing.
 

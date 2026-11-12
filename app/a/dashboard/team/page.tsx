@@ -27,7 +27,7 @@ export default async function Team() {
   const isOwner = team.owner_id === user.id;
   const { data: members } = await sb.rpc("team_roster");
   const roster = (members ?? [])
-    .map((m) => ({ profile_id: m.profile_id, role: m.team_role, p: { handle: m.handle, display_name: m.display_name, game: m.game, rank: m.rank } }))
+    .map((m) => ({ profile_id: m.profile_id, role: m.team_role, p: { handle: m.handle, display_name: m.display_name, game: m.game } }))
     .sort((a, b) => (a.role === "owner" ? -1 : b.role === "owner" ? 1 : (a.p.handle ?? "").localeCompare(b.p.handle ?? "")));
 
   let inviteUrl: string | null = null;
@@ -57,7 +57,7 @@ export default async function Team() {
                     {name} {m.role === "owner" ? <span className="ml-1 rounded-full bg-crimson px-2 py-0.5 text-xs">Owner</span> : null}
                   </p>
                   <p className="truncate text-sm text-mute">
-                    @{m.p.handle} {m.p.game ? `· ${getGame(m.p.game)?.name ?? m.p.game}` : ""} {m.p.rank ? `· ${m.p.rank}` : ""}
+                    @{m.p.handle} {m.p.game ? `· ${getGame(m.p.game)?.name ?? m.p.game}` : ""}
                   </p>
                 </div>
                 {isOwner && m.profile_id !== user.id ? <RemoveMemberButton profileId={m.profile_id} name={name} /> : null}

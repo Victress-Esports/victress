@@ -5,6 +5,8 @@
 
 Victress is building connected infrastructure for esports player development, performance intelligence and talent discovery, for the broader esports ecosystem (not one demographic, game or level). Practice → Performance Evidence → Development → Recognition → Opportunity.
 
+**Current work, branches, PRs, test results and blockers live in [DEVELOPMENT_STATUS.md](DEVELOPMENT_STATUS.md).** Keep it updated as work completes; do not duplicate the roadmap here.
+
 ## 1. One company, one platform, Creating Shared Value
 - Victress is a technology business. **Creating Shared Value is the business strategy**, not a marketing overlay, a charity program or a separate corporate responsibility activity. Social value and business value come from the same products, infrastructure and relationships.
 - Three product pillars work together, and there are only three:
@@ -47,7 +49,7 @@ Keep routing, authentication, canonicals and responsibilities separate. Do not a
 - Never commit secrets. The service role key stays server side.
 
 ## 6. Brand
-- Tagline: "Turn practice into progress." One tagline only. Do not stack other slogans.
+- No tagline. "Turn practice into progress." is retired (founder decision, 2026-11-08): do not use it anywhere. Do not add slogans.
 - Preserve the original Victress wings emblem. Never redraw it or replace it with a generic V.
 - Palette: Crimson #CF142B, Signal Red #F34144, Coral #FF635F, Warm Coral #FF847B, Blush #FFA498, Carbon #171717, White #FFFFFF, Cool Gray #5B6068.
 - Premium, restrained, product led. Concise copy, real application previews. No generic gaming visuals, excessive animation, glow or gradients.

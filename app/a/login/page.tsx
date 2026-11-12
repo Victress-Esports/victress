@@ -36,7 +36,7 @@ export default async function Login({
         <h1 className="font-display text-4xl font-bold leading-tight">
           {claim ? `Claim ${claim}.` : "Sign in or create your account."}
         </h1>
-        <p className="mt-3 text-mute">{claim ? `Sign in or create your account to claim ${claim}.` : "New here? Use the same options. We create your free account the first time."}</p>
+        {claim ? <p className="mt-3 text-mute">{`Sign in or create your account to claim ${claim}.`}</p> : null}
       </div>
       {sp.error ? (
         <p role="alert" className="rounded-xl border border-line bg-surface px-4 py-3 text-sm text-coral">
@@ -44,7 +44,7 @@ export default async function Login({
         </p>
       ) : null}
       <LoginForm claim={claim} next={next} />
-      <p className="text-sm text-mute">
+      <p className="text-xs text-mute">
         {copy.auth.ageNotice}{" "}
         <a href={marketingUrl("/terms")} className="font-semibold text-white underline underline-offset-2">
           {copy.auth.terms}

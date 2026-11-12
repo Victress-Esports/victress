@@ -1,6 +1,6 @@
 # Emails Victress sends, and where each one lives
 
-Updated 2026-11-07. Rules for every email: say only what works today, one tagline at most (it appears once, in the shared footer), no hyphens or em dashes in the copy, and wording that matches the login page ("Sign in or create your account", "Open it to sign in. If you are new, it creates your free account").
+Updated 2026-11-07. Rules for every email: say only what works today, no tagline, no hyphens or em dashes in the copy, and wording that matches the login page ("Sign in or create your account", "Open it to sign in. If you are new, it creates your free account").
 
 ## Sent by the application (Resend, `lib/email.ts`)
 | Email | Template | Sent from | When |
@@ -8,7 +8,7 @@ Updated 2026-11-07. Rules for every email: say only what works today, one taglin
 | Welcome | `emails/Welcome.tsx` | `sendWelcome`, called in `app/a/onboarding/actions.ts` (`claimNameAction`) and `app/a/auth/callback/route.ts` | Once, on the first successful name claim or first sign in (guarded by the `welcomed` flag in the user's metadata) |
 | Waitlist confirmation | `emails/WaitlistConfirm.tsx` | `sendWaitlistConfirmation`, called in `app/api/waitlist/route.ts` | After a row is saved to `public.waitlist` |
 | Contact, design partner application, early access request | plain text, built in `sendContactMessage` | `app/api/contact/route.ts` | To `hello@victressesports.com` only. **No acknowledgement is sent to the person who submitted the form.** The page shows a confirmation on screen; nothing is stored |
-| Shared layout and footer | `emails/Layout.tsx` | used by the two templates above | The footer carries the tagline once: "Turn practice into progress." and "Victress LLC" |
+| Shared layout and footer | `emails/Layout.tsx` | used by the two templates above | The footer reads "Victress LLC" |
 
 Team invites are links (copied from the Team page), not emails. Nothing else sends mail: `resend.emails.send` is called in exactly these three functions.
 

@@ -30,7 +30,6 @@ export default async function SharedProfile({ params }: { params: Promise<{ toke
           avatarUrl={p.avatar_url}
           game={p.game}
           role={p.role}
-          rank={p.rank}
           teamName={p.team_name}
           alsoPlays={p.games.filter((g) => !g.is_primary)}
           isDemo={!!p.is_demo}

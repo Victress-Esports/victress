@@ -12,7 +12,7 @@ type Fields = Record<"display_name" | "avatar" | "bio" | "team" | "stats" | "ran
 type Settings = { directory_listed: boolean; search_indexable: boolean; show_on_leaderboards: boolean; public_fields: Fields };
 type Full = {
   handle: string; displayName: string | null; avatarUrl: string | null; bio: string | null; teamName: string | null;
-  game: string | null; role: string | null; rank: string | null; appHost: string;
+  game: string | null; role: string | null; appHost: string;
 };
 
 const LABELS: { key: keyof Fields; label: string }[] = [
@@ -20,7 +20,7 @@ const LABELS: { key: keyof Fields; label: string }[] = [
   { key: "avatar", label: "Photo" },
   { key: "bio", label: "Bio" },
   { key: "team", label: "Team" },
-  { key: "rank_role", label: "Role and rank" },
+  { key: "rank_role", label: "Role" },
 ];
 
 /** Chooses which resume fields can be seen, using the same consent settings as /dashboard/privacy, with a live preview. */
@@ -65,7 +65,7 @@ export function ResumeVisibility({ initial, full }: { initial: Settings; full: F
             </label>
           ))}
         </fieldset>
-        <p className="mt-3 text-sm text-mute">Tournament history and highlights are private for now. They are not part of any public view or link.</p>
+        <p className="mt-3 text-sm text-mute">Highlight links are private for now. They are not part of any public view or link.</p>
         <div className="mt-4 flex items-center gap-4">
           <button type="button" onClick={save} disabled={pending} className={buttonClass("primary")}>
             Save visibility
@@ -81,7 +81,6 @@ export function ResumeVisibility({ initial, full }: { initial: Settings; full: F
           avatarUrl={f.avatar ? full.avatarUrl : null}
           game={full.game}
           role={f.rank_role ? full.role : null}
-          rank={f.rank_role ? full.rank : null}
           teamName={f.team ? full.teamName : null}
           appHost={full.appHost}
         />
