@@ -51,7 +51,8 @@ If the token is ever exposed (chat, commit, log, screenshot), Reset Token in the
 `DISCORD_PUBLIC_KEY=$(node scripts/discord-test.mjs --print-key) DISCORD_APPLICATION_ID=111111111111111111`, then
 `node scripts/discord-test.mjs 3200`. The test key is a throwaway, unrelated to the real application.
 
+## Commands (this branch)
+`/help`, `/privacy` need no account. `/link`, `/unlink`, `/profile`, `/scrim submit|status|stats` use the Victress backend (`lib/discord/commands-run.ts`): they acknowledge at once and answer privately afterwards. Linking: `docs/proposals/discord-account-linking.md`. Rocket League import: `docs/rocket-league-pilot.md`. Scrim commands need a linked account and the pilot roster.
+
 ## Not built yet (Planned)
-Account linking (`/link`, `/unlink`, `/profile`), `/scrim submit|status|stats`, the Rocket League replay pipeline, team and server
-connection. Linking needs an additive migration and a proposal approved first (`docs/proposals/`). Rocket League parsing is not
-validated (39 of 50 replays matched, 2026-11-08), so submission cannot be called working when it arrives.
+Server to team connection, team visibility of any player's numbers (needs each player's opt in), notifications, League of Legends through Discord, and direct replay file submission (parser not validated: 39 of 50 replays matched).

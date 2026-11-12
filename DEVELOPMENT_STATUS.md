@@ -5,8 +5,8 @@ Updated 2026-11-10. Authoritative references: `CLAUDE.md`, `docs/strategy/victre
 ## Current milestone and task
 Milestone 1, Foundation. Age gate and Terms/Privacy acceptance are built and tested (consent PR open, not merged). Next: account deletion and data export, then consent before game account linking.
 
-## Discord bot (Victress Scrim Intelligence)
-Branch `claude/discord-bot-phase1`, not merged, not deployed. Phase 1 only: HTTP interactions endpoint (`/api/discord/interactions`), signature verification, `/help` and `/privacy`, command registration script, tests (`npm run test:discord`). Nothing is stored; no database change. Account linking, scrim commands and the Rocket League pipeline are not built. Setup steps: `docs/discord-bot.md`.
+## Discord bot and Rocket League pilot
+Working branch `claude/rl-pilot` (integration of #47, #50, #35, #53 and the Ballchasing client, plus the new work). Not merged, not deployed, no migration applied anywhere. Built and tested locally: Rocket League replay link import (`/dashboard/scrims/rocket-league`), account linking (`/link`, `/unlink`, `/profile`, confirmation page, Account page), `/scrim submit|status|stats`, migrations `20261112000100` and `20261112000200`, Privacy text. Runbook: `docs/rocket-league-pilot.md`. Plan and merge order: `docs/proposals/discord-pilot-reconciliation.md`, `docs/proposals/staging-reconciliation-plan.md`. PR #53 (bot phase 1) is open. Direct replay file upload is not part of the pilot (parser unvalidated).
 
 ## Completed and merged (2026-11-10)
 - PR #43 Partnerships page (first version). Superseded by:
