@@ -3,6 +3,7 @@
 // Facts below come from the code and schema: Supabase Auth, database and file storage; Vercel hosting; Resend email; Stripe for
 // paid plans; no advertising or third party tracking tags. Prices come from content/pricing.ts and are repeated on the refunds page.
 import { CONTACT_EMAIL } from "@/content/copy";
+import { LEGAL_VERSIONS, effectiveLabel } from "@/content/legal-versions";
 
 // Privacy and Terms requests go to a dedicated inbox. Billing and general contact keep CONTACT_EMAIL.
 const PRIVACY_EMAIL = "privacy@victressesports.com";
@@ -21,11 +22,11 @@ export interface LegalDoc {
   sections: LegalSection[];
 }
 
-const UPDATED = "Effective November 7, 2026";
+const UPDATED = "Effective November 7, 2026"; // refunds page: not a tracked acceptance
 
 export const privacyDoc: LegalDoc = {
   title: "Privacy",
-  updated: "Effective November 10, 2026",
+  updated: effectiveLabel(LEGAL_VERSIONS.privacy),
   intro:
     "This page explains what Victress collects, why, who sees it and how you control it. Victress is an esports player development and recruitment platform run by Victress LLC. We keep it plain and describe how information is handled across the Victress website, platform and integrations, including Victress Scrim Intelligence, the Discord application run by Victress LLC (called the Discord integration on this page).",
   sections: [
@@ -148,7 +149,7 @@ export const privacyDoc: LegalDoc = {
 
 export const termsDoc: LegalDoc = {
   title: "Terms",
-  updated: "Effective November 10, 2026",
+  updated: effectiveLabel(LEGAL_VERSIONS.terms),
   intro:
     "These terms are the rules for using Victress, an esports player development and recruitment platform run by Victress LLC. They apply to the Victress website, platform, services and integrations, including Victress Scrim Intelligence, the Discord application run by Victress LLC (called the Discord integration in these terms). By creating an account or using Victress, you agree to them.",
   sections: [
