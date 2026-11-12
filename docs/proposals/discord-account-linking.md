@@ -1,6 +1,6 @@
 # Proposal: linking a Discord account to a Victress account (Discord bot, phase 2)
 
-**Status: PROPOSAL. Nothing here is implemented, and no migration file exists.** It needs approval before any database, authentication, permission or privacy change (CLAUDE.md section 7). Production steps each need their own approval.
+**Status: PROPOSAL, direction approved by the founder 2026-11-12 (decisions in section 9). Nothing here is implemented, and no migration file exists.** It needs approval before any database, authentication, permission or privacy change (CLAUDE.md section 7). Production steps each need their own approval.
 Builds on PR #53 (phase 1: signed interactions endpoint, `/help`, `/privacy`). Part of the Victress Scrim Intelligence bot: the bot is an interface into the existing platform, not a second system.
 
 ## 1. Goal and scope
@@ -20,7 +20,7 @@ Out of scope (separate proposals): server to team connection, scrim submission, 
 | Throttling pattern | In memory `rateLimit()` now; database attempt counter in `join-team-throttling.md` | main / proposal |
 | Phase 1 endpoint | Verified Discord user id comes from the signed interaction (`member.user.id`, or `user.id`) | PR #53 |
 
-**Hard dependency:** PR #47 (consent before linking is an outstanding foundation requirement) and PR #50 (unlink and deletion must be real before we store a Discord id) should land first. Migration numbers must also be reconciled: #47 and #42 both use `20261110000100`, #50 and #42 both use `20261110000200`. This proposal uses `20261112000100_discord_account_link.sql`, to be renumbered after the others settle.
+**Hard dependency:** PR #47 and PR #50 land first. The migration number collisions with #42 and the exact order are settled in [discord-pilot-reconciliation.md](discord-pilot-reconciliation.md); this migration is `20261112000100_discord_account_link.sql`.
 
 ## 3. Rules the design enforces
 1. One Discord identity belongs to at most one Victress account, and one Victress account has at most one Discord identity (the second is an open question, section 9).
@@ -99,12 +99,14 @@ Linking never implies consent to publish a profile, show statistics to a team, o
 - Web tests against the mock: signed out redirect and return, consent gate, confirmation shows the Discord identity, completion, expired code message, link page has `no-store`, `no-referrer`, `noindex`.
 - Private Discord test server, staging Supabase only.
 
-## 9. Open questions for the founder
-1. One Discord account per Victress account, or allow a player a main and a secondary? Proposed: one.
-2. Confirmation page shows the Discord display name and username for up to 10 minutes. Acceptable, and does counsel need to see it?
-3. May the bot reply to `/profile` with the player's handle and primary game, or only "linked"? Proposed: the player's own handle, display name, games and team name, visible only to them.
-4. Is a player with no team allowed to use `/scrim` for their own matches? Proposed: yes, records stay private to them.
-5. Moderation: a way to disable linking or a specific link without deleting an account (the reporting proposal is separate).
+## 9. Decisions (founder, 2026-11-12)
+1. One Discord account per Victress account and one Victress account per Discord account. (Matches the two uniqueness rules in section 5.)
+2. `/profile` shows the player's own linked game identity, privately, in a reply only they can see. Not shown to anyone else.
+3. Players without a team can use individual scrim features; their records stay private to them.
+4. Team specific information needs live team membership and the right role (section 6). Never cached in the link.
+5. **Linking does not grant any data sharing permission.** `discord_links` holds no sharing fields, and the tests assert that profile visibility, share links and consents are unchanged by linking and unlinking.
+Still open: the Discord display name shown on the confirmation page for up to 10 minutes (counsel), and a way to disable one link for moderation (separate proposal).
+Dependency numbers: migration file is `20261112000100`; the consent check in `discord_complete_link` requires an `age_confirmations` row and at least one `terms` and one `privacy` row in `legal_acceptances` (the app gate handles which version is current). See [discord-pilot-reconciliation.md](discord-pilot-reconciliation.md).
 
 ## 10. Path to real use (why this matters beyond `/link`)
 Linking is the gate for everything that follows; what blocks players from actually using Scrim Intelligence from Discord afterwards:

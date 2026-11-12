@@ -27,6 +27,7 @@ Governing document: [docs/strategy/victress-business-purpose.md](../strategy/vic
 | [Reporting, blocking and moderation](reporting-blocking-moderation.md) | Proposal: what exists (nothing), the minimum before each exposure feature, tables, ownership, decisions. Nothing implemented; owner not assigned |
 | [Dashboard migrations production plan](dashboard-migrations-production-plan.md) | Proposal (PR #27): order, dry runs, tested rollback, Pro recommendation, pausing sign ups |
 | [Discord account linking (bot phase 2)](discord-account-linking.md) | Proposal: link codes, confirmation page, tables, authorization rules, tests, path to Rocket League use; nothing implemented |
+| [Discord and Rocket League pilot reconciliation](discord-pilot-reconciliation.md) | Proposal: applied migrations, number collisions, merge order, Ballchasing link import design, decisions needed |
 | [Status of every feature](../status.md) | Built, merged, on production, gated by, blocked by |
 | Age enforcement design | Waits on counsel (see minors); not written |
 | AI crawler policy | Not written in the repo; options are in `docs/compliance-audit.md` |

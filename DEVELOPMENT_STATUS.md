@@ -27,7 +27,7 @@ Milestone 1, Foundation. Current: remove manual competitive entry (done, in PR b
 Typecheck pass. Lint pass. Build pass. `scripts/signed-in-test.mjs` (mock Supabase, uploads off/on/not approved/approved) all pass, including new checks that the resume has no tournament or rank entry and the scrims page has no match log. `npm run seo:audit`: 1650 checks, 0 failed. Staging flows not yet run.
 
 ## Production
-Only the Partnerships page is authorised and live. No migrations run. Billing flag stays false.
+Only the Partnerships page is authorised and live. Production database has 14 migrations applied (through `invite_info_revoke_public`, checked read only 2026-11-12); none from #35, #41, #42, #47, #50. Billing flag stays false.
 
 ## Blockers needing a decision
 None.
