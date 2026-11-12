@@ -17,8 +17,10 @@ Branch `claude/rl-pilot` is a **working integration branch** (main + #47 + #50 +
 5. Discord: endpoint URL, private test server, token, register commands, install: `docs/discord-bot.md`. Re-run `node scripts/discord-register.mjs` to register the new commands (it replaces the full list).
 6. Privacy and Terms: the Privacy text on this branch discloses the Rocket League ID, replay processing, link requests, retention and deletion (version 2026-11-12). It goes live only with the merge; players are asked to accept the new version.
 
+Pilot group, player guide, validation plan and what each deletion does: `docs/rocket-league-pilot-guide.md`. Data model findings (history, side context, what teams still need): `docs/rocket-league-data-model.md`.
+
 ## Tests (all local, nothing real touched)
-`npm run test:discord` (signature, commands registry, command logic) · `npm run test:rl` (parsing, privacy of the stored row, pipeline, limits; add `live` for one real read) · `npm run test:riot` · local Postgres: `supabase/tests/local/run-dashboard.sh` (70 checks for the two new migrations plus the existing ones) · browser: `scripts/consent-test.mjs`, `scripts/signed-in-test.mjs`, `scripts/account-test.mjs`, `scripts/pilot-pages-test.mjs` · `npm run seo:audit`.
+`npm run test:discord` (signature, commands registry, command logic) · `npm run test:rl` (parsing, privacy of the stored row, pipeline, limits; add `live` for one real read) · `npm run test:riot` · `node scripts/rl-fidelity.mjs` (live, 50 real public replays) · local Postgres: `supabase/tests/local/run-dashboard.sh` (70 checks for the two new migrations plus the existing ones) · browser: `scripts/consent-test.mjs`, `scripts/signed-in-test.mjs`, `scripts/account-test.mjs`, `scripts/pilot-pages-test.mjs` · `npm run seo:audit`.
 
 ## Not verified yet
 A real signed request from Discord; the migrations on staging (including a rolled back run there); a real Ballchasing read through the deployed app (the library path was verified live); the Vercel variable name for the Ballchasing token; the Riot key (unrelated to Rocket League).

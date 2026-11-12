@@ -3,6 +3,7 @@ import { ballchasingClient } from "@/lib/ballchasing";
 import { runReplayImport } from "@/lib/ballchasing/rl";
 import { summarizeRl } from "@/lib/ballchasing/summary";
 import { scrimUploadsEnabled } from "@/lib/dashboard";
+import { LEGAL_VERSIONS } from "@/content/legal-versions";
 import { DB_COMMANDS, runDeferred } from "@/lib/discord/commands-run";
 import { hashLinkCode, linkUrl, newLinkCode } from "@/lib/discord/link";
 import { supabaseAdmin } from "@/lib/supabase-admin";
@@ -63,7 +64,12 @@ export async function POST(req: Request) {
           if (!admin) return { content: "This is not available right now. Try again later.", flags: 64, allowed_mentions: { parse: [] as string[] } };
           const bc = ballchasingClient();
           return runDeferred(interaction, {
-            admin, appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "https://victress.gg", pilotOpen: scrimUploadsEnabled(), newCode: newLinkCode, hashCode: hashLinkCode, linkUrl,
+            admin, appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "https://victress.gg", pilotOpen: scrimUploadsEnabled(),
+            consentOk: async (profileId) => {
+              const { data, error } = await admin.rpc("discord_consent_current", { p_profile: profileId, p_terms: LEGAL_VERSIONS.terms, p_privacy: LEGAL_VERSIONS.privacy });
+              return !error && data === true;
+            },
+            newCode: newLinkCode, hashCode: hashLinkCode, linkUrl,
             importReplay: async (userId, link, o) =>
               bc ? runReplayImport({ admin, client: bc }, userId, link, o) : { ok: false, message: "Rocket League replay import is not configured on this server yet." },
             summarize: (rows, kind) => summarizeRl(rows as never, kind),

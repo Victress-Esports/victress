@@ -34,7 +34,7 @@ export default async function RocketLeaguePage({ searchParams }: { searchParams:
   const [{ data: acct }, { data: jobs }, { data: rows }] = await Promise.all([
     sb.from("game_accounts").select("platform, external_id, last_imported_at").eq("profile_id", user.id).eq("game", "ROCKET_LEAGUE").maybeSingle(),
     sb.from("import_jobs").select("id, status, error_message, external_ref, submitted_via, created_at").eq("profile_id", user.id).eq("game", "ROCKET_LEAGUE").order("created_at", { ascending: false }).limit(8),
-    sb.from("game_matches").select("id, queue_kind, queue_label, played_at, duration_seconds, result, me, objectives").eq("profile_id", user.id).eq("game", "ROCKET_LEAGUE").order("played_at", { ascending: false }).limit(60),
+    sb.from("game_matches").select("id, queue_kind, queue_label, played_at, duration_seconds, result, me, objectives, participants").eq("profile_id", user.id).eq("game", "ROCKET_LEAGUE").order("played_at", { ascending: false }).limit(60),
   ]);
   const all = (rows ?? []) as unknown as MatchRow[];
   const shown = all.filter((r) => kind === "all" || r.queue_kind === kind);
@@ -106,6 +106,19 @@ export default async function RocketLeaguePage({ searchParams }: { searchParams:
           </dl>
         ) : null}
       </Section>
+
+      {s?.team ? (
+        <Section title="Your side" line={`Totals for your side across ${s.team.games} game${s.team.games === 1 ? "" : "s"}. Your teammates and opponents are never shown one by one.`}>
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+            {([
+              ["Goals for", one(s.team.teamGoalsFor)], ["Goals against", one(s.team.teamGoalsAgainst)], ["Your share of goals", pct(s.team.yourShareOfTeamGoals)],
+              ["Shots for", one(s.team.teamShotsFor)], ["Shots against", one(s.team.teamShotsAgainst)], ["Your share of shots", pct(s.team.yourShareOfTeamShots)],
+            ] as const).map(([k, v]) => (
+              <div key={k}><dt className="text-sm text-mute">{k}</dt><dd className="mt-1 text-xl font-semibold">{v}</dd></div>
+            ))}
+          </dl>
+        </Section>
+      ) : null}
 
       <Section title="Your games" line={shown.length ? "Newest first. Each one links back to the replay you submitted." : undefined}>
         {shown.length ? (

@@ -50,7 +50,7 @@ function db() {
 }
 const imports = [];
 const svc = (d, over = {}) => ({
-  admin: d, appUrl: "https://victress.gg", pilotOpen: true, newCode: newLinkCode, hashCode: hashLinkCode, linkUrl,
+  admin: d, appUrl: "https://victress.gg", pilotOpen: true, consentOk: async () => true, newCode: newLinkCode, hashCode: hashLinkCode, linkUrl,
   importReplay: async (uid, link, o) => { imports.push({ uid, link, o }); return { ok: true, message: "Saved." }; },
   summarize: (rows, kind) => summarizeRl(rows, kind), ...over,
 });
@@ -121,13 +121,53 @@ check(/not saved/.test(r.content) && /unlisted or public/.test(r.content) && !/o
 r = await runDeferred(cmd("scrim", A, sub("stats", [])), svc(d));
 check(/No Rocket League games saved/.test(r.content), "/scrim stats with nothing saved says so");
 const me = { core: { score: 300, goals: 2, assists: 1, saves: 2, shots: 4 }, boost: { bpm: 400 }, movement: { avg_speed: 1500, percent_supersonic_speed: 10 }, demo: { inflicted: 1, taken: 0 } };
-d.t.game_matches.push({ profile_id: PA, game: "ROCKET_LEAGUE", queue_kind: "custom", played_at: "2026-11-12T10:00:00Z", duration_seconds: 330, result: "win", me },
+d.t.game_matches.push({ profile_id: PA, game: "ROCKET_LEAGUE", queue_kind: "custom", played_at: "2026-11-12T10:00:00Z", duration_seconds: 330, result: "win", me: { ...me, team: "blue" },
+    participants: [{ slot: 0, team: "blue", core: { goals: 2, shots: 4 } }, { slot: 1, team: "blue", core: { goals: 1, shots: 3 } }, { slot: 2, team: "orange", core: { goals: 1, shots: 5 } }] },
   { profile_id: PB, game: "ROCKET_LEAGUE", queue_kind: "custom", played_at: "2026-11-12T11:00:00Z", duration_seconds: 330, result: "loss", me: { core: { score: 999, goals: 9, shots: 9 } } });
 r = await runDeferred(cmd("scrim", A, sub("stats", [])), svc(d));
 check(/1 game\b/.test(r.content) && /A small sample/.test(r.content) && /Goals 2\.0/.test(r.content) && !/999/.test(r.content), "/scrim stats shows only the player's own games and flags a small sample");
 check(/Player-submitted Ballchasing replay/.test(r.content) && /not how good you are/.test(r.content), "/scrim stats carries the data label and the context line");
+check(/Your side: 3\.0 goals for, 1\.0 against; shots 7\.0 to 5\.0; you scored 67% of your side's goals/.test(r.content), "/scrim stats shows your side's totals and your share, from slot totals");
+check(!/Goals 1\.0 .*teammate/i.test(r.content) && !/slot/i.test(r.content), "no single teammate or slot is reported");
 r = await runDeferred(cmd("scrim", A, sub("stats", [["kind", "ranked"]])), svc(d));
 check(/No Rocket League games saved/.test(r.content), "the match type filter applies");
+
+// ---- parity with the website: the same consent rule, and leaving is never blocked
+d = db(); d.t.discord_links.push({ discord_user_id: A, profile_id: PA, linked_at: "x" });
+const stale = svc(d, { consentOk: async () => false });
+const before = imports.length;
+for (const [label, c] of [["/profile", cmd("profile", A)], ["/scrim submit", cmd("scrim", A, sub("submit", [["link", REPLAY], ["authorized", true], ["consent", true]]))], ["/scrim status", cmd("scrim", A, sub("status", []))], ["/scrim stats", cmd("scrim", A, sub("stats", []))]]) {
+  r = await runDeferred(c, stale);
+  check(/accept the current Terms and Privacy Policy/.test(r.content) && !/alice/.test(r.content), `${label} is refused until the current Terms and Privacy Policy are accepted, as on the website`);
+}
+check(imports.length === before, "nothing is submitted while consent is not current");
+r = await runDeferred(cmd("unlink", A), stale);
+check(/no longer linked/.test(r.content) && d.t.discord_links.length === 0, "/unlink still works when consent is not current: leaving is never blocked");
+const failClosed = svc(db(), { consentOk: async () => { throw new Error("rpc missing"); } });
+failClosed.admin.t.discord_links.push({ discord_user_id: A, profile_id: PA, linked_at: "x" });
+r = await runDeferred(cmd("profile", A), failClosed);
+check(/Something went wrong/.test(r.content) && !/alice/.test(r.content), "if the consent check cannot run, nothing is shown (fail closed)");
+
+// ---- after unlinking, Discord gives access to nothing
+d = db(); d.t.discord_links.push({ discord_user_id: A, profile_id: PA, linked_at: "x" });
+d.t.game_matches.push({ profile_id: PA, game: "ROCKET_LEAGUE", queue_kind: "custom", played_at: "2026-11-12T10:00:00Z", duration_seconds: 330, result: "win", me: { core: { goals: 2 } } });
+await runDeferred(cmd("unlink", A), svc(d));
+for (const [label, c] of [["/profile", cmd("profile", A)], ["/scrim submit", cmd("scrim", A, sub("submit", [["link", REPLAY], ["authorized", true], ["consent", true]]))], ["/scrim status", cmd("scrim", A, sub("status", []))], ["/scrim stats", cmd("scrim", A, sub("stats", []))]]) {
+  r = await runDeferred(c, svc(d));
+  check(/not linked|Link your Victress account first/.test(r.content) && !/Goals/.test(r.content), `after /unlink, ${label} gives no access`);
+}
+check(d.t.game_matches.length === 1, "unlinking does not delete saved games (deleting data is a separate, explicit action on the website)");
+
+// ---- a player with no team uses everything
+d = db(); d.t.team_members = []; d.t.teams = []; d.t.discord_links.push({ discord_user_id: A, profile_id: PA, linked_at: "x" });
+const solo = svc(d);
+r = await runDeferred(cmd("scrim", A, sub("submit", [["link", REPLAY], ["authorized", true], ["consent", true]])), solo);
+check(/Saved\./.test(r.content), "a player with no team can submit a replay");
+d.t.game_matches.push({ profile_id: PA, game: "ROCKET_LEAGUE", queue_kind: "custom", played_at: "2026-11-12T10:00:00Z", duration_seconds: 330, result: "win", me });
+r = await runDeferred(cmd("scrim", A, sub("stats", [])), solo);
+check(/Goals 2\.0/.test(r.content), "a player with no team sees their own numbers");
+r = await runDeferred(cmd("profile", A), solo);
+check(/Team: No team/.test(r.content), "a player with no team sees their own profile");
 
 // ---- failure handling
 r = await runDeferred(cmd("profile", A), svc({ from: () => { throw new Error("db down"); }, rpc: async () => ({ error: { message: "x" } }) }));

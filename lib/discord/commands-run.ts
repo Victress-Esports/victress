@@ -12,6 +12,8 @@ export type Services = {
   appUrl: string;
   /** SCRIM_UPLOADS_ENABLED: the pilot flag. */
   pilotOpen: boolean;
+  /** The same gate the website applies: age confirmed and the CURRENT Terms and Privacy accepted. Fail closed. */
+  consentOk: (profileId: string) => Promise<boolean>;
   newCode: () => string;
   hashCode: (code: string) => string;
   linkUrl: (appUrl: string, code: string) => string;
@@ -20,6 +22,7 @@ export type Services = {
     games: number; wins: number; losses: number; winRate: number | null; smallSample: boolean;
     perGame: { score: number; goals: number; assists: number; saves: number; shots: number; demosInflicted: number; demosTaken: number };
     shootingPercent: number | null; boostPerMinute: number | null; averageSpeed: number | null; supersonicPercent: number | null;
+    team: null | { games: number; teamGoalsFor: number; teamGoalsAgainst: number; teamShotsFor: number; teamShotsAgainst: number; yourShareOfTeamGoals: number | null; yourShareOfTeamShots: number | null };
   };
 };
 
@@ -82,6 +85,8 @@ async function unlink(discordId: string, s: Services) {
 async function profile(discordId: string, s: Services) {
   const pid = await linkedProfile(discordId, s);
   if (!pid) return reply("This Discord account is not linked to a Victress account. Use `/link` to link it.");
+  const stop = await blocked(pid, s, false);
+  if (stop) return stop;
   const [{ data: p }, { data: m }, { data: rl }, { count }] = await Promise.all([
     s.admin.from("profiles").select("handle, display_name").eq("id", pid).maybeSingle(),
     s.admin.from("team_members").select("role, team_id").eq("profile_id", pid).maybeSingle(),
@@ -100,17 +105,31 @@ async function profile(discordId: string, s: Services) {
   ].join("\n"));
 }
 
-/** The pilot gate: the flag, and the linked player is on the allowlist. */
+/** The pilot gate, as on the website: the flag, and the linked player is on the allowlist. */
 async function pilotOk(pid: string, s: Services) {
   if (!s.pilotOpen) return false;
   const { data } = await s.admin.from("design_partner_allowlist").select("profile_id").eq("profile_id", pid).maybeSingle();
   return !!data;
 }
 
+const NEEDS_CONSENT = "Before you can use this, open victress.gg and accept the current Terms and Privacy Policy. Then try again.";
+const NOT_PILOT = "Scrim submissions are open to approved pilot players only. Your account is not on the list.";
+
+/**
+ * Everything a linked player does with their own data passes the website's rules first: consent to the current documents, then the
+ * pilot gate. Returns the reply to send when the player may not continue. (/unlink is exempt: leaving is never blocked.)
+ */
+async function blocked(pid: string, s: Services, needsPilot: boolean): Promise<MessageData | null> {
+  if (!(await s.consentOk(pid))) return reply(NEEDS_CONSENT);
+  if (needsPilot && !(await pilotOk(pid, s))) return reply(NOT_PILOT);
+  return null;
+}
+
 async function submit(discordId: string, opts: Map<string, unknown>, s: Services) {
   const pid = await linkedProfile(discordId, s);
   if (!pid) return reply("Link your Victress account first with `/link`.");
-  if (!(await pilotOk(pid, s))) return reply("Scrim submissions are open to approved pilot players only. Your account is not on the list.");
+  const stop = await blocked(pid, s, true);
+  if (stop) return stop;
   const linkText = typeof opts.get("link") === "string" ? (opts.get("link") as string) : "";
   const authorized = opts.get("authorized") === true;
   const consent = opts.get("consent") === true;
@@ -122,7 +141,8 @@ async function submit(discordId: string, opts: Map<string, unknown>, s: Services
 async function status(discordId: string, s: Services) {
   const pid = await linkedProfile(discordId, s);
   if (!pid) return reply("Link your Victress account first with `/link`.");
-  if (!(await pilotOk(pid, s))) return reply("Scrim submissions are open to approved pilot players only. Your account is not on the list.");
+  const stop = await blocked(pid, s, true);
+  if (stop) return stop;
   const { data } = await s.admin.from("import_jobs").select("status, error_message, external_ref, submitted_via, created_at").eq("profile_id", pid).eq("game", "ROCKET_LEAGUE").order("created_at", { ascending: false }).limit(5);
   if (!data?.length) return reply("You have not submitted any Rocket League replays yet. Use `/scrim submit`.");
   const lines = data.map((j: { status: string; error_message: string | null; external_ref: string | null; created_at: string }) => {
@@ -136,10 +156,11 @@ async function status(discordId: string, s: Services) {
 async function stats(discordId: string, opts: Map<string, unknown>, s: Services) {
   const pid = await linkedProfile(discordId, s);
   if (!pid) return reply("Link your Victress account first with `/link`.");
-  if (!(await pilotOk(pid, s))) return reply("Scrim submissions are open to approved pilot players only. Your account is not on the list.");
+  const stop = await blocked(pid, s, true);
+  if (stop) return stop;
   const kinds = ["all", "custom", "ranked", "normal"];
   const kind = kinds.includes(String(opts.get("kind"))) ? String(opts.get("kind")) : "all";
-  const { data } = await s.admin.from("game_matches").select("queue_kind, played_at, duration_seconds, result, me").eq("profile_id", pid).eq("game", "ROCKET_LEAGUE").order("played_at", { ascending: false }).limit(60);
+  const { data } = await s.admin.from("game_matches").select("queue_kind, played_at, duration_seconds, result, me, participants").eq("profile_id", pid).eq("game", "ROCKET_LEAGUE").order("played_at", { ascending: false }).limit(60);
   const sum = s.summarize(data ?? [], kind);
   if (!sum) return reply("No Rocket League games saved yet" + (kind === "all" ? "" : " for that match type") + ". Submit a replay with `/scrim submit`.");
   const g = sum.perGame;
@@ -149,6 +170,7 @@ async function stats(discordId: string, opts: Map<string, unknown>, s: Services)
     `Record: ${sum.wins} wins, ${sum.losses} losses`,
     `Score ${one(g.score)} · Goals ${one(g.goals)} · Assists ${one(g.assists)} · Saves ${one(g.saves)} · Shots ${one(g.shots)}`,
     `Shooting ${sum.shootingPercent === null ? "n/a" : Math.round(sum.shootingPercent) + "%"} · Boost per minute ${sum.boostPerMinute === null ? "n/a" : Math.round(sum.boostPerMinute)} · Supersonic ${sum.supersonicPercent === null ? "n/a" : Math.round(sum.supersonicPercent) + "%"}`,
+    ...(sum.team ? [`Your side: ${one(sum.team.teamGoalsFor)} goals for, ${one(sum.team.teamGoalsAgainst)} against; shots ${one(sum.team.teamShotsFor)} to ${one(sum.team.teamShotsAgainst)}${sum.team.yourShareOfTeamGoals === null ? "" : `; you scored ${Math.round(sum.team.yourShareOfTeamGoals)}% of your side's goals`}`] : []),
     "Source: Player-submitted Ballchasing replay. These numbers describe those games in their own context, not how good you are.",
     `More: ${s.appUrl.replace(/\/+$/, "")}/dashboard/scrims/rocket-league`,
   ].join("\n"));

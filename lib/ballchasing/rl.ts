@@ -99,7 +99,8 @@ export function normalizeReplay(detail: unknown, who: { platform: string; id: st
     const sum = players.reduce((a, p) => a + (isRec(p.stats) && isRec(p.stats.core) ? num(p.stats.core.goals) ?? 0 : 0), 0);
     teams.push({ color, players, goals: teamGoals ?? sum });
   }
-  const want = { platform: who.platform.toLowerCase(), id: who.id.toLowerCase() };
+  const want = { platform: String(who?.platform ?? "").toLowerCase(), id: String(who?.id ?? "").toLowerCase() };
+  if (!want.platform || !want.id) return { ok: false, reason: "not_in_replay" };
   const hits: { team: number; index: number }[] = [];
   teams.forEach((t, ti) => t.players.forEach((p, i) => {
     const pid = isRec(p.id) ? p.id : {};

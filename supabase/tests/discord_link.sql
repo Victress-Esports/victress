@@ -125,6 +125,18 @@ begin
   delete from public.discord_links; reset role;
   select count(*) into n from public.discord_links where profile_id = ub; r := array_append(r, case when n = 0 then 'PASS a player can unlink on the website' else 'FAIL web unlink' end);
 
+  -- the Discord commands ask whether the linked player has accepted the CURRENT documents (same rule as the website)
+  set local role service_role;
+  r := array_append(r, case when public.discord_consent_current(ub, '2026-11-10', '2026-11-12') then 'PASS a player who accepted the current Terms and Privacy Policy passes the Discord consent check' else 'FAIL consent current' end);
+  r := array_append(r, case when not public.discord_consent_current(ub, '2026-11-10', '2026-11-13') then 'PASS a newer Privacy Policy version fails the check until it is accepted' else 'FAIL stale accepted' end);
+  r := array_append(r, case when not public.discord_consent_current(uc, '2026-11-10', '2026-11-12') then 'PASS a player with no age confirmation or acceptance fails the check' else 'FAIL uc passes' end);
+  r := array_append(r, case when not public.discord_consent_current(gen_random_uuid(), '2026-11-10', '2026-11-12') then 'PASS an unknown profile fails the check' else 'FAIL unknown passes' end);
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub', ub, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  begin perform public.discord_consent_current(ub, '2026-11-10', '2026-11-12'); r := array_append(r, 'FAIL player called the consent check'); exception when insufficient_privilege then r := array_append(r, 'PASS a player cannot call the Discord consent check'); end;
+  reset role;
+
   -- purge
   set local role service_role;
   n := public.purge_discord_link_codes(); r := array_append(r, 'PASS the purge runs (' || n || ' old codes)');

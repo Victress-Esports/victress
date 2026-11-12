@@ -8,7 +8,8 @@
 --  * The link is created only by discord_complete_link(), run as the signed in player, after they have passed the age gate and accepted
 --    the Terms and Privacy Policy. Creating a code and unlinking from Discord are service role only.
 -- Rollback: drop function public.discord_create_link_code(text, text, text), public.discord_link_preview(text),
---   public.discord_complete_link(text, text), public.discord_unlink(text), public.purge_discord_link_codes();
+--   public.discord_complete_link(text, text), public.discord_unlink(text), public.purge_discord_link_codes(),
+--   public.discord_consent_current(uuid, text, text);
 --   drop table public.discord_link_codes, public.discord_links;
 
 create table public.discord_links (
@@ -141,7 +142,21 @@ begin
 end;
 $$;
 
-revoke execute on function public.discord_create_link_code(text, text, text), public.discord_unlink(text), public.purge_discord_link_codes() from public, anon, authenticated;
-grant execute on function public.discord_create_link_code(text, text, text), public.discord_unlink(text), public.purge_discord_link_codes() to service_role;
+-- 6. The Discord commands act without a web session, so they ask this question about the linked player: have they passed the age gate
+-- and accepted the CURRENT Terms and Privacy Policy? It is the same rule the website applies to every signed in page. Service role only.
+create function public.discord_consent_current(p_profile uuid, p_terms text, p_privacy text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (select 1 from public.age_confirmations where profile_id = p_profile)
+     and exists (select 1 from public.legal_acceptances where profile_id = p_profile and document = 'terms' and version = p_terms)
+     and exists (select 1 from public.legal_acceptances where profile_id = p_profile and document = 'privacy' and version = p_privacy);
+$$;
+
+revoke execute on function public.discord_create_link_code(text, text, text), public.discord_unlink(text), public.purge_discord_link_codes(), public.discord_consent_current(uuid, text, text) from public, anon, authenticated;
+grant execute on function public.discord_create_link_code(text, text, text), public.discord_unlink(text), public.purge_discord_link_codes(), public.discord_consent_current(uuid, text, text) to service_role;
 revoke execute on function public.discord_link_preview(text), public.discord_complete_link(text, text) from public, anon;
 grant execute on function public.discord_link_preview(text), public.discord_complete_link(text, text) to authenticated;

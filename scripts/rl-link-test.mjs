@@ -1,6 +1,7 @@
 // Rocket League replay link import: parsing, normalization, privacy and the whole pipeline, against stubs (no network, no database).
 //   node scripts/rl-link-test.mjs            module checks
 //   NODE_USE_ENV_PROXY=1 NODE_EXTRA_CA_CERTS=<proxy ca> node --experimental-transform-types scripts/rl-link-test.mjs live   also one real read of a public replay through the Ballchasing API (read only, no names printed)
+import { summarizeRl } from "../lib/ballchasing/summary.ts";
 import { parseReplayRef, parseIdentity, normalizeReplay, runReplayImport, LIMITS, RL_DATA_LABEL } from "../lib/ballchasing/rl.ts";
 
 let failed = 0;
@@ -49,6 +50,7 @@ check(normalizeReplay(replay({ playlist_id: "ranked-standard", playlist_name: "R
 check(normalizeReplay(replay(), { platform: "STEAM", id: "76561198000000001" }).ok, "identity matching ignores case");
 check(normalizeReplay(replay({ visibility: "public" }), me).ok && !normalizeReplay(replay({ visibility: "private" }), me).ok && normalizeReplay(replay({ visibility: "private" }), me).reason === "visibility", "public and unlisted are accepted, private is refused");
 check(normalizeReplay(replay(), { platform: "steam", id: "000" }).reason === "not_in_replay", "an identity that is not in the replay is refused");
+check(normalizeReplay(replay(), { platform: undefined, id: undefined }).reason === "not_in_replay" && normalizeReplay(replay(), null).reason === "not_in_replay", "a missing or empty identity never matches anyone");
 const dup = replay(); dup.orange.players[1] = P("steam", "76561198000000001", "Clone", 0);
 check(normalizeReplay(dup, me).reason === "ambiguous_identity", "an identity that appears twice is refused");
 check(normalizeReplay(replay({ status: "pending" }), me).reason === "not_ok" && normalizeReplay(null, me).reason === "bad_shape" && normalizeReplay(replay({ date: "nope" }), me).reason === "bad_date", "unfinished, malformed and undated replays are refused");
@@ -133,6 +135,33 @@ r = await run(db, okClient(), `https://ballchasing.com/replay/${ID}`);
 db.t.game_accounts[0].external_id = "76561198000000099";
 r = await run(db, okClient(replay({ id: "3b0a1e7c-1111-4222-8333-000000000002" })), "3b0a1e7c-1111-4222-8333-000000000002");
 check(r.code === "not_in_replay" && /nothing was saved/.test(r.message) && db.t.game_matches.length === 1, "a replay the player was not in is refused and saves nothing");
+
+// ---- no team needed: the fake database has no team tables at all, and the whole flow still works
+db = fakeDb(); seed(db);
+check(!("teams" in db.t) && !("team_members" in db.t), "the stand-in database has no team tables");
+r = await run(db, okClient());
+check(r.ok && db.t.game_matches.length === 1, "a player with no team (no team table exists) submits and stores a replay");
+
+// ---- identity: two accounts claiming one Rocket League identity each see only their own private rows
+db = fakeDb(); seed(db);
+db.t.game_accounts.push({ id: "acc-2", profile_id: "user-2", game: "ROCKET_LEAGUE", provider: "rocket_league", platform: "steam", external_id: "76561198000000001" });
+await run(db, okClient());
+r = await runReplayImport({ admin: db, client: okClient() }, "user-2", `https://ballchasing.com/replay/${ID}`, { authorized: true, consent: true, via: "web" });
+check(db.t.game_matches.length === 2 && db.t.game_matches.every((m) => m.profile_id !== undefined) && new Set(db.t.game_matches.map((m) => m.profile_id)).size === 2, "if two accounts claim the same identity, each stores a separate private row (nothing is shared or merged)");
+
+// ---- longitudinal and side context (individual history, with other players kept anonymous)
+const mk = (day, res, kind, goals, shots, mine = { team: "blue" }) => ({ queue_kind: kind, played_at: `2026-11-${day}T10:00:00Z`, duration_seconds: 330, result: res,
+  me: { ...mine, core: { score: 300, goals, assists: 1, saves: 1, shots } },
+  participants: [{ slot: 0, team: "blue", core: { goals, shots } }, { slot: 1, team: "blue", core: { goals: 1, shots: 2 } }, { slot: 2, team: "orange", core: { goals: 1, shots: 4 } }] });
+const hist = [mk("14", "loss", "custom", 0, 2), mk("12", "win", "custom", 2, 4), mk("13", "remake", "custom", 1, 3), mk("15", "win", "ranked", 3, 5)];
+const sm = summarizeRl(hist, "all");
+check(sm.series.map((x) => x.playedAt.slice(8, 10)).join() === "12,13,14,15", "history is ordered by when each replay was played, not when it was submitted");
+check(sm.games === 4 && sm.wins === 2 && sm.losses === 1 && Math.round(sm.winRate * 100) === 67, "a no result game is counted as a game but not in the win rate");
+check(summarizeRl(hist, "ranked").games === 1 && summarizeRl(hist, "custom").games === 3, "match types are not mixed unless all is chosen");
+check(sm.smallSample === true, "fewer than five games is flagged as a small sample");
+check(sm.team.games === 4 && sm.team.teamGoalsAgainst === 1 && Math.round(sm.team.yourShareOfTeamGoals) === Math.round((6 / (6 + 4)) * 100), "side totals and your share come from slot totals");
+check(summarizeRl([{ ...mk("12", "win", "custom", 1, 1), participants: undefined }], "all").team === null, "without stored slots there is simply no side context");
+check(summarizeRl([], "all") === null, "no games gives no summary");
 
 // ---- limits
 db = fakeDb(); seed(db);
