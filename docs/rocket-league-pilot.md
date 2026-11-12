@@ -22,5 +22,8 @@ Pilot group, player guide, validation plan and what each deletion does: `docs/ro
 ## Tests (all local, nothing real touched)
 `npm run test:discord` (signature, commands registry, command logic) · `npm run test:rl` (parsing, privacy of the stored row, pipeline, limits; add `live` for one real read) · `npm run test:riot` · `node scripts/rl-fidelity.mjs` (live, 50 real public replays) · local Postgres: `supabase/tests/local/run-dashboard.sh` (70 checks for the two new migrations plus the existing ones) · browser: `scripts/consent-test.mjs`, `scripts/signed-in-test.mjs`, `scripts/account-test.mjs`, `scripts/pilot-pages-test.mjs` · `npm run seo:audit`.
 
+## Staging dry run
+`node scripts/staging-dry-run.mjs` builds one SQL script from the repo files: begin, both pilot migrations, both database check files, then an unconditional error and rollback. It cannot commit. Proven on a throwaway local database (74 checks pass, nothing left behind). Run it on victress-staging only, then read-only queries confirm staging is unchanged.
+
 ## Not verified yet
 A real signed request from Discord; the migrations on staging (including a rolled back run there); a real Ballchasing read through the deployed app (the library path was verified live); the Vercel variable name for the Ballchasing token; the Riot key (unrelated to Rocket League).
