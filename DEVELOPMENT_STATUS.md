@@ -5,6 +5,9 @@ Updated 2026-11-10. Authoritative references: `CLAUDE.md`, `docs/strategy/victre
 ## Current milestone and task
 Milestone 1, Foundation. Current: remove manual competitive entry (done, in PR below). Next: age gate, then Terms and Privacy acceptance with version and date.
 
+## Discord bot (Victress Scrim Intelligence)
+Branch `claude/discord-bot-phase1`, not merged, not deployed. Phase 1 only: HTTP interactions endpoint (`/api/discord/interactions`), signature verification, `/help` and `/privacy`, command registration script, tests (`npm run test:discord`). Nothing is stored; no database change. Account linking, scrim commands and the Rocket League pipeline are not built. Setup steps: `docs/discord-bot.md`.
+
 ## Completed
 - Partnerships marketing page: PR #43 (page only, "Coming Soon" buttons, no mailto). Merged. Production https://victressesports.com/partnerships verified 2026-11-10: 200, new page, 6 disabled Coming Soon buttons in the served HTML, 0 mailto, 0 "Email us". PR #42 stays unmerged.
 - Self-reported stats and leaderboards retired earlier (2026-11-07).
