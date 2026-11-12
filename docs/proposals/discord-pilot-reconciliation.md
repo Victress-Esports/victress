@@ -6,17 +6,8 @@
 - **Rocket League first submission method: Ballchasing replay links**, submitted in Victress or in Discord. Victress reads the replay through the Ballchasing API. **Victress's own Ballchasing upload quota is not a dependency** for any player submission. Direct replay file upload stays the longer term goal; the parser (39 of 50 matched) needs more validation first.
 - **Account linking:** one Discord account per Victress account and one Victress account per Discord account. A player sees their own linked game identity privately. Players without a team can use individual scrim features. Team specific information needs live team membership and permission. **Linking never grants data sharing permission.**
 
-## 2. What is actually applied (read only check)
-| | Production (`Victress`) | Staging (`victress-staging`) |
-|---|---|---|
-| Core, M3 teams, SEO, search visibility, privacy expand | yes | yes |
-| `privacy_contract`, `revoke_rls_auto_enable`, `longer_invite_codes`, `waitlist_service_role_grants` | yes | **no** |
-| `dashboard_foundation_with_allowlist`, `scrim_matches`, `invite_info_*` | yes | **no** |
-| `game_api_imports` (#35) | no | yes |
-| `partner_account`, `partner_exclusivity`, `partner_admin` (#41/#42) | no | **yes** (the #42 description says exclusivity was not applied; it is) |
-| `age_gate_legal_acceptance` (#47), `waitlist_service_role_delete` (#50) | no | yes |
-| `player_billing`, `funnel_events` | no | no |
-Consequences: (a) `DEVELOPMENT_STATUS.md` says "No migrations run" on production; production in fact has 14. (b) Staging is **not** a faithful copy of production: it lacks 7 migrations production has, and has 7 production lacks, so staging results for new work depend on those gaps. (c) Both projects record versions as timestamps from when they were applied, not as the repo filenames, so renaming a not yet applied repo file never breaks either database.
+## 2. What is actually applied (read only check, corrected)
+Production has 14 migrations recorded (through `invite_info_revoke_public`) and none from #35, #41/#42, #47, #50. Staging's **schema** has the effects of the privacy contract, dashboard foundation, scrim matches, longer invite codes and the RLS revoke, but its **history table** does not record them; only three small grant/revoke migrations (`000600`, `000610`, `000620`) are truly missing. The full migration by migration plan, with evidence and the destructive operation inventory, is in [staging-reconciliation-plan.md](staging-reconciliation-plan.md). `DEVELOPMENT_STATUS.md` previously said "No migrations run"; production has 14.
 
 ## 3. Migration number collisions in the repo
 The repo runner and the Supabase CLI order files by name, so two files with one version collide.
@@ -57,9 +48,9 @@ Verified today with the existing Ballchasing token: the replay detail endpoint r
 Use what exists: `SCRIM_UPLOADS_ENABLED` and the `design_partner_allowlist` (already on production). Pilot players are added to the allowlist; nobody else sees the page. Billing stays off. No pilot data is collected until consent (#47) and deletion (#50) are live and approved for production, per the project rules.
 
 ## 7. Needed from the founder
-1. OK to renumber #42's three files (section 3), and to close #41 in favor of #42.
+1. ~~Renumber #42's files and close #41~~ Done 2026-11-12 after verifying #42 contains all of #41 (`ae825a0`; #41 closed).
 2. The merge order in section 4, each production migration approved separately.
-3. Bring staging in line with production's 7 missing migrations before testing new work there (non production, but it is shared state).
+3. Approve the staging steps in [staging-reconciliation-plan.md](staging-reconciliation-plan.md) (three grants and revokes, then a history repair). No destructive operation is involved.
 4. Visibility rule (section 5.3) and the on screen provenance label (5.6).
 5. OK for a player to store a Rocket League platform id (privacy text change).
 6. Pilot roster and which Discord server is the private test server.
