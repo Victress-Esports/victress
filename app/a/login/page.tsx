@@ -4,6 +4,7 @@ import { privateMetadata } from "@/lib/seo";
 import { redirect } from "next/navigation";
 import { Logo } from "@/components/brand/Logo";
 import { LoginForm } from "@/components/app/LoginForm";
+import { cleanReferral } from "@/lib/events";
 import { copy } from "@/content/copy";
 import { safeNext } from "@/lib/auth";
 import { checkHandle } from "@/lib/handles";
@@ -15,7 +16,7 @@ export const metadata: Metadata = privateMetadata(seo.app.login.title, seo.app.l
 export default async function Login({
   searchParams,
 }: {
-  searchParams: Promise<{ claim?: string; next?: string; error?: string; deleted?: string }>;
+  searchParams: Promise<{ claim?: string; next?: string; error?: string; deleted?: string; ref?: string }>;
 }) {
   const sp = await searchParams;
   const next = safeNext(sp.next, "");
@@ -49,7 +50,7 @@ export default async function Login({
           That link didn&apos;t work. Try again.
         </p>
       ) : null}
-      <LoginForm claim={claim} next={next} />
+      <LoginForm claim={claim} next={next} referral={cleanReferral(sp.ref) ?? ""} />
       <p className="text-xs text-mute">
         {copy.auth.ageNotice}{" "}
         <a href={marketingUrl("/terms")} className="font-semibold text-white underline underline-offset-2">

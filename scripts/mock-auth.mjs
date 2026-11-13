@@ -30,7 +30,7 @@ function seed(key) {
     public_fields: { display_name: false, avatar: false, bio: false, team: false, stats: false, rank_role: false },
     handle_changed_at: null, created_at: now(), updated_at: now(), ...extra,
   });
-  const T = { profiles: [], player_games: [], stat_entries: [], teams: [], team_members: [], tournament_entries: [], highlights: [], scrim_matches: [], scrim_uploads: [], profile_share_links: [], age_confirmations: [], legal_acceptances: [] };
+  const T = { profiles: [], player_games: [], stat_entries: [], teams: [], team_members: [], tournament_entries: [], highlights: [], scrim_matches: [], scrim_uploads: [], profile_share_links: [], age_confirmations: [], legal_acceptances: [], team_scrims: [], team_scrim_lines: [], team_stat_sharing: [] };
   const me = profile(p.n, key === "new" ? "p" + "0123456789ab" : `mock_${key}`);
   if (key === "new") Object.assign(me, { game: null, role: null, rank: null });
   T.profiles.push(me);
@@ -49,6 +49,16 @@ function seed(key) {
         { team_id: tid, profile_id: id(21), role: "member", joined_at: new Date(Date.now() - 3 * day).toISOString() },
         { team_id: tid, profile_id: id(22), role: "member", joined_at: new Date(Date.now() - 1 * day).toISOString() },
       );
+      // Team scrims (migration 20261113000100). Invented numbers. Mate one shares; the owner and mate two do not.
+      T.team_stat_sharing.push({ profile_id: id(21), team_id: tid, game: "ROCKET_LEAGUE", granted_at: now() });
+      const sc = (n, over) => ({ id: id(950 + n), team_id: tid, game: "ROCKET_LEAGUE", source: "api", source_detail: "ballchasing_replay", replay_id: `3b0a1e7c-0000-4000-8000-00000000000${n}`,
+        submitted_by: id(21), submitted_via: "discord", played_at: new Date(Date.now() - n * day).toISOString(), duration_seconds: 349, queue_kind: "custom", side: "blue",
+        result: "win", goals_for: 3, goals_against: 1, overtime: false, side_players: 3, opponent_label: "Northside",
+        team_totals: { score: 1200, goals: 3, assists: 2, saves: 4, shots: 9 }, opponent_totals: { score: 700, goals: 1, assists: 0, saves: 5, shots: 6 }, created_at: now(), ...over });
+      T.team_scrims.push(sc(1, {}), sc(2, { result: "loss", goals_for: 1, goals_against: 2, side: "orange", opponent_label: null, overtime: true, submitted_via: "web", submitted_by: uid, side_players: 2 }));
+      // Mate one shares a line in both scrims. Scrim 2 is a 2v2 where showing it would leave exactly one player hidden, so it must be withheld.
+      T.team_scrim_lines.push({ scrim_id: id(951), profile_id: id(21), stats: { score: 500, goals: 2, assists: 0, saves: 1, shots: 4 } },
+        { scrim_id: id(952), profile_id: id(21), stats: { score: 300, goals: 1, assists: 0, saves: 1, shots: 2 } });
     }
   }
   // Everyone except the new user has confirmed their age and accepted the current documents (the oldterms persona an older version).
@@ -104,6 +114,17 @@ const OWN_KEY = { scrim_matches: "profile_id", profiles: "id", player_games: "pr
 function visible(table, row, uid) {
   if (table === "teams") return state.tables.team_members.some((m) => m.team_id === row.id && m.profile_id === uid);
   if (table === "team_members") return state.tables.team_members.some((m) => m.team_id === row.team_id && m.profile_id === uid);
+  // Mirrors team_scrim_line_visible(): members only; own line always; a teammate's line only while they share, and not when exactly one player on the side would be left hidden.
+  if (table === "team_scrims") return state.tables.team_members.some((m) => m.team_id === row.team_id && m.profile_id === uid);
+  if (table === "team_stat_sharing") return row.profile_id === uid;
+  if (table === "team_scrim_lines") {
+    const s = state.tables.team_scrims.find((x) => x.id === row.scrim_id);
+    if (!s || !state.tables.team_members.some((m) => m.team_id === s.team_id && m.profile_id === uid)) return false;
+    if (row.profile_id === uid) return true;
+    const shares = (pid) => state.tables.team_members.some((m) => m.team_id === s.team_id && m.profile_id === pid) && state.tables.team_stat_sharing.some((t) => t.team_id === s.team_id && t.profile_id === pid);
+    const shared = state.tables.team_scrim_lines.filter((l) => l.scrim_id === s.id && shares(l.profile_id));
+    return shares(row.profile_id) && s.side_players - shared.length !== 1;
+  }
   return row[OWN_KEY[table]] === uid;
 }
 const PRIVATE_COLS = { profile_share_links: ["token_hash"] };
@@ -222,6 +243,15 @@ function rpc(res, name, args) {
       me.team_id = tid;
       return send(res, { status: "ok", team_id: tid });
     }
+    case "set_team_stat_sharing": {
+      const tid = T.team_members.find((m) => m.profile_id === uid)?.team_id;
+      if (!tid) return send(res, "no_team");
+      T.team_stat_sharing = T.team_stat_sharing.filter((t) => t.profile_id !== uid);
+      if (args.p_on) { T.team_stat_sharing.push({ profile_id: uid, team_id: tid, game: "ROCKET_LEAGUE", granted_at: now() }); return send(res, "on"); }
+      const mine = new Set(T.team_scrims.filter((x) => x.team_id === tid).map((x) => x.id));
+      T.team_scrim_lines = T.team_scrim_lines.filter((l) => !(l.profile_id === uid && mine.has(l.scrim_id)));
+      return send(res, "off");
+    }
     case "leave_team": {
       const mine = T.team_members.find((m) => m.profile_id === uid);
       if (!mine) return send(res, "not_in_team");
@@ -275,7 +305,7 @@ export function handleUserRequest(req, res, url, body, raw) {
   if (!user) return false;
   if (p.startsWith("/rest/v1/rpc/")) {
     const name = p.replace("/rest/v1/rpc/", "");
-    const known = ["handle_change_available_at", "team_invite_code", "team_roster", "claim_handle", "set_primary_game", "create_team", "upload_allowed", "leave_team"];
+    const known = ["handle_change_available_at", "team_invite_code", "team_roster", "claim_handle", "set_primary_game", "create_team", "upload_allowed", "leave_team", "set_team_stat_sharing"];
     if (!known.includes(name)) return false;
     return rpc(res, name, body ?? {}), true;
   }

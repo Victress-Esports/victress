@@ -2,6 +2,8 @@ import { after } from "next/server";
 import { ballchasingClient } from "@/lib/ballchasing";
 import { runReplayImport, sweepStaleJobs } from "@/lib/ballchasing/rl";
 import { summarizeRl } from "@/lib/ballchasing/summary";
+import { sharingMembers, teamScrimFromReplay } from "@/lib/ballchasing/team";
+import { recordEvent } from "@/lib/events";
 import { scrimUploadsEnabled } from "@/lib/dashboard";
 import { LEGAL_VERSIONS } from "@/content/legal-versions";
 import { DB_COMMANDS, runDeferred } from "@/lib/discord/commands-run";
@@ -79,7 +81,9 @@ export async function POST(req: Request) {
             sweepStale: (userId) => sweepStaleJobs(admin, userId),
             newCode: newLinkCode, hashCode: hashLinkCode, linkUrl,
             importReplay: async (userId, link, o) =>
-              bc ? runReplayImport({ admin, client: bc }, userId, link, o) : { ok: false, message: "Rocket League replay import is not configured on this server yet." },
+              bc
+                ? runReplayImport({ admin, client: bc, team: { build: teamScrimFromReplay, members: sharingMembers }, track: (u, n, p) => recordEvent(u, n, p, admin) }, userId, link, o)
+                : { ok: false, message: "Rocket League replay import is not configured on this server yet." },
             summarize: (rows, kind) => summarizeRl(rows as never, kind),
           });
         },

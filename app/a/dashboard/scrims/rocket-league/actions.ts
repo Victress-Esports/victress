@@ -6,7 +6,9 @@ import type { Result } from "@/app/a/dashboard/actions";
 import { requireUser } from "@/lib/auth";
 import { ballchasingClient } from "@/lib/ballchasing";
 import { IDENTITY_MESSAGES, parseIdentity, runReplayImport } from "@/lib/ballchasing/rl";
+import { sharingMembers, teamScrimFromReplay } from "@/lib/ballchasing/team";
 import { scrimUploadsEnabled } from "@/lib/dashboard";
+import { recordEvent } from "@/lib/events";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 const fail = (message = "Something went wrong. Try again."): Result => ({ ok: false, message });
@@ -43,12 +45,13 @@ export async function saveRlIdentityAction(input: z.input<typeof identitySchema>
   } else {
     const { error } = await admin.from("game_accounts").insert({ profile_id: g.user.id, game: "ROCKET_LEAGUE", provider: "rocket_league", platform: who.platform, external_id: who.id });
     if (error) return fail();
+    await recordEvent(g.user.id, "game_identity_linked", { source: "web", game: "ROCKET_LEAGUE" }, admin);
   }
   revalidatePath(PAGE);
   return { ok: true, message: "Saved. Victress will use this to find your own numbers in replays you submit. It is private and not verified." };
 }
 
-const submitSchema = z.object({ link: z.string().max(300), authorized: z.boolean(), consent: z.boolean() });
+const submitSchema = z.object({ link: z.string().max(300), authorized: z.boolean(), consent: z.boolean(), forTeam: z.boolean().optional(), opponent: z.string().max(80).optional() });
 
 /** Reads one Ballchasing replay link and saves the player's own numbers from it. Both confirmations are required. */
 export async function submitReplayAction(input: z.input<typeof submitSchema>): Promise<Result> {
@@ -59,8 +62,13 @@ export async function submitReplayAction(input: z.input<typeof submitSchema>): P
   const admin = supabaseAdmin();
   const client = ballchasingClient();
   if (!admin || !client) return fail("Rocket League replay import is not configured on this server yet.");
-  const r = await runReplayImport({ admin, client }, g.user.id, p.data.link, { authorized: p.data.authorized, consent: p.data.consent, via: "web" });
+  const r = await runReplayImport(
+    { admin, client, team: { build: teamScrimFromReplay, members: sharingMembers }, track: (u, n, pr) => recordEvent(u, n, pr, admin) },
+    g.user.id, p.data.link,
+    { authorized: p.data.authorized, consent: p.data.consent, via: "web", forTeam: p.data.forTeam === true, opponent: p.data.opponent },
+  );
   revalidatePath(PAGE);
+  if (r.team === "added") revalidatePath("/dashboard/team/scrims");
   return { ok: r.ok, message: r.message };
 }
 

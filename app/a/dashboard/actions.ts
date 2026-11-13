@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/auth";
 import { checkHandle } from "@/lib/handles";
 import { GAME_IDS, getGame } from "@/content/games";
 import { savePlayerGame } from "@/lib/player-games";
+import { recordEvent } from "@/lib/events";
 
 export type Result = { ok: boolean; message?: string };
 const fail = (message = "Something went wrong. Try again."): Result => ({ ok: false, message });
@@ -103,17 +104,19 @@ const TEAM_MESSAGES: Record<string, string> = {
 };
 
 export async function createTeamAction(name: string): Promise<Result> {
-  const { sb } = await requireUser();
+  const { sb, user } = await requireUser();
   const { data, error } = await sb.rpc("create_team", { p_name: String(name ?? "") });
   const status = (data as { status?: string } | null)?.status;
   if (error || !status) return fail();
-  return status === "ok" ? { ok: true } : fail(TEAM_MESSAGES[status]);
+  if (status === "ok") { await recordEvent(user.id, "team_created", { source: "web" }); return { ok: true }; }
+  return fail(TEAM_MESSAGES[status]);
 }
 
 export async function joinTeamAction(code: string): Promise<Result> {
-  const { sb } = await requireUser();
+  const { sb, user } = await requireUser();
   const { data, error } = await sb.rpc("join_team", { p_code: String(code ?? "") });
   if (error || !data) return fail();
+  if (data === "ok") await recordEvent(user.id, "team_joined", { source: "invite" });
   if (data === "ok" || data === "already_member") return { ok: true };
   return fail(data === "invalid" ? "That invite link isn't valid anymore." : TEAM_MESSAGES[data]);
 }

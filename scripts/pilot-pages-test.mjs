@@ -71,7 +71,7 @@ const CODE = "a".repeat(43);
   check(/Nothing submitted yet/.test(t) && /Submit a replay to see your numbers here/.test(t), "empty states are plain");
   check(/not a judgment of how good you are|not a judgment/.test(t), "the page frames the numbers as context, not a verdict");
   check(await s.page.getByRole("button", { name: /Delete all my Rocket League data/ }).count() === 1, "deleting all Rocket League data is one click away");
-  await s.page.fill("#id", "https://ballchasing.com/player/steam/76561198000000001");
+  await s.page.fill("#link", "https://ballchasing.com/player/steam/76561198000000001"); // the player link has its own field (#id is the manual fallback)
   check((await s.page.locator("select#platform").count()) === 1, "the identity form offers the five platforms");
   // the link page with a code that does not exist
   await s.page.goto(`http://app.localhost:${ON}/dashboard/link/discord/${CODE}`);

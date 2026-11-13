@@ -19,7 +19,7 @@ export type Services = {
   linkUrl: (appUrl: string, code: string) => string;
   /** Closes submissions that were abandoned (their function was stopped) so they never show as processing forever. */
   sweepStale: (userId: string) => Promise<void>;
-  importReplay: (userId: string, link: string, o: { authorized: boolean; consent: boolean; via: "discord" }) => Promise<{ ok: boolean; message: string }>;
+  importReplay: (userId: string, link: string, o: { authorized: boolean; consent: boolean; via: "discord"; forTeam?: boolean; opponent?: string }) => Promise<{ ok: boolean; message: string }>;
   summarize: (rows: unknown[], kind: string) => null | {
     games: number; wins: number; losses: number; winRate: number | null; smallSample: boolean;
     perGame: { score: number; goals: number; assists: number; saves: number; shots: number; demosInflicted: number; demosTaken: number };
@@ -136,8 +136,12 @@ async function submit(discordId: string, opts: Map<string, unknown>, s: Services
   const authorized = opts.get("authorized") === true;
   const consent = opts.get("consent") === true;
   if (!authorized || !consent) return reply("Nothing was submitted. Set both confirmations to True: that you are allowed to submit this replay, and that you agree to Victress reading it from Ballchasing and saving your own numbers.");
-  const r = await s.importReplay(pid, linkText, { authorized, consent, via: "discord" });
-  return reply(r.ok ? `${r.message}\nSee \`/scrim stats\`, or open ${s.appUrl.replace(/\/+$/, "")}/dashboard/scrims/rocket-league` : r.message);
+  const forTeam = opts.get("team") === true;
+  const opponent = typeof opts.get("opponent") === "string" ? (opts.get("opponent") as string) : undefined;
+  const r = await s.importReplay(pid, linkText, { authorized, consent, via: "discord", forTeam, opponent });
+  const app = s.appUrl.replace(/\/+$/, "");
+  const where = forTeam ? `${app}/dashboard/team/scrims` : `${app}/dashboard/scrims/rocket-league`;
+  return reply(r.ok ? `${r.message}\nSee \`/scrim stats\`, or open ${where}` : r.message);
 }
 
 async function status(discordId: string, s: Services) {

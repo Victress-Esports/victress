@@ -55,7 +55,7 @@ export function RlIdentityForm({ saved }: { saved: { platform: string; id: strin
   );
 }
 
-export function RlSubmitForm() {
+export function RlSubmitForm({ teamName = null }: { teamName?: string | null }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState("");
@@ -69,7 +69,10 @@ export function RlSubmitForm() {
         const f = new FormData(form);
         setMsg("Reading the replay.");
         start(async () => {
-          const r = await submitReplayAction({ link: String(f.get("link") ?? ""), authorized: f.get("authorized") === "on", consent: f.get("consent") === "on" });
+          const r = await submitReplayAction({
+            link: String(f.get("link") ?? ""), authorized: f.get("authorized") === "on", consent: f.get("consent") === "on",
+            forTeam: f.get("forTeam") === "on", opponent: String(f.get("opponent") ?? ""),
+          });
           setOk(r.ok); setMsg(r.message ?? ""); if (r.ok) { form.reset(); router.refresh(); }
         });
       }}
@@ -85,6 +88,17 @@ export function RlSubmitForm() {
         <input type="checkbox" name="consent" required className="mt-1 h-5 w-5" />
         <span>I agree that Victress reads this replay from Ballchasing and saves my own numbers from it, privately to my account. Other players in the replay are not named or identified.</span>
       </label>
+      {teamName ? (
+        <fieldset className="flex flex-col gap-3 rounded-xl border border-line px-4 py-3">
+          <label className="flex items-start gap-3 text-sm text-mute">
+            <input type="checkbox" name="forTeam" className="mt-1 h-5 w-5" />
+            <span>Also add this scrim to {teamName}&apos;s scrims. Your roster sees the date, side, result, score and side totals. Individual numbers appear only for teammates who chose to share theirs. Opponents are shown as totals only.</span>
+          </label>
+          <Field id="opponent" label="Opponent (optional)" hint="A label only your team sees, such as a club name. Leave out real player names.">
+            <input id="opponent" name="opponent" maxLength={40} autoComplete="off" className={inputClass} />
+          </Field>
+        </fieldset>
+      ) : null}
       <div><Button type="submit" disabled={pending}>{pending ? "Reading" : "Submit replay"}</Button></div>
       <FormMessage message={msg} ok={ok} />
     </form>

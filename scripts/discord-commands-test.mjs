@@ -3,6 +3,7 @@
 import { runDeferred, DB_COMMANDS } from "../lib/discord/commands-run.ts";
 import { newLinkCode, hashLinkCode, isLinkCode, linkUrl } from "../lib/discord/link.ts";
 import { summarizeRl } from "../lib/ballchasing/summary.ts";
+import { COMMANDS } from "../lib/discord/commands.ts";
 
 let failed = 0;
 const check = (ok, name) => { console.log(`${ok ? "PASS" : "FAIL"} ${name}`); if (!ok) failed++; };
@@ -192,6 +193,19 @@ r = await runDeferred(cmd("profile", A), svc({ from: () => { throw new Error("db
 check(/Something went wrong/.test(r.content) && !/db down/.test(r.content), "an internal error gives a plain message and leaks nothing");
 r = await runDeferred({ type: 2, data: { name: "profile" } }, svc(db()));
 check(/could not tell which Discord account/.test(r.content), "a request with no identifiable user is refused");
+// team option: off unless chosen; label passed through; replies stay ephemeral and never ping
+{
+  const d = db(); d.t.discord_links.push({ discord_user_id: A, profile_id: PA, linked_at: "x" }); const before = imports.length;
+  let t = await runDeferred(cmd("scrim", A, sub("submit", [["link", REPLAY], ["authorized", true], ["consent", true]])), svc(d));
+  check(imports.length === before + 1 && imports.at(-1).o.forTeam === false, "without the team option, the submission is private only (forTeam false)");
+  t = await runDeferred(cmd("scrim", A, sub("submit", [["link", REPLAY], ["authorized", true], ["consent", true], ["team", true], ["opponent", "Rival"]])), svc(d));
+  check(imports.at(-1).o.forTeam === true && imports.at(-1).o.opponent === "Rival", "team True and an opponent label are passed to the import");
+  check(/dashboard\/team\/scrims/.test(t.content), "the team reply points to the Team scrims page");
+  check(t.flags === 64 && Array.isArray(t.allowed_mentions?.parse) && t.allowed_mentions.parse.length === 0, "the team reply is ephemeral and cannot ping anyone");
+}
+const submitDef = COMMANDS.find((c) => c.name === "scrim").options.find((o) => o.name === "submit").options;
+check(submitDef.find((o) => o.name === "team")?.required === false && submitDef.find((o) => o.name === "opponent")?.max_length === 40, "/scrim submit has an optional team choice and an optional 40 character opponent label");
+
 r = await runDeferred(cmd("profile", "not-a-snowflake"), svc(db()));
 check(/could not tell which Discord account/.test(r.content), "a malformed Discord user id is refused");
 

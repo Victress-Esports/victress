@@ -1,12 +1,16 @@
 # Development status
 
-Updated 2026-11-10. Authoritative references: `CLAUDE.md`, `docs/strategy/victress-business-purpose.md`, the living roadmap artifact, `docs/status.md` (feature table).
+Updated 2026-11-13. Authoritative references: `CLAUDE.md`, `docs/strategy/victress-business-purpose.md`, the living roadmap artifact, `docs/status.md` (feature table).
 
 ## Current milestone and task
 Milestone 1, Foundation. Age gate and Terms/Privacy acceptance are built and tested (consent PR open, not merged). Next: account deletion and data export, then consent before game account linking.
 
 ## Discord bot and Rocket League pilot
 Working branch `claude/rl-pilot`. Not merged, not deployed, no migration applied anywhere (staging or production). Built and tested locally: Rocket League replay link import, account linking, `/scrim` commands, migrations `20261112000100` and `20261112000200`, Privacy text. **Fixes after the 2026-11-13 readiness audit:** platform handling is extensible (psynet and any platform Ballchasing reports; no Steam default or dependency; exact matching, nothing guessed); onboarding leads with the Ballchasing player link and explains unmatched replays; clearer replay messages (private, group or player link, unfinished); Discord replies are acknowledged at once with a 40 second deadline inside a 60 second function limit (no paid plan) and abandoned submissions are closed after 3 minutes; the descriptive `VICTRESS_SCRIM_DISCORD_*` variable names are preferred (generic names still work; the bot token is local only); the League of Legends experience is hidden unless `LOL_IMPORT_ENABLED=true`; the database test runner now fails if a test file crashes. Not claimed: live, production validated, or validated against the game. Runbook `docs/rocket-league-pilot.md`; player guide `docs/rocket-league-pilot-guide.md`; data model `docs/rocket-league-data-model.md`. Prerequisites still open: PRs #53, #47, #50, #35 and the external setup listed in the pilot docs.
+
+## Team scrims and product events (2026-11-13)
+Branch `claude/eager-carson-2b79tb` = `claude/rl-pilot` + this work. Not merged, not deployed, **no migration applied anywhere**. Built: Team scrims page (`/dashboard/team/scrims`), opt in "share my numbers with my team", the team choice on web and `/scrim submit team:True opponent:…`, opponent side stored as totals only, first party `public.events` (eight events, source, referral, game). Migration `20261113000100`. Design, permission rules and the staging checklist: `docs/rocket-league-team-scrims.md`. Tests (local): SQL 331 PASS 0 FAIL; staging dry run 111 PASS, nothing committed; team pipeline 27; team page 20 at 390px; Discord, RL, pilot pages 30, signed in 55, account, consent 25, age 9; typecheck, lint, build, SEO 1653/0. Fixed a stale selector in `pilot-pages-test.mjs` left by the previous commit. The "Permission and transparency" section of `claude/rl-mvp-weekend.md` was not available; implemented from the four rules in the request.
+Needs approval: staging and production migrations; scheduling the 12 month events purge; Privacy Policy text (team sharing, product events) and version; Vercel Analytics in `app/layout.tsx` (an outside analytics service, not disclosed); the free text opponent label; Preview access for Discord; re-registering commands.
 
 ## Completed and merged (2026-11-10)
 - PR #43 Partnerships page (first version). Superseded by:

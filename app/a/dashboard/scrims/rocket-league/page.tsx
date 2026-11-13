@@ -30,11 +30,13 @@ export default async function RocketLeaguePage({ searchParams }: { searchParams:
   const wanted = (await searchParams).kind;
   const kind = KINDS.some(([k]) => k === wanted) ? (wanted as string) : "all";
 
-  const [{ data: acct }, { data: jobs }, { data: rows }] = await Promise.all([
+  const [{ data: acct }, { data: jobs }, { data: rows }, { data: membership }] = await Promise.all([
     sb.from("game_accounts").select("platform, external_id, last_imported_at").eq("profile_id", user.id).eq("game", "ROCKET_LEAGUE").maybeSingle(),
     sb.from("import_jobs").select("id, status, error_message, external_ref, submitted_via, created_at").eq("profile_id", user.id).eq("game", "ROCKET_LEAGUE").order("created_at", { ascending: false }).limit(8),
     sb.from("game_matches").select("id, queue_kind, queue_label, played_at, duration_seconds, result, me, objectives, participants").eq("profile_id", user.id).eq("game", "ROCKET_LEAGUE").order("played_at", { ascending: false }).limit(60),
+    sb.from("team_members").select("team_id, teams(name)").eq("profile_id", user.id).maybeSingle(),
   ]);
+  const teamName = (membership as { teams?: { name?: string } | null } | null)?.teams?.name ?? null;
   const all = (rows ?? []) as unknown as MatchRow[];
   const shown = all.filter((r) => kind === "all" || r.queue_kind === kind);
   const s = summarizeRl(all, kind);
@@ -59,7 +61,7 @@ export default async function RocketLeaguePage({ searchParams }: { searchParams:
         ) : !acct ? (
           <p className="rounded-xl border border-line bg-surface-2 px-4 py-3 text-sm text-mute">Save your Rocket League ID above first.</p>
         ) : (
-          <RlSubmitForm />
+          <RlSubmitForm teamName={teamName} />
         )}
         <details className="mt-4 rounded-xl border border-line px-4 py-3 text-sm text-mute">
           <summary className="cursor-pointer font-semibold text-white">If a replay is not accepted or not matched</summary>

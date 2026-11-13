@@ -198,9 +198,33 @@ export type Deps = {
   now?: () => Date;
   /** Overall time allowed for one submission. Defaults to DEFAULT_DEADLINE_MS. */
   deadlineMs?: number;
+  /** The team step (lib/ballchasing/team.ts), injected so this module keeps no imports. Needed only when a player adds a replay to their team. */
+  team?: {
+    build: (detail: unknown, submitter: { platform: string; id: string }, members: TeamMember[], base: { queue_kind: ReplayRow["queue_kind"]; played_at: string; duration_seconds: number }, opponentLabel?: unknown) => { ok: true; payload: unknown } | { ok: false; reason: string };
+    members: (admin: any, teamId: string) => Promise<TeamMember[]>;
+  };
+  /** First party product events (public.events). Never given replay numbers or ids. Failures are ignored. */
+  track?: (userId: string, name: "first_scrim_submitted" | "scrim_processing_completed", props: { source: "web" | "discord"; game: "ROCKET_LEAGUE" }) => Promise<unknown>;
 };
-export type ImportResult = { ok: boolean; message: string; code: string; jobId?: string; imported?: boolean };
-export type ImportOptions = { authorized: boolean; consent: boolean; via: "web" | "discord" };
+export type TeamMember = { profile_id: string; platform: string; id: string };
+/** What happened on the team side: added, already there, not on a roster, a 1v1 replay, or failed. Absent when not asked. */
+export type TeamOutcome = "added" | "already" | "no_team" | "solo_replay" | "failed";
+export type ImportResult = { ok: boolean; message: string; code: string; jobId?: string; imported?: boolean; team?: TeamOutcome };
+export type ImportOptions = {
+  authorized: boolean; consent: boolean; via: "web" | "discord";
+  /** The player chose to add this replay to their current team's scrims (off unless chosen). */
+  forTeam?: boolean;
+  /** Optional opponent label typed by the player. Never read from the replay. */
+  opponent?: string;
+};
+
+export const TEAM_MESSAGES: Record<TeamOutcome, string> = {
+  added: "Added to your team's scrims. Your teammates can see the result on the Team scrims page.",
+  already: "Your team already has this scrim, so nothing was added to it.",
+  no_team: "You are not on a team roster, so nothing was added to a team. Your own numbers are still saved privately.",
+  solo_replay: "This is a 1v1 replay, so it was not added to your team's scrims.",
+  failed: "Your own numbers were handled, but adding the replay to your team's scrims failed. Try submitting it again.",
+};
 
 const VISIBILITY_HELP = "On Ballchasing open the replay, choose Edit, set Visibility to Unlisted or Public, wait a minute, then submit it again.";
 const LINK_HELP = "Paste the link of one replay, like https://ballchasing.com/replay/… (the address of the replay page).";
@@ -306,18 +330,44 @@ async function importOnce(deps: Deps, userId: string, linkOrId: string, opts: Im
   if (jobError || !job) return fail(jobError?.code === "23505" ? "busy" : "unexpected");
   state.jobId = job.id;
   const ids: Ids = { jobId: job.id };
+  const track = (name: "first_scrim_submitted" | "scrim_processing_completed") =>
+    deps.track ? deps.track(userId, name, { source: opts.via, game: "ROCKET_LEAGUE" }).catch(() => undefined) : Promise.resolve();
+  await track("first_scrim_submitted"); // the database turns a second one into repeat_scrim_submitted
+
+  // Team side, only when the player chose it: the submitter's CURRENT team (one team per player). A player on no roster gets no team row.
+  let teamId: string | null = null;
+  let teamOutcome: TeamOutcome | undefined;
+  let teamHave = false;
+  if (opts.forTeam) {
+    const { data: tm } = await admin.from("team_members").select("team_id").eq("profile_id", userId).maybeSingle();
+    teamId = tm?.team_id ?? null;
+    if (!teamId) teamOutcome = "no_team";
+    else {
+      const { data: ts } = await admin.from("team_scrims").select("id").eq("team_id", teamId).eq("replay_id", ref.id).maybeSingle();
+      teamHave = !!ts;
+      if (teamHave) teamOutcome = "already";
+    }
+  }
+  const teamNote = () => (teamOutcome ? `\n${TEAM_MESSAGES[teamOutcome]}` : "");
+
   const finish = async (code: string, ok: boolean, extra: Record<string, unknown> = {}, info?: NormalizeInfo): Promise<ImportResult> => {
     if (state.timedOut) return { ok: false, code: "timeout", message: say("timeout"), jobId: job.id }; // the deadline already closed this job
     await admin.from("import_jobs").update({
       status: ok ? "succeeded" : "failed", error_code: ok ? null : code, error_message: ok ? null : say(code, info).slice(0, 200), finished_at: new Date().toISOString(), ...extra,
     }).eq("id", job.id);
-    return { ok, code, message: ok ? "Saved. Your numbers from this replay are on your Rocket League page." : say(code, info), jobId: job.id, imported: ok && !extra.skipped_existing };
+    const imported = ok && !extra.skipped_existing;
+    if (imported || teamOutcome === "added") await track("scrim_processing_completed");
+    const base = !ok ? say(code, info)
+      : !extra.skipped_existing ? "Saved. Your numbers from this replay are on your Rocket League page."
+      : teamOutcome === "added" ? "Your own numbers from this replay were already saved." : say("already");
+    return { ok, code, message: base + (ok ? teamNote() : ""), jobId: job.id, imported, team: teamOutcome };
   };
-  const already = async () => ({ ...(await finish("already", true, { skipped_existing: 1 })), message: say("already"), code: "already" });
+  const already = async () => ({ ...(await finish("already", true, { skipped_existing: 1 })), code: "already" });
 
   try {
     const { data: have } = await admin.from("game_matches").select("id").eq("profile_id", userId).eq("game", "ROCKET_LEAGUE").eq("external_id", ref.id).maybeSingle();
-    if (have) return await already();
+    const teamPending = !!(opts.forTeam && teamId && !teamHave);
+    if (have && !teamPending) return await already();
 
     let detail: Record<string, unknown>;
     try { detail = await client.details(ref.id); }
@@ -334,19 +384,45 @@ async function importOnce(deps: Deps, userId: string, linkOrId: string, opts: Im
     }
     if (state.timedOut) return fail("timeout", ids);
 
-    const n = normalizeReplay(detail, { platform: String(acct.platform), id: String(acct.external_id) });
+    const who = { platform: String(acct.platform), id: String(acct.external_id) };
+    const n = normalizeReplay(detail, who);
     if (!n.ok) return await finish(n.reason, false, { failed_matches: 1 }, n.info);
 
-    const { error } = await admin.from("game_matches").insert({
-      profile_id: userId, account_id: acct.id, game: "ROCKET_LEAGUE", source: "api", source_detail: "ballchasing_replay", ...n.row,
-    });
-    if (error) {
-      if (error.code === "23505") return await already();
-      return await finish("unexpected", false, { failed_matches: 1 });
+    let personalNew = false;
+    if (!have) {
+      const { error } = await admin.from("game_matches").insert({
+        profile_id: userId, account_id: acct.id, game: "ROCKET_LEAGUE", source: "api", source_detail: "ballchasing_replay", ...n.row,
+      });
+      if (error && error.code !== "23505") return await finish("unexpected", false, { failed_matches: 1 });
+      personalNew = !error;
+      if (personalNew) await admin.from("game_accounts").update({ last_imported_at: new Date().toISOString() }).eq("id", acct.id);
     }
-    await admin.from("game_accounts").update({ last_imported_at: new Date().toISOString() }).eq("id", acct.id);
-    return await finish("ok", true, { imported: 1 });
+
+    if (teamPending && teamId) {
+      if (state.timedOut) return fail("timeout", ids);
+      teamOutcome = await addToTeam(deps, userId, teamId, detail, who, n.row, opts);
+    }
+    return personalNew ? await finish("ok", true, { imported: 1 }) : await already();
   } catch {
     return await finish("unexpected", false, { failed_matches: 1 }).catch(() => fail("unexpected", ids));
+  }
+}
+
+/**
+ * Adds the replay to the submitter's current team. The opponent side becomes totals only; individual lines are built only for roster
+ * members who opted in, and the database (record_team_scrim) checks membership and the opt in again before storing anything.
+ */
+async function addToTeam(deps: Deps, userId: string, teamId: string, detail: unknown, who: { platform: string; id: string }, row: ReplayRow, opts: ImportOptions): Promise<TeamOutcome> {
+  if (!deps.team) return "failed";
+  try {
+    const members = await deps.team.members(deps.admin, teamId);
+    const built = deps.team.build(detail, who, members, { queue_kind: row.queue_kind, played_at: row.played_at, duration_seconds: row.duration_seconds }, opts.opponent);
+    if (!built.ok) return built.reason === "solo_replay" ? "solo_replay" : "failed";
+    const { data, error } = await deps.admin.rpc("record_team_scrim", { p_submitter: userId, p: { ...(built.payload as object), via: opts.via } });
+    if (error) return "failed";
+    const status = (data as { status?: string } | null)?.status;
+    return status === "ok" ? "added" : status === "already" ? "already" : status === "no_team" ? "no_team" : status === "solo_replay" ? "solo_replay" : "failed";
+  } catch {
+    return "failed";
   }
 }

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import type { Result } from "@/app/a/dashboard/actions";
 import { requireUser } from "@/lib/auth";
 import { DISCORD_LINK_CONSENT_VERSION, hashLinkCode, isLinkCode } from "@/lib/discord/link";
+import { recordEvent } from "@/lib/events";
 
 const MESSAGES: Record<string, string> = {
   invalid: "This link is not valid any more. Run /link in Discord again to get a new one.",
@@ -16,11 +17,12 @@ const MESSAGES: Record<string, string> = {
 
 /** Completes a link as the signed in player. The database checks the code, the expiry, the consent records and the one to one rules. */
 export async function confirmDiscordLinkAction(code: string): Promise<Result> {
-  const { sb } = await requireUser();
+  const { sb, user } = await requireUser();
   if (!isLinkCode(code)) return { ok: false, message: MESSAGES.invalid };
   const { data, error } = await sb.rpc("discord_complete_link", { p_code_hash: hashLinkCode(code), p_consent_version: DISCORD_LINK_CONSENT_VERSION });
   if (error) return { ok: false, message: "Something went wrong. Try again." };
   revalidatePath("/dashboard/account");
+  if (data === "ok") await recordEvent(user.id, "discord_linked", { source: "discord" });
   if (data === "ok") return { ok: true, message: "Your Discord account is linked. Go back to Discord and run /profile." };
   return { ok: false, message: MESSAGES[String(data)] ?? "Something went wrong. Try again." };
 }

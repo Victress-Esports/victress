@@ -8,13 +8,14 @@ type Status = "idle" | "sending" | "sent" | "error";
 
 // The claimed handle and destination travel in short-lived cookies (not the redirect URL), so the
 // Supabase redirect allow-list only needs the plain /auth/callback URL.
-function remember(claim: string, next: string) {
+function remember(claim: string, next: string, ref = "") {
   const attrs = "; path=/; max-age=1800; SameSite=Lax" + (location.protocol === "https:" ? "; Secure" : "");
   if (claim) document.cookie = `v_claim=${encodeURIComponent(claim)}${attrs}`;
   if (next) document.cookie = `v_next=${encodeURIComponent(next)}${attrs}`;
+  if (ref) document.cookie = `v_ref=${encodeURIComponent(ref)}${attrs}`; // optional referral code, read once at sign in and deleted
 }
 
-export function LoginForm({ claim, next }: { claim: string; next: string }) {
+export function LoginForm({ claim, next, referral = "" }: { claim: string; next: string; referral?: string }) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [oauthError, setOauthError] = useState(false);
@@ -23,7 +24,7 @@ export function LoginForm({ claim, next }: { claim: string; next: string }) {
 
   async function oauth(provider: "discord" | "google") {
     setOauthError(false);
-    remember(claim, next);
+    remember(claim, next, referral);
     const { error } = await supabaseBrowser().auth.signInWithOAuth({
       provider,
       options: { redirectTo: redirectTo() },
@@ -34,7 +35,7 @@ export function LoginForm({ claim, next }: { claim: string; next: string }) {
   async function magic(e: FormEvent) {
     e.preventDefault();
     setStatus("sending");
-    remember(claim, next);
+    remember(claim, next, referral);
     const { error } = await supabaseBrowser().auth.signInWithOtp({
       email,
       options: { emailRedirectTo: redirectTo(), data: claim ? { claim } : undefined },

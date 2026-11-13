@@ -9,7 +9,8 @@ import type { Database } from "@/types/database";
  * roster. Share link tokens are not included (only a hash is stored and even the owner cannot read it). Tables that do not
  * exist in this database yet are skipped, never faked.
  */
-export async function buildAccountExport(sb: SupabaseClient<Database>, user: User) {
+/** `events` reads this account's product events (server only table); pass null when the server cannot read them. */
+export async function buildAccountExport(sb: SupabaseClient<Database>, user: User, events: (() => Promise<unknown[] | null>) | null = null) {
   const own = async (table: string, columns: string, key = "profile_id") => {
     // The table names are fixed below; the client is untyped here on purpose so one helper can read them all.
     const { data, error } = await (sb as unknown as SupabaseClient).from(table).select(columns).eq(key, user.id);
@@ -43,6 +44,11 @@ export async function buildAccountExport(sb: SupabaseClient<Database>, user: Use
       matches: await own("game_matches", "game, source, source_detail, external_id, queue_kind, queue_label, played_at, duration_seconds, result, me, participants, objectives, imported_at"),
       submissions: await own("import_jobs", "game, provider, status, external_ref, submitted_via, consent_at, imported, skipped_existing, failed_matches, error_message, created_at, finished_at"),
     },
+    team_scrims: {
+      sharing: await own("team_stat_sharing", "team_id, game, granted_at"),
+      your_lines: await own("team_scrim_lines", "scrim_id, stats"),
+    },
+    product_events: events ? await events() : null,
     consents: {
       age_confirmation: await own("age_confirmations", "birth_date, confirmed_at"),
       legal_acceptances: await own("legal_acceptances", "document, version, accepted_at"),

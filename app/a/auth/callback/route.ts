@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { PLACEHOLDER_HANDLE, safeNext } from "@/lib/auth";
 import { consentStatus, needsConsent } from "@/lib/consent";
 import { sendWelcome } from "@/lib/email";
+import { recordEvent } from "@/lib/events";
 import { checkHandle } from "@/lib/handles";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -26,6 +27,14 @@ export async function GET(req: Request) {
   const cookieClaim = store.get("v_claim")?.value;
   const next = safeNext(decodeURIComponent(store.get("v_next")?.value ?? ""), "");
   store.delete("v_claim");
+  const referral = decodeURIComponent(store.get("v_ref")?.value ?? "");
+  store.delete("v_ref");
+
+  // Product event: a brand new account (created in the last 10 minutes) finished signing in. Once per account (the database ignores repeats).
+  if (Date.now() - new Date(user.created_at).getTime() < 10 * 60_000) {
+    const p = String(user.app_metadata?.provider ?? "");
+    await recordEvent(user.id, "registration_completed", { source: p === "discord" || p === "google" || p === "email" ? p : undefined, referral: referral || undefined });
+  }
 
   // Apply the handle claimed on the marketing site (cookie, or user metadata for magic links opened elsewhere).
   const wanted = decodeURIComponent(cookieClaim ?? "") || String(user.user_metadata?.claim ?? "");

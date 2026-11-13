@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { seo } from "@/content/seo";
 import { privateMetadata } from "@/lib/seo";
 import { CreateTeamForm, InviteBox, LeaveTeamButton, RemoveMemberButton } from "@/components/app/TeamPanel";
 import { Section } from "@/components/ui/form";
 import { getGame } from "@/content/games";
+import { scrimUploadsEnabled } from "@/lib/dashboard";
 import { loadMe } from "@/lib/me";
 import { appUrl } from "@/lib/urls";
 
@@ -39,6 +41,13 @@ export default async function Team() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
       <h1 className="font-display text-4xl font-bold">{team.name}</h1>
+
+      {scrimUploadsEnabled() ? (
+        <Link href="/dashboard/team/scrims" className="flex min-h-12 items-center justify-between rounded-2xl border border-line bg-surface px-5 py-4 hover:border-white">
+          <span className="font-semibold">Team scrims</span>
+          <span className="text-sm text-mute">Rocket League results for the roster</span>
+        </Link>
+      ) : null}
 
       {inviteUrl ? (
         <Section title="Invite your roster">

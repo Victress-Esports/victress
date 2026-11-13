@@ -139,6 +139,25 @@ export type Database = {
         Update: { error_code?: string | null; error_message?: string | null; failed_matches?: number; finished_at?: string; imported?: number; skipped_custom?: number; skipped_existing?: number; status?: "queued" | "running" | "succeeded" | "failed" };
         Relationships: [];
       };
+      // Migration 20261113000100. Clients read (row level security) and delete; writes go through record_team_scrim / set_team_stat_sharing.
+      team_scrims: {
+        Row: { created_at: string; duration_seconds: number; game: "ROCKET_LEAGUE"; goals_against: number; goals_for: number; id: string; opponent_label: string | null; opponent_totals: Json; overtime: boolean; played_at: string; queue_kind: "ranked" | "normal" | "custom" | "other"; replay_id: string; result: "win" | "loss" | "no_result"; side: "blue" | "orange"; side_players: number; source: "api"; source_detail: "ballchasing_replay"; submitted_by: string | null; submitted_via: "web" | "discord"; team_id: string; team_totals: Json };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      team_scrim_lines: {
+        Row: { profile_id: string; scrim_id: string; stats: Json };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      team_stat_sharing: {
+        Row: { game: "ROCKET_LEAGUE"; granted_at: string; profile_id: string; team_id: string };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       player_games: {
         Row: { created_at: string; game: string; is_primary: boolean; profile_id: string; rank: string | null; role: string | null };
         Insert: { created_at?: string; game: string; is_primary?: boolean; profile_id: string; rank?: string | null; role?: string | null };
@@ -221,6 +240,7 @@ export type Database = {
         Returns: { profile_id: string; team_role: string; handle: string; display_name: string | null; avatar_url: string | null; game: string | null; rank: string | null; joined_at: string }[];
       };
       leave_team: { Args: Record<string, never>; Returns: string };
+      set_team_stat_sharing: { Args: { p_on: boolean }; Returns: string };
       metrics_are_valid: { Args: { m: Json }; Returns: boolean };
       regenerate_invite_code: { Args: Record<string, never>; Returns: string | null };
       remove_team_member: { Args: { p_profile: string }; Returns: string };

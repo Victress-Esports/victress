@@ -9,7 +9,10 @@
 ## Team context without exposing other players: supported for the submitter's own side
 Every other player is an anonymous slot (`team` colour and five numbers, no name, platform, id or avatar). From those slots the page and `/scrim stats` show **side totals** (goals and shots for and against, the player's share of their side's goals and shots). No teammate or opponent is shown one by one. Tests: `scripts/rl-link-test.mjs`, `scripts/discord-commands-test.mjs`; live check on 50 replays: `scripts/rl-fidelity.mjs`.
 
-## Team performance across teammates: not built (decision needed)
+## Team performance across teammates: built on branch `claude/eager-carson-2b79tb`, not applied (2026-11-13)
+Implemented as `team_scrims` (one row per team and replay, side totals and opponent totals only), `team_scrim_lines` (only for roster members who opted in) and `team_stat_sharing` (the per player opt in), migration `20261113000100`. Details, rules and the staging checklist: `docs/rocket-league-team-scrims.md`. The original analysis follows.
+
+### Original analysis (2026-11-12)
 A team's own longitudinal view across several players needs three things the pilot deliberately does not have:
 1. A team context on each row. Rows do not store a team, because rosters change; a team view would need `team_id` (and the player's role) captured at submission, or derived from membership at that date.
 2. Each teammate's opt in before their numbers are visible to the team (the approved default: stats about other players are not shown to anyone but the submitter). Without it, a team view is limited to the side totals above, per submitter.

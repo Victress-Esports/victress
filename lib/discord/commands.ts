@@ -53,6 +53,8 @@ export const COMMANDS = [
           { type: 3, name: "link", description: "The Ballchasing replay link. It must be unlisted or public.", required: true, max_length: 300 },
           { type: 5, name: "authorized", description: "I played in this replay or I am allowed to submit it.", required: true },
           { type: 5, name: "consent", description: "I agree Victress reads this replay and saves my own numbers, privately.", required: true },
+          { type: 5, name: "team", description: "Also add the result and side totals to my team's scrims. Off unless you choose True.", required: false },
+          { type: 3, name: "opponent", description: "Optional label for the opponent, seen only by your team. Leave out real player names.", required: false, max_length: 40 },
         ],
       },
       { type: 1, name: "status", description: "See what happened to your latest submissions." },
