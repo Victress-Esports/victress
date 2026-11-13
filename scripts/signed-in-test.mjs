@@ -187,7 +187,12 @@ const text = async (page) => (await page.locator("body").innerText()).replace(/\
 // --- new user: onboarding starts at the account type step
 {
   const { ctx, page } = await session("new", OFF);
-  check(/\/onboarding/.test(page.url()), "new user: sent to onboarding");
+  check(/\/consent/.test(page.url()), "new user: sent to the age and terms step first");
+  await page.fill("#consent-birth", "2000-01-01");
+  await page.check("#consent-accept");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.waitForURL(/\/onboarding/);
+  check(/\/onboarding/.test(page.url()), "new user: then sent to onboarding");
   check(/How will you use Victress\?/.test(await text(page)), "onboarding: starts with the account type step");
   await page.getByRole("button", { name: /Recruiter or scout/ }).click();
   check(/Pick your name/.test(await text(page)), "onboarding: account type leads to the name step");

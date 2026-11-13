@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { DashboardNav } from "@/components/app/DashboardNav";
 import { Logo } from "@/components/brand/Logo";
+import { RIOT_LEGAL_NOTICE } from "@/content/riot";
+import { lolImportEnabled } from "@/lib/dashboard";
 import { buttonClass } from "@/components/ui/Button";
 import { requireUser } from "@/lib/auth";
 import { marketingUrl } from "@/lib/urls";
@@ -30,6 +32,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <a href={marketingUrl("/privacy")} className="inline-flex min-h-11 items-center hover:text-white">Privacy</a>
         <a href={marketingUrl("/refunds")} className="inline-flex min-h-11 items-center hover:text-white">Cancellation and Refunds</a>
       </footer>
+      {lolImportEnabled() ? <p className="mt-4 text-xs text-mute">{RIOT_LEGAL_NOTICE}</p> : null}
     </div>
   );
 }

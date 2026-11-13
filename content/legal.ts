@@ -3,6 +3,7 @@
 // Facts below come from the code and schema: Supabase Auth, database and file storage; Vercel hosting; Resend email; Stripe for
 // paid plans; no advertising or third party tracking tags. Prices come from content/pricing.ts and are repeated on the refunds page.
 import { CONTACT_EMAIL } from "@/content/copy";
+import { LEGAL_VERSIONS, effectiveLabel } from "@/content/legal-versions";
 
 // Privacy and Terms requests go to a dedicated inbox. Billing and general contact keep CONTACT_EMAIL.
 const PRIVACY_EMAIL = "privacy@victressesports.com";
@@ -21,11 +22,11 @@ export interface LegalDoc {
   sections: LegalSection[];
 }
 
-const UPDATED = "Effective November 7, 2026";
+const UPDATED = "Effective November 7, 2026"; // refunds page: not a tracked acceptance
 
 export const privacyDoc: LegalDoc = {
   title: "Privacy",
-  updated: "Effective November 10, 2026",
+  updated: effectiveLabel(LEGAL_VERSIONS.privacy),
   intro:
     "This page explains what Victress collects, why, who sees it and how you control it. Victress is an esports player development and recruitment platform run by Victress LLC. We keep it plain and describe how information is handled across the Victress website, platform and integrations, including Victress Scrim Intelligence, the Discord application run by Victress LLC (called the Discord integration on this page).",
   sections: [
@@ -37,7 +38,12 @@ export const privacyDoc: LegalDoc = {
         "Your team: a team name and information about who is on the roster, if you start or join a team. Invite links are codes that let someone join your team.",
         "Discord integration: if you connect a Discord account or install or use a Victress Discord integration, we may process your Discord user ID, server (guild) ID, relevant account identifiers, and information needed to associate your Discord account with your Victress account or team. When you use bot commands or interactions, Discord provides information needed to respond, such as the command, the user who invoked it, and the server and channel where it was used.",
         "Discord server configuration: if a team administrator configures Victress in a Discord server, we may process the server and channel settings needed to provide the integration, such as the selected server and channels used for team or scrim workflows.",
+        "Discord link request: when you run the link command in Discord, Victress holds a short lived code tied to your Discord user ID, and the Discord name you use, for up to 10 minutes so you can confirm the link on Victress. The name is removed once the code is used or expires, and codes are deleted within a day. Linking saves only your Discord user ID with your Victress account.",
         "Scrim and match information: if you or an authorized team representative submits a scrim, replay, match reference or related information through Victress or its Discord integration, we may process the submission, match identifiers, participating teams and players, game information, replay files or links, and resulting performance data.",
+        "Game imports: if you are approved and connect a Riot ID, we store that Riot ID and the League of Legends matches we fetch for it from Riot's API (results, your numbers, and the other players in each match as anonymous entries with no names). They are private to you. You can delete a match or all of it at any time.",
+        "Rocket League ID: if you use Rocket League replay import, the platform and player ID you enter. It is used only to find your own numbers in a replay you submit. Only you can see it, and Victress does not verify that it belongs to you.",
+        "Rocket League replays you submit: when you submit a Ballchasing replay link, Victress reads that replay from Ballchasing and saves your own numbers from it, such as goals, assists, saves, boost, speed and positioning, along with the result and basic facts about the match. Other players in the replay are not named or identified, and their numbers are kept only as anonymous entries. The replay file itself stays at Ballchasing.",
+        "Your submissions: for each replay you submit, the replay link, the time, whether it came from the website or Discord, whether it worked, and that you confirmed you may submit it and agreed to this processing.",
         "Practice files: if you are approved as a design partner and upload a demo or replay file, it is stored privately with the file name and size.",
         "Game stats from earlier versions: earlier versions of Victress let players enter game stats. We still hold what was entered. We do not show it to anyone.",
         "Messages you send us: the contact and design partner forms send your details to our email inbox. They are not stored in the Victress database.",
@@ -57,6 +63,7 @@ export const privacyDoc: LegalDoc = {
         "To connect Discord accounts and teams when you choose to use those features.",
         "To respond to Discord commands and provide team, scrim and match workflows.",
         "To process submitted match information and generate performance insights.",
+        "To read the Rocket League replays you submit and show you your own numbers, privately.",
         "To send you emails you need, such as sign in links, a welcome message and a confirmation that we received a form.",
         "To keep Victress working, safe and fair, including handling reports of abuse.",
         "To process payments for paid plans, when you choose one.",
@@ -74,6 +81,7 @@ export const privacyDoc: LegalDoc = {
         "Stripe: payments for paid plans. Stripe handles your card details. We do not see or store your card number.",
         "Discord: if you choose Discord sign in or use a Victress Discord integration, information is exchanged with Discord to authenticate users, receive bot interactions and provide the integration. Discord processes information under its own terms and privacy policy.",
         "Google: only if you choose Google sign in.",
+        "Ballchasing: when you submit a replay link, Victress asks Ballchasing for that replay. The request carries the replay ID and Victress credentials, not your name or account. Ballchasing handles replays under its own terms.",
       ],
       after: [
         "Information may also be disclosed when required by law or when reasonably necessary to protect Victress, its users or others.",
@@ -105,6 +113,7 @@ export const privacyDoc: LegalDoc = {
       h: "Your choices and your data",
       p: [
         "You can change your profile, privacy choices and links in your dashboard at any time.",
+        "You can delete a saved Rocket League game, or all of your Rocket League data, from the Rocket League page in your dashboard at any time.",
         "You can disconnect an authorized Discord connection or stop using the Discord integration. A team administrator can remove the integration from their server. Disconnecting an integration does not necessarily delete information already stored in Victress.",
         `To see your data, correct it, or delete your account, use the account controls when available or email ${PRIVACY_EMAIL} from the address on your account. We delete your account, profile, team membership and uploaded files, subject to any limited retention required by law or reasonably necessary to prevent abuse. We confirm account deletion by email. We act on requests as quickly as we can and no later than 30 days.`,
         "If you ask us to delete Discord linked information, we will remove or disassociate the relevant information from your Victress account where applicable, subject to legitimate retention requirements. Information retained as part of a team's records or match history may need to be handled separately from your personal account and profile.",
@@ -116,9 +125,11 @@ export const privacyDoc: LegalDoc = {
       list: [
         "Account and profile information: until you delete your account.",
         "Discord account associations: until you disconnect the integration, delete your account, or the association is otherwise no longer needed, subject to limited security and legal records.",
+        "Discord link requests: up to 10 minutes while open, and deleted within a day.",
         "Discord server configuration: while the server integration is active and the configuration is needed to provide it. We may retain limited records for security, troubleshooting or legal reasons.",
         "Scrim and match information: for as long as it is needed to provide team and player features, maintain match history and performance records, or meet legal and security requirements. Deletion of a personal account does not necessarily mean that every team match record is deleted.",
         "Uploaded practice files: until you delete them or your account, subject to any applicable retention requirements.",
+        "Rocket League ID, saved games and submission history: until you delete a game, delete all of your Rocket League data from the Rocket League page in your dashboard, or delete your account. Deleting your Rocket League data also deletes the submission history and your saved ID.",
         "Waitlist emails: until you ask us to remove them or we have contacted you about the plan.",
         "Messages sent through our forms: in our email inbox for as long as we need them to reply and keep records.",
         "Technical logs: kept by our providers for a short time under their own settings.",
@@ -148,7 +159,7 @@ export const privacyDoc: LegalDoc = {
 
 export const termsDoc: LegalDoc = {
   title: "Terms",
-  updated: "Effective November 10, 2026",
+  updated: effectiveLabel(LEGAL_VERSIONS.terms),
   intro:
     "These terms are the rules for using Victress, an esports player development and recruitment platform run by Victress LLC. They apply to the Victress website, platform, services and integrations, including Victress Scrim Intelligence, the Discord application run by Victress LLC (called the Discord integration in these terms). By creating an account or using Victress, you agree to them.",
   sections: [

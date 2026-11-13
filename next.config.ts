@@ -48,6 +48,7 @@ const config: NextConfig = {
       "/api/waitlist",
       "/api/contact",
       "/api/handle-check",
+      "/api/discord/:path*",
       "/auth/:path*",
       "/dashboard/:path*",
       "/onboarding/:path*",
@@ -57,6 +58,11 @@ const config: NextConfig = {
       .map((source) => ({ source, headers: NOINDEX }))
       // Sharing links are private capabilities: never cached, never indexed, and they send no referrer.
       .concat([
+        {
+          // The link code is a one time secret in the URL: never cached, never sent on as a referrer.
+          source: "/dashboard/link/:path*",
+          headers: [...NOINDEX, { key: "Cache-Control", value: "no-store" }, { key: "Referrer-Policy", value: "no-referrer" }],
+        },
         {
           source: "/r/:path*",
           headers: [

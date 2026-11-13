@@ -96,10 +96,47 @@ export type Database = {
         Update: Record<string, never>;
         Relationships: [];
       };
+      age_confirmations: {
+        Row: { birth_date: string; confirmed_at: string; profile_id: string };
+        Insert: { birth_date: string; profile_id: string };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      legal_acceptances: {
+        Row: { accepted_at: string; document: "terms" | "privacy"; id: string; profile_id: string; version: string };
+        Insert: { document: "terms" | "privacy"; profile_id: string; version: string };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
       scrim_matches: {
         Row: { created_at: string; game: string; id: string; map: string | null; note: string | null; opponent: string | null; played_on: string; profile_id: string; result: "win" | "loss" | "draw"; score: string | null; source: string };
         Insert: { game: string; map?: string | null; note?: string | null; opponent?: string | null; played_on: string; profile_id: string; result: "win" | "loss" | "draw"; score?: string | null };
         Update: { game?: string; map?: string | null; note?: string | null; opponent?: string | null; played_on?: string; result?: "win" | "loss" | "draw"; score?: string | null };
+        Relationships: [];
+      };
+      // Migration 20261108000100. Clients can only read and delete; the server writes with the service role after calling the game API.
+      discord_links: {
+        Row: { consent_version: string; discord_user_id: string; linked_at: string; profile_id: string };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      game_accounts: {
+        Row: { created_at: string; display_name: string | null; external_id: string; game: string; id: string; last_imported_at: string | null; ownership_verified: boolean; platform: string | null; profile_id: string; provider: "riot" | "rocket_league"; region: "americas" | "europe" | "asia" | "sea" | null; tag: string | null };
+        Insert: { display_name?: string | null; external_id: string; game: string; platform?: string | null; profile_id: string; provider: "riot" | "rocket_league"; region?: "americas" | "europe" | "asia" | "sea" | null; tag?: string | null; last_imported_at?: string | null };
+        Update: { display_name?: string | null; external_id?: string; platform?: string | null; region?: "americas" | "europe" | "asia" | "sea" | null; tag?: string | null; last_imported_at?: string | null };
+        Relationships: [];
+      };
+      game_matches: {
+        Row: { account_id: string; duration_seconds: number; external_id: string; game: string; game_version: string | null; id: string; imported_at: string; me: Json; objectives: Json; participants: Json; played_at: string; profile_id: string; queue_id: number | null; queue_kind: "ranked" | "normal" | "custom" | "other"; queue_label: string | null; result: "win" | "loss" | "remake"; source: "api" | "demo_parsed"; source_detail: "riot_api" | "ballchasing_replay" | null; timeline: Json | null };
+        Insert: { account_id: string; duration_seconds: number; external_id: string; game: string; game_version?: string | null; me: Json; objectives?: Json; participants: Json; played_at: string; profile_id: string; queue_id?: number | null; queue_kind: "ranked" | "normal" | "custom" | "other"; queue_label?: string | null; result: "win" | "loss" | "remake"; source: "api" | "demo_parsed"; source_detail?: "riot_api" | "ballchasing_replay" | null; timeline?: Json | null };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      import_jobs: {
+        Row: { consent_at: string | null; created_at: string; error_code: string | null; error_message: string | null; external_ref: string | null; failed_matches: number; finished_at: string | null; game: string; id: string; imported: number; profile_id: string; provider: "riot" | "ballchasing"; requested: number; submitted_via: "web" | "discord"; skipped_custom: number; skipped_existing: number; started_at: string | null; status: "queued" | "running" | "succeeded" | "failed" };
+        Insert: { consent_at?: string | null; external_ref?: string | null; game: string; profile_id: string; provider: "riot" | "ballchasing"; requested: number; started_at?: string; submitted_via?: "web" | "discord"; status?: "queued" | "running" | "succeeded" | "failed" };
+        Update: { error_code?: string | null; error_message?: string | null; failed_matches?: number; finished_at?: string; imported?: number; skipped_custom?: number; skipped_existing?: number; status?: "queued" | "running" | "succeeded" | "failed" };
         Relationships: [];
       };
       player_games: {
@@ -190,6 +227,8 @@ export type Database = {
       set_primary_game: { Args: { p_game: string }; Returns: string };
       team_invite_code: { Args: Record<string, never>; Returns: string | null };
       team_invite_info: { Args: { p_code: string }; Returns: Json };
+      discord_link_preview: { Args: { p_code_hash: string }; Returns: Json };
+      discord_complete_link: { Args: { p_code_hash: string; p_consent_version: string }; Returns: string };
     };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };

@@ -6,6 +6,7 @@
 import { randomUUID } from "node:crypto";
 
 const day = 86400000;
+const CURRENT_VERSIONS = { terms: "2026-11-10", privacy: "2026-11-12" }; // content/legal-versions.ts
 const now = () => new Date().toISOString();
 const id = (n) => `00000000-0000-4000-9000-${String(n).padStart(12, "0")}`;
 export const PERSONAS = {
@@ -13,6 +14,8 @@ export const PERSONAS = {
   team: { n: 2, label: "Team member", note: "Rookie plan, on a roster of three, owns the team", account_type: "team", onboarded: true },
   scout: { n: 3, label: "Recruiter or scout", note: "Account type recruiter. Plan is still Rookie: Scout Desk stays locked", account_type: "recruiter", onboarded: true },
   partner: { n: 5, label: "Approved design partner", note: "On the upload allowlist (uploads still need the flag on)", account_type: "player", onboarded: true, allowlisted: true },
+  oldterms: { n: 6, label: "Terms changed", note: "Onboarded, accepted an older Terms and Privacy version: must accept again", account_type: "player", onboarded: true, oldTerms: true },
+  soloteam: { n: 7, label: "Solo team owner", note: "Owns a team with no other players", account_type: "team", onboarded: true },
   new: { n: 4, label: "New user", note: "Not onboarded yet: starts at the account type step", account_type: undefined, onboarded: false },
 };
 
@@ -27,7 +30,7 @@ function seed(key) {
     public_fields: { display_name: false, avatar: false, bio: false, team: false, stats: false, rank_role: false },
     handle_changed_at: null, created_at: now(), updated_at: now(), ...extra,
   });
-  const T = { profiles: [], player_games: [], stat_entries: [], teams: [], team_members: [], tournament_entries: [], highlights: [], scrim_matches: [], scrim_uploads: [], profile_share_links: [] };
+  const T = { profiles: [], player_games: [], stat_entries: [], teams: [], team_members: [], tournament_entries: [], highlights: [], scrim_matches: [], scrim_uploads: [], profile_share_links: [], age_confirmations: [], legal_acceptances: [] };
   const me = profile(p.n, key === "new" ? "p" + "0123456789ab" : `mock_${key}`);
   if (key === "new") Object.assign(me, { game: null, role: null, rank: null });
   T.profiles.push(me);
@@ -35,21 +38,31 @@ function seed(key) {
     T.player_games.push({ profile_id: uid, game: "VALORANT", role: "Duelist", rank: "Gold", is_primary: true, created_at: now() });
     T.stat_entries.push({ id: randomUUID(), profile_id: uid, game: "VALORANT", season: "Current", metrics: { acs: 241, kd: 1.18, matches: 52 }, source: "manual", created_at: now() });
   }
-  if (key === "team") {
-    const tid = id(900);
+  if (key === "team" || key === "soloteam") {
+    const tid = id(key === "team" ? 900 : 901);
     me.team_id = tid;
     T.teams.push({ id: tid, name: "Mock Squad", owner_id: uid, created_at: now() });
-    T.profiles.push(profile(21, "mock_mate_one", { team_id: tid }), profile(22, "mock_mate_two", { team_id: tid, role: "Controller", rank: "Silver" }));
-    T.team_members.push(
-      { team_id: tid, profile_id: uid, role: "owner", joined_at: new Date(Date.now() - 5 * day).toISOString() },
-      { team_id: tid, profile_id: id(21), role: "member", joined_at: new Date(Date.now() - 3 * day).toISOString() },
-      { team_id: tid, profile_id: id(22), role: "member", joined_at: new Date(Date.now() - 1 * day).toISOString() },
-    );
+    T.team_members.push({ team_id: tid, profile_id: uid, role: "owner", joined_at: new Date(Date.now() - 5 * day).toISOString() });
+    if (key === "team") {
+      T.profiles.push(profile(21, "mock_mate_one", { team_id: tid }), profile(22, "mock_mate_two", { team_id: tid, role: "Controller", rank: "Silver" }));
+      T.team_members.push(
+        { team_id: tid, profile_id: id(21), role: "member", joined_at: new Date(Date.now() - 3 * day).toISOString() },
+        { team_id: tid, profile_id: id(22), role: "member", joined_at: new Date(Date.now() - 1 * day).toISOString() },
+      );
+    }
+  }
+  // Everyone except the new user has confirmed their age and accepted the current documents (the oldterms persona an older version).
+  if (key !== "new") {
+    T.age_confirmations.push({ profile_id: uid, birth_date: "2000-01-01", confirmed_at: now() });
+    for (const document of ["terms", "privacy"]) T.legal_acceptances.push({ id: randomUUID(), profile_id: uid, document, version: p.oldTerms ? "2026-01-01" : CURRENT_VERSIONS[document], accepted_at: now() });
   }
   const meta = { ...(p.onboarded ? { onboarded: true } : {}), ...(p.account_type ? { account_type: p.account_type } : {}) };
   const user = { id: uid, aud: "authenticated", role: "authenticated", email: `${key}@example.invalid`, app_metadata: { provider: "email" }, user_metadata: meta, created_at: now() };
   state = { persona: key, user, tables: T, files: new Map(), allowlisted: !!p.allowlisted };
 }
+
+/** Test tooling only: what the mock holds right now (for assertions). */
+export const getState = () => ({ deletedUsers: state?.deletedUsers ?? [], waitlistDeletes: state?.waitlistDeletes ?? [], tables: state ? Object.fromEntries(Object.entries(state.tables).map(([k, v]) => [k, v.length])) : {}, acceptances: state?.tables.legal_acceptances ?? [], ages: (state?.tables.age_confirmations ?? []).length });
 
 const b64u = (o) => Buffer.from(typeof o === "string" ? o : JSON.stringify(o)).toString("base64url");
 export function sessionCookie(key, supaUrl) {
@@ -85,7 +98,7 @@ function parseFilter(v) {
   return (x) => (neg ? !test(x) : test(x));
 }
 
-const OWN_KEY = { scrim_matches: "profile_id", profiles: "id", player_games: "profile_id", stat_entries: "profile_id", tournament_entries: "profile_id", highlights: "profile_id", scrim_uploads: "profile_id", profile_share_links: "profile_id" };
+const OWN_KEY = { scrim_matches: "profile_id", profiles: "id", player_games: "profile_id", stat_entries: "profile_id", tournament_entries: "profile_id", highlights: "profile_id", scrim_uploads: "profile_id", profile_share_links: "profile_id", age_confirmations: "profile_id", legal_acceptances: "profile_id" };
 
 // Mirrors the row level rules the real database applies (owner only), for the tables the signed in pages use.
 function visible(table, row, uid) {
@@ -99,7 +112,8 @@ function rest(req, res, url, body) {
   const uid = state.user.id;
   const table = url.pathname.replace("/rest/v1/", "");
   const rows = state.tables[table];
-  if (!rows) return send(res, { message: `mock: no table ${table}` }, 404);
+  // Like PostgREST for a table whose migration is not applied.
+  if (!rows) return send(res, { code: "PGRST205", message: `Could not find the table 'public.${table}' in the schema cache` }, 404);
   const wantsOne = (req.headers.accept || "").includes("vnd.pgrst.object");
   const retRep = (req.headers.prefer || "").includes("return=representation");
   const filters = [...url.searchParams.entries()].filter(([k]) => !["select", "order", "limit", "offset", "on_conflict", "columns"].includes(k));
@@ -131,6 +145,8 @@ function rest(req, res, url, body) {
     return respond(list.map(project));
   }
   if (table === "scrim_uploads" && req.method !== "GET" && req.method !== "DELETE") return send(res, { code: "42501", message: "permission denied for table scrim_uploads" }, 403);
+  // Both consent tables are append only for the player (no update, no delete), like the real grants.
+  if ((table === "age_confirmations" || table === "legal_acceptances") && (req.method === "PATCH" || req.method === "DELETE")) return send(res, { code: "42501", message: `permission denied for table ${table}` }, 403);
   if (req.method === "POST") {
     const items = Array.isArray(body) ? body : [body];
     const made = [];
@@ -138,6 +154,16 @@ function rest(req, res, url, body) {
       if (it[OWN_KEY[table]] && it[OWN_KEY[table]] !== uid) return send(res, { code: "42501", message: "new row violates row-level security policy" }, 403);
       if (table === "scrim_uploads" && (!String(it.storage_path).startsWith(uid + "/") || it.size_bytes > 209715200)) return send(res, { code: "23514", message: "check constraint" }, 400);
       if (table === "highlights" && !/^https:\/\//.test(it.url)) return send(res, { code: "23514", message: "check constraint" }, 400);
+      if (table === "age_confirmations") {
+        const limit = new Date(); limit.setUTCFullYear(limit.getUTCFullYear() - 13);
+        if (it.birth_date > limit.toISOString().slice(0, 10)) return send(res, { code: "P0001", message: "under_minimum_age" }, 400);
+        if (rows.some((r) => r.profile_id === uid)) return send(res, { code: "23505", message: "duplicate key value violates unique constraint" }, 409);
+      }
+      if (table === "legal_acceptances") {
+        if (!state.tables.age_confirmations.some((r) => r.profile_id === uid)) return send(res, { code: "P0001", message: "age_confirmation_required" }, 400);
+        if (rows.some((r) => r.profile_id === uid && r.document === it.document && r.version === it.version)) return send(res, { code: "23505", message: "duplicate key value violates unique constraint" }, 409);
+        it.accepted_at = now();
+      }
       if (table === "scrim_matches") {
         if (!["win", "loss", "draw"].includes(it.result) || (it.score && !/^[0-9]{1,3} ?[-:] ?[0-9]{1,3}$/.test(it.score))) return send(res, { code: "23514", message: "check constraint" }, 400);
         it.source = "manual";
@@ -196,6 +222,17 @@ function rpc(res, name, args) {
       me.team_id = tid;
       return send(res, { status: "ok", team_id: tid });
     }
+    case "leave_team": {
+      const mine = T.team_members.find((m) => m.profile_id === uid);
+      if (!mine) return send(res, "not_in_team");
+      if (mine.role === "owner") {
+        if (T.team_members.some((m) => m.team_id === mine.team_id && m.profile_id !== uid)) return send(res, "owner_has_members");
+        T.teams = T.teams.filter((t) => t.id !== mine.team_id);
+      }
+      T.team_members = T.team_members.filter((m) => !(m.team_id === mine.team_id && m.profile_id === uid));
+      me.team_id = null;
+      return send(res, "ok");
+    }
     default: return send(res, { message: `mock: no rpc ${name}` }, 404);
   }
 }
@@ -238,7 +275,7 @@ export function handleUserRequest(req, res, url, body, raw) {
   if (!user) return false;
   if (p.startsWith("/rest/v1/rpc/")) {
     const name = p.replace("/rest/v1/rpc/", "");
-    const known = ["handle_change_available_at", "team_invite_code", "team_roster", "claim_handle", "set_primary_game", "create_team", "upload_allowed"];
+    const known = ["handle_change_available_at", "team_invite_code", "team_roster", "claim_handle", "set_primary_game", "create_team", "upload_allowed", "leave_team"];
     if (!known.includes(name)) return false;
     return rpc(res, name, body ?? {}), true;
   }
@@ -250,6 +287,27 @@ export function handleUserRequest(req, res, url, body, raw) {
 /** The server records uploads with the service role (clients have no write access to scrim_uploads). */
 export function handleServiceRequest(req, res, url, body) {
   if (!state || req.headers.apikey !== "mock-service") return false;
+  // Account removal with the service role: files listed and removed, then the auth user deleted (rows cascade).
+  if (req.method === "POST" && url.pathname.startsWith("/storage/v1/object/list/")) {
+    const bucket = url.pathname.split("/").pop();
+    const prefix = `${bucket}/${body.prefix}/`;
+    return send(res, [...state.files.entries()].filter(([k]) => k.startsWith(prefix)).map(([k, size]) => ({ name: k.slice(prefix.length), metadata: { size } }))), true;
+  }
+  if (req.method === "DELETE" && url.pathname.startsWith("/storage/v1/object/")) {
+    const bucket = url.pathname.split("/").pop();
+    for (const k of body.prefixes ?? []) state.files.delete(`${bucket}/${k}`);
+    return send(res, []), true;
+  }
+  if (req.method === "DELETE" && url.pathname === "/rest/v1/waitlist") {
+    state.waitlistDeletes = [...(state.waitlistDeletes ?? []), (url.searchParams.get("email") ?? "").replace(/^eq\./, "")];
+    return send(res, undefined, 204), true;
+  }
+  if (req.method === "GET" && url.pathname === `/auth/v1/admin/users/${state.user.id}`) return send(res, state.user), true;
+  if (req.method === "DELETE" && url.pathname === `/auth/v1/admin/users/${state.user.id}`) {
+    state.deletedUsers = [...(state.deletedUsers ?? []), state.user.id];
+    for (const t of Object.keys(state.tables)) state.tables[t] = state.tables[t].filter((r) => ![r.profile_id, r.id, r.owner_id].includes(state.user.id));
+    return send(res, {}), true;
+  }
   if (url.pathname === "/rest/v1/scrim_uploads" && req.method === "POST") {
     const row = { id: randomUUID(), status: "stored", created_at: now(), ...body };
     if (state.tables.scrim_uploads.length >= 25) return send(res, { code: "P0001", message: "dashboard_limit" }, 400), true;
