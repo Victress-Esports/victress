@@ -1,0 +1,6 @@
+# Proposed CLAUDE.md section 2 edit: first integrations approved (nothing in CLAUDE.md was changed)
+
+Founder approval, 2026-11-07. This also belongs with the other proposed edits in `claude-md-edits.md` (PR #32, section G there points here).
+
+- Current: "**No first integration is approved.** Real demo availability, parser reliability, technical feasibility and pilot demand decide it, and CS2 is only one candidate. Real CS2 demos will be supplied when validation begins. Do not claim parsing feasibility has been proven. Present research and architecture for approval before any major integration."
+- Proposed: "**First integrations are approved, in this order:** Rocket League (public ballchasing replays; the scoreboard inside each replay is the accuracy check), CS2 (demos the founder supplies and public sources), League of Legends (Riot match API once the production key is approved; a development key is for development only). VALORANT, Overwatch 2 and Apex Legends are not approved. Read each source's terms before shipping and report any limit on commercial use. Label anything that is not a design partner's file as Sample or Public data. **Do not claim parsing works until it matches the scoreboard on at least 50 real files, and publish the pass rate.**"

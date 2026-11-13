@@ -1,5 +1,47 @@
 # Proposal: Scrim Intelligence (private practice into performance information)
 
+## Approved direction (founder, 2026-11-07)
+First integrations are **approved**, in this order:
+1. **Rocket League**, using public ballchasing replays. The scoreboard inside each replay is the accuracy check.
+2. **CS2**, using demos the founder supplies and public sources.
+3. **League of Legends**, through the Riot match API, once the founder's production key is approved. A development key is for development only.
+
+Rules that come with the approval:
+- Real public files replace "synthetic only". Anything that is not a design partner's file is labeled **Sample** or **Public data**.
+- Each source's terms are read before anything ships, and any limit on commercial use is reported (below).
+- **Parsing is not claimed to work until it matches the scoreboard on at least 50 real files, and the pass rate is published.** Until then the site says Coming soon.
+- All six games stay in the architecture. VALORANT, Overwatch 2 and Apex Legends are not approved.
+
+### What each source's terms say (read 2026-11-07)
+**ballchasing.com** (terms last updated February 17, 2021; API documentation):
+- Every API call needs an API token (sent as the `Authorization` header). The token is free to generate; limits depend on Patreon tier.
+- Rate limits for "All others" (no Patreon tier): listing replays 2 calls per second and 500 per hour; **downloading a replay file 1 call per second and 200 per hour** (the documentation says file downloads are costly). 50 replays fit inside one hour; a larger corpus is paced across hours or needs a paid tier.
+- The terms prohibit using the service to "spam, phish, pharm, pretext, spider, crawl, or scrape". Use the API, never the website pages.
+- Replays: "If you upload a replay with a public visibility, or you share links to unlisted replays you own, you effectively lose the sole ownership of those files, and anyone using this service can download those replays and share them with whom they chose." So public replays are meant to be downloadable by anyone using the service.
+- **Not stated: any rule on commercial use, on building a product on the API, on storing or republishing replay data, or on attribution.** The terms are silent, so there is no written permission and no written ban. The operator is one person ("a one-man labor of love") and an email address is given in the terms. **Recommendation: email the operator for written confirmation before any paid use, do not redistribute replay files, keep files private to Victress, label results Public data, and credit ballchasing where results appear.**
+- The replay files and names inside them belong to Rocket League's publisher and to the players. Public replays contain player names and platform ids: treat them as personal data (see the privacy section below).
+- The API returns per player statistics including core scoreboard values (score, goals, assists, saves, shots) computed by ballchasing from the same replay. They can serve as a second, independent cross check of our parser besides the scoreboard stored in the replay itself.
+
+**Riot Games** (General Policies updated May 29, 2025; League of Legends developer API policy):
+- Monetization is allowed if the product is registered on the Developer Portal with status **Approved or Acknowledged**, has a **free tier** for players, is **transformative**, and has no betting. Subscriptions are an acceptable way to charge. "No apps serving as a 'data broker' between our API and another third party company."
+- **Production keys are "meant for larger-size, professional projects"**; Riot wants a working or testable product or a prototype and user flow. One product per key; the key must never be in distributed code.
+- The product must show the Riot legal boilerplate ("... isn't endorsed by Riot Games ...") where players can see it and must display Riot IDs, not summoner names.
+- Game integrity: products must not give a competitive edge using information not in the game client.
+- Not verified from the pages read: the development key's lifetime and rate limits, data retention rules, and whether private scrim games can be accessed (Tournament API and tournament codes exist; the details were not read). A development key is for development only and must not power the live product.
+
+**CS2** demos: the sources are not chosen yet. Before using any public source its terms must be read the same way (many match sites forbid scraping). Demos the founder supplies need the written consent of the players in them (see "What real files the founder must supply").
+
+### Acceptance and publication
+- A file **passes** when every counted value the parser reports for every player (score, goals, assists, saves, shots, and the match score) equals the scoreboard stored in the replay itself, and also equals ballchasing's value for the same replay.
+- The validation set is at least **50 real public replays** from different players, playlists and game versions, chosen before the parser is run (no cherry picking) and listed by replay id in the repository.
+- The pass rate is the number of passing files divided by the number run, **published with the failures and why each failed**, on the Scrim Intelligence page once the set exists. No marketing line says parsing works before that number exists and is acceptable (target: 100 percent on exact counts; any failure is explained and fixed or the file type is excluded and said so).
+- Result screens for non partner data carry the label **Public data** (a file from a public source) or **Sample** (a fixture), never mixed with a partner's own results.
+
+### Build order (next)
+1. Parser spike on public ballchasing replays (needs a ballchasing API token and a decision on where the worker runs). 2. The pipeline from section 2 below: upload, private storage, parse job, results with source labels, failure states. 3. The validation run and the published pass rate. 4. CS2 with supplied demos. 5. League of Legends after the production key is approved.
+
+---
+
 **Status: PROPOSAL. Nothing in this document is built, approved or proven.** No first integration is approved. Parsing feasibility has **not** been proven for any game. Real demos or replays have not been supplied yet. Per the project principles, research and architecture are presented for approval before any major integration, and all six games stay in the architecture: VALORANT, Counter-Strike 2, Rocket League, League of Legends, Apex Legends and Overwatch 2.
 
 Everything about game file formats, third party parsers, publisher policies and plan limits below is **background knowledge that has not been checked against current official sources**. It is labeled **UNVERIFIED** where it matters, and section 9 lists how each unknown gets resolved before anything is promised. Do not copy any of it into public copy.
