@@ -14,4 +14,7 @@ out=$(for f in supabase/tests/dashboard.sql supabase/tests/upload_allowlist.sql 
 echo "$out"
 echo "$out" | grep -q '^FAIL' && { echo "DASHBOARD DATABASE CHECKS FAILED"; exit 1; }
 [ "$(echo "$out" | grep -c '^PASS')" -lt 60 ] && { echo "TOO FEW CHECKS RAN"; exit 1; }
+# Every test file must finish and report. A file that crashes prints an error and no RESULTS line; that must never look like a pass.
+files=(supabase/tests/dashboard.sql supabase/tests/upload_allowlist.sql supabase/tests/scrim_matches.sql supabase/tests/game_imports.sql supabase/tests/rocket_league_import.sql supabase/tests/discord_link.sql)
+[ "$(echo "$out" | grep -c '^RESULTS')" -ne "${#files[@]}" ] && { echo "A TEST FILE DID NOT FINISH (expected ${#files[@]} RESULTS blocks, saw $(echo "$out" | grep -c '^RESULTS'))"; exit 1; }
 echo "ALL DASHBOARD DATABASE CHECKS PASSED"

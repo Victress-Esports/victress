@@ -3,8 +3,10 @@
 --
 -- What this is: a player submits a Ballchasing replay link; the server reads the replay through the Ballchasing API and stores the
 -- player's own numbers in game_matches (source 'api', source_detail 'ballchasing_replay'). No new match or player tables.
---  * game_accounts also holds a Rocket League identity: a platform (steam, epic, xbox, ps4, switch) and the player id, entered by the
---    player and NOT verified. It is used only to find the submitter's own slot in a replay. Other players are never identified.
+--  * game_accounts also holds a Rocket League identity: a platform and the player id, entered by the player and NOT verified. The platform
+--    is the name Ballchasing reports in replays (seen in real replays: steam, epic, ps4, psynet, xbox; also switch), stored as 1 to 16
+--    lower case letters or digits instead of a fixed list, so a platform Victress has not seen yet needs no migration. Matching is exact:
+--    nothing is treated as equal across platforms (ps4 and psynet are different identities). It is used only to find the submitter's own slot in a replay. Other players are never identified.
 --  * import_jobs also records Ballchasing submissions: which replay, whether it came from the web or Discord, and the time the player
 --    confirmed they may submit it and agreed to the processing (required by the database for Ballchasing jobs).
 --  * Clients still cannot write any of these tables (owner read and delete only). The server writes with the service role.
@@ -18,7 +20,7 @@
 -- game_accounts: a Rocket League identity next to the Riot one.
 alter table public.game_accounts drop constraint game_accounts_provider_check;
 alter table public.game_accounts add constraint game_accounts_provider_check check (provider in ('riot', 'rocket_league'));
-alter table public.game_accounts add column platform text check (platform is null or platform in ('steam', 'epic', 'xbox', 'ps4', 'switch'));
+alter table public.game_accounts add column platform text check (platform is null or platform ~ '^[a-z0-9]{2,16}$');
 alter table public.game_accounts alter column display_name drop not null;
 alter table public.game_accounts alter column tag drop not null;
 alter table public.game_accounts alter column region drop not null;

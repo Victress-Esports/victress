@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import type { Result } from "@/app/a/dashboard/actions";
 import { requireUser } from "@/lib/auth";
-import { scrimUploadsEnabled } from "@/lib/dashboard";
+import { lolImportEnabled } from "@/lib/dashboard";
 import { parseRiotId, RIOT_ROUTES } from "@/lib/riot/core";
 import { runLolImport } from "@/lib/riot/import";
 import { rateLimit } from "@/lib/ratelimit";
@@ -16,7 +16,7 @@ const schema = z.object({ riotId: z.string().trim().min(5).max(30), route: z.enu
 /** Same gates as scrim uploads: the flag AND the design partner allowlist. Returns the signed in user or a refusal message. */
 async function gate() {
   const { sb, user } = await requireUser();
-  if (!scrimUploadsEnabled()) return { error: "This is not open yet." } as const;
+  if (!lolImportEnabled()) return { error: "This is not open yet." } as const;
   const { data: approved } = await sb.rpc("upload_allowed");
   if (approved !== true) return { error: "This is open to approved design partners only." } as const;
   return { sb, user } as const;

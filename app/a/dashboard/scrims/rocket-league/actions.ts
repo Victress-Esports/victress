@@ -5,7 +5,7 @@ import { z } from "zod";
 import type { Result } from "@/app/a/dashboard/actions";
 import { requireUser } from "@/lib/auth";
 import { ballchasingClient } from "@/lib/ballchasing";
-import { parseIdentity, runReplayImport } from "@/lib/ballchasing/rl";
+import { IDENTITY_MESSAGES, parseIdentity, runReplayImport } from "@/lib/ballchasing/rl";
 import { scrimUploadsEnabled } from "@/lib/dashboard";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
@@ -28,8 +28,9 @@ export async function saveRlIdentityAction(input: z.input<typeof identitySchema>
   const g = await gate();
   if ("error" in g) return fail(g.error);
   const p = identitySchema.safeParse(input);
-  const who = p.success ? parseIdentity(p.data.platform, p.data.id) : { ok: false as const };
-  if (!who.ok) return fail("Choose your platform and enter your player ID, or paste your Ballchasing player link.");
+  const who = p.success ? parseIdentity(p.data.platform, p.data.id) : null;
+  if (!who) return fail(IDENTITY_MESSAGES.empty);
+  if (!who.ok) return fail(IDENTITY_MESSAGES[who.reason]);
   const admin = supabaseAdmin();
   if (!admin) return fail();
   const { data: cur } = await admin.from("game_accounts").select("id, platform, external_id").eq("profile_id", g.user.id).eq("game", "ROCKET_LEAGUE").maybeSingle();
@@ -44,7 +45,7 @@ export async function saveRlIdentityAction(input: z.input<typeof identitySchema>
     if (error) return fail();
   }
   revalidatePath(PAGE);
-  return { ok: true, message: "Saved. Victress will use this to find your numbers in replays you submit." };
+  return { ok: true, message: "Saved. Victress will use this to find your own numbers in replays you submit. It is private and not verified." };
 }
 
 const submitSchema = z.object({ link: z.string().max(300), authorized: z.boolean(), consent: z.boolean() });

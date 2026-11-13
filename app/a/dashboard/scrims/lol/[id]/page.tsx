@@ -7,7 +7,7 @@ import { MiniChart } from "@/components/app/MiniChart";
 import { ProvenanceTag } from "@/components/app/ProvenanceTag";
 import { Section } from "@/components/ui/form";
 import { requireUser } from "@/lib/auth";
-import { scrimUploadsEnabled } from "@/lib/dashboard";
+import { lolImportEnabled } from "@/lib/dashboard";
 import { privateMetadata } from "@/lib/seo";
 import type { CompactTimeline, Slot } from "@/lib/riot/normalize";
 
@@ -23,7 +23,7 @@ type Detail = {
 
 export default async function LolMatchPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  if (!z.string().uuid().safeParse(id).success || !scrimUploadsEnabled()) notFound();
+  if (!z.string().uuid().safeParse(id).success || !lolImportEnabled()) notFound();
   const { sb, user } = await requireUser();
   const { data } = await sb.from("game_matches").select("id, queue_label, queue_kind, played_at, duration_seconds, game_version, result, me, participants, objectives, timeline").eq("id", id).eq("profile_id", user.id).eq("game", "LOL").maybeSingle();
   if (!data) notFound();

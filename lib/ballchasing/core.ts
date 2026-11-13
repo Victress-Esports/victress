@@ -35,11 +35,12 @@ export const MAX_REPLAY_BYTES = 20 * 1024 * 1024;
 export type BcListQuery = { playlist?: string[]; season?: string; minRank?: string; maxRank?: string; replayDateAfter?: string; replayDateBefore?: string; count?: number; sortBy?: "replay-date" | "upload-date"; sortDir?: "asc" | "desc" };
 export type BcReplaySummary = { id: string; title?: string; visibility: string; playlist_id?: string; season?: number | string; date?: string; blue?: { goals?: number }; orange?: { goals?: number } };
 
-export function createBallchasingClient(opts: { token: string; fetch?: typeof fetch; clock?: Clock; maxRetries?: number }) {
+export function createBallchasingClient(opts: { token: string; fetch?: typeof fetch; clock?: Clock; maxRetries?: number; timeoutMs?: number }) {
   if (!opts.token) throw new BcError("auth", "ballchasing token is not configured.");
   const doFetch = opts.fetch ?? fetch;
   const clock = opts.clock ?? realClock;
   const maxRetries = opts.maxRetries ?? 3;
+  const timeoutMs = opts.timeoutMs ?? 30_000;
   const api = new Limiter(clock, [[2, 1000], [480, 3_600_000]]);
   const files = new Limiter(clock, [[1, 1100], [190, 3_600_000]]);
 
@@ -48,7 +49,7 @@ export function createBallchasingClient(opts: { token: string; fetch?: typeof fe
     for (let attempt = 0; ; attempt++) {
       await limiter.acquire();
       let res: Response;
-      try { res = await doFetch(url, { ...init, headers: { Authorization: opts.token }, signal: AbortSignal.timeout(30_000), cache: "no-store" }); }
+      try { res = await doFetch(url, { ...init, headers: { Authorization: opts.token }, signal: AbortSignal.timeout(timeoutMs), cache: "no-store" }); }
       catch { if (attempt >= maxRetries) throw new BcError("unavailable", "ballchasing did not answer."); await clock.sleep(500 * 2 ** attempt); continue; }
       if (res.ok) return res;
       if (res.status === 429) { if (attempt >= maxRetries) throw new BcError("rate_limited", "ballchasing is limiting requests. Try again later.", 429); await clock.sleep(2000 * 2 ** attempt); continue; }

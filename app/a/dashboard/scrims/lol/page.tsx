@@ -6,7 +6,7 @@ import { MiniChart } from "@/components/app/MiniChart";
 import { ProvenanceTag } from "@/components/app/ProvenanceTag";
 import { Section } from "@/components/ui/form";
 import { requireUser } from "@/lib/auth";
-import { scrimUploadsEnabled } from "@/lib/dashboard";
+import { lolImportEnabled } from "@/lib/dashboard";
 import { privateMetadata } from "@/lib/seo";
 import { riotClient } from "@/lib/riot";
 import { computeTrend, type TrendRow } from "@/lib/riot/trends";
@@ -22,7 +22,7 @@ type Row = TrendRow & { id: string; queue_label: string; me: TrendRow["me"] & { 
 
 export default async function LolPage({ searchParams }: { searchParams: Promise<{ kind?: string }> }) {
   const { sb, user } = await requireUser();
-  if (!scrimUploadsEnabled()) notFound();
+  if (!lolImportEnabled()) notFound();
   const { data: approved } = await sb.rpc("upload_allowed");
   if (approved !== true) notFound();
   const wanted = (await searchParams).kind;

@@ -6,7 +6,7 @@ import { RlDeleteAll, RlDeleteMatch, RlIdentityForm, RlSubmitForm } from "@/comp
 import { Section } from "@/components/ui/form";
 import { requireUser } from "@/lib/auth";
 import { ballchasingClient } from "@/lib/ballchasing";
-import { RL_DATA_LABEL } from "@/lib/ballchasing/rl";
+import { RL_DATA_LABEL, platformLabel } from "@/lib/ballchasing/rl";
 import { summarizeRl, type RlRow } from "@/lib/ballchasing/summary";
 import { scrimUploadsEnabled } from "@/lib/dashboard";
 import { privateMetadata } from "@/lib/seo";
@@ -15,7 +15,6 @@ export const maxDuration = 60;
 export const metadata: Metadata = privateMetadata("Rocket League | Victress", "Your private Rocket League games, read from Ballchasing replays you submit.");
 
 const KINDS = [["all", "All"], ["custom", "Private matches"], ["ranked", "Ranked"], ["normal", "Casual"], ["other", "Other modes"]] as const;
-const PLATFORM_NAME: Record<string, string> = { steam: "Steam", epic: "Epic Games", xbox: "Xbox", ps4: "PlayStation", switch: "Nintendo Switch" };
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 const one = (n: number | null) => (n === null ? "n/a" : n.toFixed(1));
 const pct = (n: number | null) => (n === null ? "n/a" : `${Math.round(n)}%`);
@@ -50,8 +49,8 @@ export default async function RocketLeaguePage({ searchParams }: { searchParams:
         <p className="mt-3 flex flex-wrap items-center gap-3 text-sm text-mute"><ProvenanceTag source="api" /> {RL_DATA_LABEL}. Nothing here is typed in.</p>
       </div>
 
-      <Section title="Your Rocket League ID" line={acct ? `${PLATFORM_NAME[acct.platform ?? ""] ?? acct.platform}, ${maskedId(acct.external_id)}. Only you can see this. Victress does not verify that it is yours.` : "Needed once, so Victress can find your numbers in a replay. Only you can see it. Victress does not verify that it is yours."}>
-        <RlIdentityForm saved={acct ? { platform: acct.platform ?? "steam", id: acct.external_id } : null} />
+      <Section title="Your Rocket League ID" line={acct ? `${platformLabel(acct.platform)}, ${maskedId(acct.external_id)}. Only you can see this. Victress does not verify that it is yours.` : "Needed once, so Victress can find your own numbers in a replay. Any platform works: Steam, Epic Games, PlayStation, Xbox or Switch. Only you can see it, and Victress does not verify that it is yours."}>
+        <RlIdentityForm saved={acct ? { platform: acct.platform ?? "", id: acct.external_id } : null} />
       </Section>
 
       <Section title="Submit a replay" line="One replay at a time. Victress reads it from Ballchasing, which does not use any upload allowance of yours.">
@@ -62,6 +61,15 @@ export default async function RocketLeaguePage({ searchParams }: { searchParams:
         ) : (
           <RlSubmitForm />
         )}
+        <details className="mt-4 rounded-xl border border-line px-4 py-3 text-sm text-mute">
+          <summary className="cursor-pointer font-semibold text-white">If a replay is not accepted or not matched</summary>
+          <ul className="mt-3 flex list-disc flex-col gap-2 pl-5">
+            <li><strong className="text-white">Private replay.</strong> Victress can only read replays set to Unlisted or Public. On Ballchasing, open the replay, choose Edit, set Visibility, wait a minute, and submit again.</li>
+            <li><strong className="text-white">Your ID is not found.</strong> Your saved platform and ID must be the ones Ballchasing shows for you in that replay. Open the replay, click your name, and compare with the link you saved.</li>
+            <li><strong className="text-white">Some players have no ID.</strong> Bots and some private matches have no platform ID recorded. If your own slot has none, Victress cannot match you, and it will never guess who you are.</li>
+            <li><strong className="text-white">Not a replay link.</strong> Group and player links do not work here. Paste the address of a single replay page.</li>
+          </ul>
+        </details>
       </Section>
 
       <Section title="Your submissions" line="What happened to each replay you submitted, including why one failed.">

@@ -23,8 +23,12 @@ begin
   -- identity rules
   insert into public.game_accounts (profile_id, game, provider, external_id, platform) values (ua, 'ROCKET_LEAGUE', 'rocket_league', '76561198000000001', 'steam') returning id into acc;
   r := array_append(r, 'PASS the server stores a short (17 character) Steam id');
-  begin insert into public.game_accounts (profile_id, game, provider, external_id, platform) values (ub, 'ROCKET_LEAGUE', 'rocket_league', 'x', 'myspace'); r := array_append(r, 'FAIL unknown platform accepted');
-  exception when check_violation then r := array_append(r, 'PASS an unknown platform is refused'); end;
+  begin insert into public.game_accounts (profile_id, game, provider, external_id, platform) values (ub, 'ROCKET_LEAGUE', 'rocket_league', 'x', 'My Space!'); r := array_append(r, 'FAIL malformed platform accepted');
+  exception when check_violation then r := array_append(r, 'PASS a malformed platform name is refused'); end;
+  begin insert into public.game_accounts (profile_id, game, provider, external_id, platform) values (ub, 'ROCKET_LEAGUE', 'rocket_league', 'x', 'Steam'); r := array_append(r, 'FAIL upper case platform accepted');
+  exception when check_violation then r := array_append(r, 'PASS platform names are stored lower case, as Ballchasing reports them'); end;
+  begin insert into public.game_accounts (profile_id, game, provider, external_id, platform) values (ub, 'ROCKET_LEAGUE', 'rocket_league', 'x', repeat('a', 17)); r := array_append(r, 'FAIL oversize platform accepted');
+  exception when check_violation then r := array_append(r, 'PASS a platform name over 16 characters is refused'); end;
   begin insert into public.game_accounts (profile_id, game, provider, external_id) values (ub, 'ROCKET_LEAGUE', 'rocket_league', 'x'); r := array_append(r, 'FAIL identity without platform accepted');
   exception when check_violation then r := array_append(r, 'PASS a Rocket League identity needs a platform'); end;
   begin insert into public.game_accounts (profile_id, game, provider, external_id, platform, display_name) values (ub, 'ROCKET_LEAGUE', 'rocket_league', 'x', 'epic', 'Name'); r := array_append(r, 'FAIL riot fields on a Rocket League identity');
@@ -32,6 +36,19 @@ begin
   begin insert into public.game_accounts (profile_id, game, provider, external_id, display_name, tag, region) values (ub, 'LOL', 'riot', repeat('p', 78), 'Me', 'EUW', 'europe');
     insert into public.game_accounts (profile_id, game, provider, external_id, platform) values (ub, 'LOL', 'rocket_league', 'y', 'epic'); r := array_append(r, 'FAIL rocket_league identity on the wrong game');
   exception when check_violation then r := array_append(r, 'PASS a Rocket League identity only fits the Rocket League game'); end;
+  -- every platform seen in 600 real replays is accepted, and so is one never seen (no migration needed for a new platform)
+  reset role;  -- creating sign in users is done as the database owner
+  declare pf text; pn int := 0; uidx uuid;
+  begin
+    foreach pf in array array['steam', 'epic', 'xbox', 'ps4', 'psynet', 'switch', 'ps5'] loop
+      uidx := gen_random_uuid();
+      insert into auth.users (id, aud, role, email) values (uidx, 'authenticated', 'authenticated', 'p' || pn || '@test.invalid');
+      insert into public.game_accounts (profile_id, game, provider, external_id, platform) values (uidx, 'ROCKET_LEAGUE', 'rocket_league', 'id' || pn, pf);
+      pn := pn + 1;
+    end loop;
+    r := array_append(r, 'PASS steam, epic, xbox, ps4, psynet, switch and an unseen platform (ps5) are all accepted');
+  end;
+  set local role service_role;
   begin insert into public.game_accounts (profile_id, game, provider, external_id, platform) values (ua, 'ROCKET_LEAGUE', 'rocket_league', '76561198000000002', 'steam'); r := array_append(r, 'FAIL second identity for one player');
   exception when unique_violation then r := array_append(r, 'PASS one Rocket League identity per player'); end;
 
@@ -63,6 +80,7 @@ begin
   exception when check_violation then r := array_append(r, 'PASS a typed in (self reported) match is still impossible'); end;
   -- another player can submit the same replay for their own identity
   insert into public.game_accounts (profile_id, game, provider, external_id, platform) values (ub, 'ROCKET_LEAGUE', 'rocket_league', 'abcdef0123456789abcdef0123456789', 'epic') returning id into accb;
+  r := array_append(r, 'PASS an Epic identity (32 character id) is stored');
   insert into public.game_matches (profile_id, account_id, game, source, source_detail, external_id, queue_kind, played_at, duration_seconds, result, me, participants)
     values (ub, accb, 'ROCKET_LEAGUE', 'api', 'ballchasing_replay', rid, 'custom', now(), 330, 'loss', '{}', '[]');
   r := array_append(r, 'PASS two players can each store the same replay as their own');

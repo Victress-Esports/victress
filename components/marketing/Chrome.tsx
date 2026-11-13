@@ -1,4 +1,5 @@
 import { RIOT_LEGAL_NOTICE } from "@/content/riot";
+import { lolImportEnabled } from "@/lib/dashboard";
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
 import { MobileMenu } from "@/components/marketing/MobileMenu";
@@ -51,7 +52,7 @@ export function Footer() {
         </p>
       </div>
       <p className="mx-auto max-w-6xl px-4 pb-4 text-xs text-mute sm:px-6">{copy.footer.trademarks}</p>
-      <p className="mx-auto max-w-6xl px-4 pb-10 text-xs text-mute sm:px-6">{RIOT_LEGAL_NOTICE}</p>
+      {lolImportEnabled() ? <p className="mx-auto max-w-6xl px-4 pb-10 text-xs text-mute sm:px-6">{RIOT_LEGAL_NOTICE}</p> : <div className="pb-6" />}
     </footer>
   );
 }

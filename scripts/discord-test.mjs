@@ -1,12 +1,14 @@
 // Discord integration tests. No network, no real credentials: a throwaway Ed25519 key signs the test requests.
 //   node scripts/discord-test.mjs                run the module checks
 //   node scripts/discord-test.mjs <port>         also send signed requests to a built app on that port. Start the app with
-//                                                DISCORD_PUBLIC_KEY=$(node scripts/discord-test.mjs --print-key) DISCORD_APPLICATION_ID=111111111111111111
+//                                                VICTRESS_SCRIM_DISCORD_PUBLIC_KEY=$(node scripts/discord-test.mjs --print-key) VICTRESS_SCRIM_DISCORD_APPLICATION_ID=111111111111111111
 import { createPrivateKey, createPublicKey, generateKeyPairSync, sign } from "node:crypto";
 import { verifyDiscordSignature } from "../lib/discord/verify.ts";
 import { handleInteraction, HELP_TEXT, PRIVACY_TEXT } from "../lib/discord/handler.ts";
 import { completeDeferred } from "../lib/discord/followup.ts";
 import { COMMANDS } from "../lib/discord/commands.ts";
+import { readFileSync } from "node:fs";
+import { DEFAULT_DEADLINE_MS, STALE_JOB_MS } from "../lib/ballchasing/rl.ts";
 
 let failed = 0;
 const check = (ok, name) => { console.log(`${ok ? "PASS" : "FAIL"} ${name}`); if (!ok) failed++; };
@@ -67,6 +69,16 @@ const submit = COMMANDS.find((c) => c.name === "scrim").options.find((o) => o.na
 check(submit.options.filter((o) => o.required).map((o) => o.name).join() === "link,authorized,consent" && submit.options.every((o, i, a) => i === 0 || !o.required || a[i - 1].required), "scrim submit requires the link, the authorization and the consent confirmations, required options first");
 check(COMMANDS.every((c) => JSON.stringify(c.contexts) === "[0]" && JSON.stringify(c.integration_types) === "[0]"), "commands are server only and guild installed (no DMs, no user install)");
 
+// Timing: Discord needs an answer within 3 seconds; the longer work continues afterwards inside a function limit that fits Vercel Hobby.
+const routeSrc = readFileSync("app/api/discord/interactions/route.ts", "utf8");
+const max = Number((routeSrc.match(/export const maxDuration = (\d+)/) ?? [])[1]);
+check(max > 0 && max <= 60, `the endpoint sets maxDuration to ${max} seconds, within what a Vercel Hobby function may run (no paid plan needed)`);
+check(DEFAULT_DEADLINE_MS < max * 1000 - 10_000, `a replay submission is stopped at ${DEFAULT_DEADLINE_MS / 1000} seconds, at least 10 seconds before the function limit, so the player always gets a reply`);
+check(STALE_JOB_MS > max * 1000, "a submission is only treated as abandoned after the function limit has passed");
+check(/after\(async/.test(routeSrc) && /type: 5/.test(routeSrc) && routeSrc.indexOf("after(async") < routeSrc.indexOf("type: 5"), "data commands are acknowledged with a deferred reply and the work runs afterwards in after()");
+const idx = readFileSync("lib/ballchasing/index.ts", "utf8");
+check(/timeoutMs: 12_000, maxRetries: 1/.test(idx), "the Ballchasing client used for submissions has a 12 second timeout and one retry, so one slow call cannot use the whole budget");
+
 // Optional: the deployed route over HTTP
 const port = Number(process.argv[2]);
 if (port) {
@@ -87,9 +99,10 @@ if (port) {
   r = await post(signed("x".repeat(120_000)));
   check(r.status === 413, "route: an oversized body returns 413");
   for (const [body, name] of [[{ name: "link" }, "/link"], [{ name: "profile" }, "/profile"], [{ name: "scrim", options: [{ name: "status", type: 1 }] }, "/scrim status"]]) {
+    const t1 = Date.now();
     r = await post(signed(JSON.stringify({ type: 2, application_id: "111111111111111111", token: "interaction-token", member: { user: { id: "123456789012345678", username: "t" } }, data: body })));
     const j2 = await r.json();
-    check(r.status === 200 && j2.type === 5 && j2.data.flags === 64, `route: ${name} is acknowledged at once with a private deferred reply`);
+    check(r.status === 200 && j2.type === 5 && j2.data.flags === 64 && Date.now() - t1 < 2500, `route: ${name} is acknowledged within 2.5 seconds with a private deferred reply`);
   }
   r = await post(signed(JSON.stringify({ type: 2, application_id: "999", member: { user: { id: "123456789012345678" } }, data: { name: "link" } })));
   check((await r.json()).data?.content?.includes("not meant for"), "route: a command meant for another application is refused, not run");

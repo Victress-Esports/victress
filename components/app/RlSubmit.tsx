@@ -6,7 +6,11 @@ import { deleteRlDataAction, deleteRlMatchAction, saveRlIdentityAction, submitRe
 import { Button } from "@/components/ui/Button";
 import { Field, FormMessage, inputClass } from "@/components/ui/form";
 
-const PLATFORMS = [["steam", "Steam"], ["epic", "Epic Games"], ["xbox", "Xbox"], ["ps4", "PlayStation"], ["switch", "Nintendo Switch"]] as const;
+// Platform names as Ballchasing reports them in replays. The player link path is preferred because it carries the platform exactly.
+const PLATFORMS = [
+  ["steam", "Steam"], ["epic", "Epic Games"], ["xbox", "Xbox"],
+  ["ps4", "PlayStation (numeric ID)"], ["psynet", "PlayStation Network (psynet)"], ["switch", "Nintendo Switch"],
+] as const;
 
 export function RlIdentityForm({ saved }: { saved: { platform: string; id: string } | null }) {
   const router = useRouter();
@@ -15,25 +19,37 @@ export function RlIdentityForm({ saved }: { saved: { platform: string; id: strin
   const [ok, setOk] = useState(false);
   return (
     <form
-      className="flex flex-col gap-4"
+      className="flex flex-col gap-5"
       onSubmit={(e) => {
         e.preventDefault();
         const f = new FormData(e.currentTarget);
+        const link = String(f.get("link") ?? "").trim();
+        // A pasted player link carries the platform and the id. Otherwise the platform and id fields are used.
+        const input = link ? { platform: "", id: link } : { platform: String(f.get("platform") ?? ""), id: String(f.get("id") ?? "") };
         start(async () => {
-          const r = await saveRlIdentityAction({ platform: String(f.get("platform") ?? ""), id: String(f.get("id") ?? "") });
+          const r = await saveRlIdentityAction(input);
           setOk(r.ok); setMsg(r.message ?? ""); if (r.ok) router.refresh();
         });
       }}
     >
-      <Field id="platform" label="Platform">
-        <select id="platform" name="platform" defaultValue={saved?.platform ?? "steam"} className={inputClass}>
-          {PLATFORMS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-        </select>
+      <Field id="link" label="Your Ballchasing player link (easiest)" hint="Open any replay you played in on ballchasing.com, click your own name, and copy the address of the page that opens. It looks like ballchasing.com/player/… and already contains your platform and ID.">
+        <input id="link" name="link" maxLength={200} autoComplete="off" className={inputClass} placeholder="https://ballchasing.com/player/…" />
       </Field>
-      <Field id="id" label="Player ID" hint="Easiest: open your own page on ballchasing.com and paste the link to it (ballchasing.com/player/…). It holds both your platform and your ID.">
-        <input id="id" name="id" required maxLength={200} defaultValue={saved?.id ?? ""} autoComplete="off" className={inputClass} placeholder="Player ID or Ballchasing player link" />
-      </Field>
-      <div><Button type="submit" disabled={pending}>{pending ? "Saving" : saved ? "Update" : "Save"}</Button></div>
+      <details className="rounded-xl border border-line px-4 py-3">
+        <summary className="cursor-pointer text-sm font-semibold">Enter your platform and ID instead</summary>
+        <div className="mt-4 flex flex-col gap-4">
+          <Field id="platform" label="Platform" hint="Pick the platform Ballchasing shows for you. Not sure, or yours is not listed? Use the player link above.">
+            <select id="platform" name="platform" defaultValue="" className={inputClass}>
+              <option value="" disabled>Choose a platform</option>
+              {PLATFORMS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          </Field>
+          <Field id="id" label="Player ID" hint="A Steam ID is 17 digits. An Epic ID is 32 letters and numbers. These are not your display names.">
+            <input id="id" name="id" maxLength={64} autoComplete="off" className={inputClass} placeholder="Player ID" />
+          </Field>
+        </div>
+      </details>
+      <div><Button type="submit" disabled={pending}>{pending ? "Saving" : saved ? "Update my ID" : "Save my ID"}</Button></div>
       <FormMessage message={msg} ok={ok} />
     </form>
   );
@@ -58,7 +74,7 @@ export function RlSubmitForm() {
         });
       }}
     >
-      <Field id="link" label="Ballchasing replay link" hint="The replay must be set to unlisted or public on Ballchasing. Private replays cannot be read.">
+      <Field id="link" label="Ballchasing replay link" hint="Paste the address of one replay page. The replay must be set to Unlisted or Public on Ballchasing (Edit, Visibility). Private replays cannot be read.">
         <input id="link" name="link" required maxLength={300} autoComplete="off" className={inputClass} placeholder="https://ballchasing.com/replay/…" />
       </Field>
       <label className="flex items-start gap-3 text-sm text-mute">

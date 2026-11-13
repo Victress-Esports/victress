@@ -34,6 +34,14 @@ for (const [s, code] of [[404, "not_found"], [401, "auth"], [403, "auth"], [418,
   check(calls[1][0].includes("visibility=unlisted"), "another visibility only when asked for explicitly");
   let e; try { await c.uploadReplay(new Uint8Array(0)); } catch (x) { e = x; } check(e?.code === "too_large", "empty upload refused"); }
 { const walk = (d, o = []) => { for (const f of readdirSync(d)) { if (["node_modules", ".next", ".git", "target"].includes(f)) continue; const p = join(d, f); statSync(p).isDirectory() ? walk(p, o) : /\.(tsx?|jsx?)$/.test(f) && o.push(p); } return o; };
-  const users = [...walk("app"), ...walk("components"), ...walk("lib")].filter((f) => !f.includes("lib/ballchasing/") && /uploadReplay|lib\/ballchasing/.test(readFileSync(f, "utf8")));
-  check(users.length === 0, `no page, component, action or route uses the ballchasing client or uploadReplay (found: ${users.join(", ") || "none"})`); }
+  const all = [...walk("app"), ...walk("components"), ...walk("lib")];
+  // Nothing a player can reach may UPLOAD to Ballchasing: an upload would spend Victress's own upload quota (10 a day). Reads are what the
+  // replay link import does, and only these files may use the client at all.
+  const uploaders = all.filter((f) => !f.includes("lib/ballchasing/core.ts") && /uploadReplay/.test(readFileSync(f, "utf8")));
+  check(uploaders.length === 0, `no page, component, action, route or library code calls uploadReplay (found: ${uploaders.join(", ") || "none"})`);
+  const allowed = ["app/a/dashboard/scrims/rocket-league/actions.ts", "app/a/dashboard/scrims/rocket-league/page.tsx", "app/api/discord/interactions/route.ts"];
+  const clientUsers = all.filter((f) => !f.includes("lib/ballchasing/") && /@\/lib\/ballchasing"|lib\/ballchasing\/(index|core)/.test(readFileSync(f, "utf8")));
+  check(clientUsers.every((f) => allowed.includes(f)), `only the replay link import and its Discord route use the Ballchasing client (found: ${clientUsers.join(", ") || "none"})`);
+  const calls = all.filter((f) => /\.(download|uploadReplay)\(/.test(readFileSync(f, "utf8")) && !f.includes("lib/ballchasing/core.ts"));
+  check(calls.length === 0, "no player facing code downloads replay files or uploads: the link import only reads replay details"); }
 console.log(failed ? `\n${failed} FAILED` : "\nall passed"); process.exit(failed ? 1 : 0);

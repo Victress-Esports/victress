@@ -50,7 +50,7 @@ function db() {
 }
 const imports = [];
 const svc = (d, over = {}) => ({
-  admin: d, appUrl: "https://victress.gg", pilotOpen: true, consentOk: async () => true, newCode: newLinkCode, hashCode: hashLinkCode, linkUrl,
+  admin: d, appUrl: "https://victress.gg", pilotOpen: true, consentOk: async () => true, sweepStale: async () => {}, newCode: newLinkCode, hashCode: hashLinkCode, linkUrl,
   importReplay: async (uid, link, o) => { imports.push({ uid, link, o }); return { ok: true, message: "Saved." }; },
   summarize: (rows, kind) => summarizeRl(rows, kind), ...over,
 });
@@ -168,6 +168,24 @@ r = await runDeferred(cmd("scrim", A, sub("stats", [])), solo);
 check(/Goals 2\.0/.test(r.content), "a player with no team sees their own numbers");
 r = await runDeferred(cmd("profile", A), solo);
 check(/Team: No team/.test(r.content), "a player with no team sees their own profile");
+
+// ---- /scrim status closes abandoned submissions; /profile explains how to add an ID
+d = db(); d.t.discord_links.push({ discord_user_id: A, profile_id: PA, linked_at: "x" });
+let swept = 0;
+await runDeferred(cmd("scrim", A, sub("status", [])), svc(d, { sweepStale: async (uid) => { if (uid === PA) swept++; } }));
+check(swept === 1, "/scrim status first closes any abandoned submission for that player, so nothing shows as processing forever");
+d.t.import_jobs.push({ profile_id: PA, game: "ROCKET_LEAGUE", status: "running", error_message: null, external_ref: "3b0a1e7c-1111-4222-8333-444455556666", created_at: new Date().toISOString() });
+r = await runDeferred(cmd("scrim", A, sub("status", [])), svc(d));
+check(/still processing \(give it a minute\)/.test(r.content), "a submission that is running is shown as still processing, with what to do");
+d = db(); d.t.game_accounts = []; d.t.discord_links.push({ discord_user_id: A, profile_id: PA, linked_at: "x" });
+r = await runDeferred(cmd("profile", A), svc(d));
+check(/paste your Ballchasing player link/.test(r.content) && !/Steam/i.test(r.content), "/profile with no Rocket League ID explains the easy way to add one and assumes no platform");
+d.t.game_accounts = [{ profile_id: PA, game: "ROCKET_LEAGUE", platform: "psynet", external_id: "89abcdef01234567" }];
+r = await runDeferred(cmd("profile", A), svc(d));
+check(/PlayStation Network/.test(r.content) && /89a…567/.test(r.content) && !r.content.includes("89abcdef01234567"), "/profile shows a psynet identity by its platform name with the id masked");
+d.t.game_accounts = [{ profile_id: PA, game: "ROCKET_LEAGUE", platform: "ps5", external_id: "987654321" }];
+r = await runDeferred(cmd("profile", A), svc(d));
+check(/ps5/.test(r.content), "a platform Victress has not seen before is shown as Ballchasing named it");
 
 // ---- failure handling
 r = await runDeferred(cmd("profile", A), svc({ from: () => { throw new Error("db down"); }, rpc: async () => ({ error: { message: "x" } }) }));

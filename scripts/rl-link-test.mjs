@@ -2,7 +2,7 @@
 //   node scripts/rl-link-test.mjs            module checks
 //   NODE_USE_ENV_PROXY=1 NODE_EXTRA_CA_CERTS=<proxy ca> node --experimental-transform-types scripts/rl-link-test.mjs live   also one real read of a public replay through the Ballchasing API (read only, no names printed)
 import { summarizeRl } from "../lib/ballchasing/summary.ts";
-import { parseReplayRef, parseIdentity, normalizeReplay, runReplayImport, LIMITS, RL_DATA_LABEL } from "../lib/ballchasing/rl.ts";
+import { parseReplayRef, parseIdentity, normalizeReplay, runReplayImport, sweepStaleJobs, messageFor, IDENTITY_MESSAGES, platformLabel, PLATFORM_OPTIONS, LIMITS, RL_DATA_LABEL } from "../lib/ballchasing/rl.ts";
 
 let failed = 0;
 const check = (ok, name) => { console.log(`${ok ? "PASS" : "FAIL"} ${name}`); if (!ok) failed++; };
@@ -20,10 +20,10 @@ for (const [bad, why] of [
 ]) check(!parseReplayRef(bad).ok, `rejected: ${why}`);
 
 // ---- identity
-check(JSON.stringify(parseIdentity("steam", "76561198000000001")) === JSON.stringify({ ok: true, platform: "steam", id: "76561198000000001" }), "a platform and id are accepted");
-check(parseIdentity("", "https://ballchasing.com/player/epic/abc123def").platform === "epic", "a Ballchasing player link supplies the platform and id");
-check(parseIdentity("ps5", "x1").platform === "ps4", "PlayStation 5 is stored as the PlayStation platform Ballchasing uses");
-check(!parseIdentity("myspace", "x").ok && !parseIdentity("steam", "").ok && !parseIdentity("steam", "a b").ok && !parseIdentity("steam", "x".repeat(70)).ok, "unknown platforms, empty, spaced or oversized ids are rejected");
+check(JSON.stringify(parseIdentity("steam", "76561198000000001")) === JSON.stringify({ ok: true, platform: "steam", id: "76561198000000001", source: "manual" }), "a platform and id are accepted");
+check(parseIdentity("", "https://ballchasing.com/player/epic/0123456789abcdef0123456789abcdef").platform === "epic", "a Ballchasing player link supplies the platform and id");
+check(parseIdentity("ps5", "x1").reason === "unknown_platform" && parseIdentity("playstation", "x1").reason === "unknown_platform", "a PlayStation platform is never guessed from a vague name: ps4 and psynet are different identities");
+check(!parseIdentity("myspace", "x").ok && !parseIdentity("steam", "").ok && !parseIdentity("xbox", "a b").ok && !parseIdentity("xbox", "x".repeat(70)).ok, "unknown platforms, empty, spaced or oversized ids are rejected");
 
 // ---- replay fixture (invented names and ids)
 const P = (platform, id, name, goals, extra = {}) => ({ name, id: { platform, id }, car_name: "Octane", camera: { fov: 110 }, steering_sensitivity: 1.5,
@@ -114,13 +114,13 @@ check(!r.ok && r.code === "consent_required" && db.t.import_jobs.length === 0 &&
 r = await run(db, okClient(), `https://ballchasing.com/replay/${ID}`, { consent: false });
 check(r.code === "consent_required" && db.t.import_jobs.length === 0, "without the processing consent nothing is read, stored or recorded");
 r = await run(db, okClient(), "https://evil.example/replay/x");
-check(r.code === "invalid_link" && db.t.import_jobs.length === 0, "an invalid link is refused before anything else");
+check(r.code === "not_ballchasing" && db.t.import_jobs.length === 0, "an invalid link is refused before anything else");
 db = fakeDb();
 r = await run(db, okClient());
 check(r.code === "no_identity" && db.t.game_matches.length === 0, "without a Rocket League identity nothing is stored, and the message says what to add");
 db = fakeDb(); seed(db);
 r = await run(db, okClient(replay({ visibility: "private" })));
-check(!r.ok && r.code === "visibility" && /unlisted or public/.test(r.message) && db.t.game_matches.length === 0 && db.t.import_jobs[0].status === "failed", "a private replay is rejected with an explanation, and the failure is visible on the job");
+check(!r.ok && r.code === "visibility" && /Unlisted or Public/.test(r.message) && db.t.game_matches.length === 0 && db.t.import_jobs[0].status === "failed", "a private replay is rejected with an explanation, and the failure is visible on the job");
 db = fakeDb(); seed(db);
 r = await run(db, { details: async () => { throw Object.assign(new Error("x"), { code: "auth" }); }, ping: async () => true });
 check(r.code === "private" && db.t.game_matches.length === 0, "a replay Ballchasing will not release is explained as a visibility problem when the token itself works");
@@ -162,6 +162,103 @@ check(sm.smallSample === true, "fewer than five games is flagged as a small samp
 check(sm.team.games === 4 && sm.team.teamGoalsAgainst === 1 && Math.round(sm.team.yourShareOfTeamGoals) === Math.round((6 / (6 + 4)) * 100), "side totals and your share come from slot totals");
 check(summarizeRl([{ ...mk("12", "win", "custom", 1, 1), participants: undefined }], "all").team === null, "without stored slots there is simply no side context");
 check(summarizeRl([], "all") === null, "no games gives no summary");
+
+// =====================================================================================================================
+// Regression tests for the pilot fixes (2026-11-13). Platform values and id shapes are the ones seen in 600 real public replays:
+// epic (32 hex), steam (17 digits), ps4 (9 to 11 digits), psynet (16 hex), xbox (16 hex), and slots with no platform or id.
+// =====================================================================================================================
+const EPIC = "0123456789abcdef0123456789abcdef", STEAM = "76561198012345678", PS4 = "1234567890", PSYNET = "89abcdef01234567", XBOX = "2535412345678901";
+const mixed = (over = {}) => ({
+  id: ID, status: "ok", visibility: "public", date: "2026-11-12T14:47:12Z", play_duration: 349, overtime: false, team_size: 3,
+  playlist_id: "private", playlist_name: "Private Match", match_type: "Private", map_name: "Mannfield",
+  blue: { stats: { core: { goals: 3 } }, players: [P("epic", EPIC, "Epic Person", 2), P("steam", STEAM, "Steam Person", 1), P("ps4", PS4, "Ps Person", 0)] },
+  orange: { stats: { core: { goals: 1 } }, players: [P("psynet", PSYNET, "Psn Person", 1), P("xbox", XBOX, "Xbox Person", 0), P(undefined, undefined, "Bot Alpha", 0)] },
+  ...over,
+});
+const NAMES = ["Epic Person", "Steam Person", "Ps Person", "Psn Person", "Xbox Person", "Bot Alpha"];
+for (const [plat, id, slot] of [["epic", EPIC, 0], ["steam", STEAM, 1], ["ps4", PS4, 2], ["psynet", PSYNET, 3], ["xbox", XBOX, 4]]) {
+  const m = normalizeReplay(mixed(), { platform: plat, id });
+  check(m.ok && m.row.me.slot === slot && m.row.participants.length === 6, `${plat}: the player is matched to their own slot (${slot}) in a replay with every platform`);
+  check(m.ok && !NAMES.some((n) => JSON.stringify(m.row).includes(n)), `${plat}: no other player's name appears in the stored row`);
+}
+check(!normalizeReplay(mixed(), { platform: "ps4", id: PSYNET }).ok && !normalizeReplay(mixed(), { platform: "psynet", id: PS4 }).ok, "ps4 and psynet never match each other's ids");
+let nf = normalizeReplay(mixed(), { platform: "ps4", id: PSYNET });
+check(nf.reason === "not_in_replay" && nf.info.foundOnPlatform === "psynet" && /under the platform "psynet"/.test(messageFor("not_in_replay", nf.info)), "an id found under a different platform is explained, using only the submitter's own id");
+nf = normalizeReplay(mixed(), { platform: "steam", id: "76561198000000000" });
+check(nf.reason === "not_in_replay" && nf.info.slotsWithoutId === 1 && nf.info.totalSlots === 6 && /1 of 6 players in this replay have no ID recorded/.test(messageFor("not_in_replay", nf.info)) && /will not guess/.test(messageFor("not_in_replay", nf.info)), "a missing player id is explained with counts only, and Victress says it will not guess");
+check(!NAMES.some((n) => messageFor("not_in_replay", nf.info).includes(n)) && !messageFor("not_in_replay", nf.info).includes(EPIC), "the explanation names nobody and shows no other player's id");
+check(!normalizeReplay(mixed(), { platform: "", id: "" }).ok && !normalizeReplay(mixed(), { platform: "epic", id: "" }).ok, "an empty identity never matches the slot with no id");
+// identity parsing for every platform
+for (const [plat, id] of [["epic", EPIC], ["steam", STEAM], ["ps4", PS4], ["psynet", PSYNET], ["xbox", XBOX]]) {
+  const viaLink = parseIdentity("", `https://ballchasing.com/player/${plat}/${id}`);
+  check(viaLink.ok && viaLink.platform === plat && viaLink.id === id && viaLink.source === "link", `${plat}: a Ballchasing player link is accepted and keeps the platform exactly`);
+  const manual = parseIdentity(plat, id);
+  check(manual.ok && manual.platform === plat && manual.source === "manual", `${plat}: platform and id entered by hand are accepted`);
+}
+check(parseIdentity("", "ballchasing.com/player/ps5/987654321").platform === "ps5", "a platform Victress has never seen is accepted from a player link (extensible), as Ballchasing reports it");
+check(parseIdentity("", "https://ballchasing.com/player/Steam/" + STEAM).platform === "steam", "platform names from a link are case insensitive");
+check(parseIdentity("steam", "").reason === "empty" && parseIdentity("", STEAM).reason === "missing_platform", "no default platform: an id without a platform is refused until one is chosen");
+check(parseIdentity("steam", "SomeSteamName").reason === "steam_format" && /17 digits/.test(IDENTITY_MESSAGES.steam_format), "a Steam name instead of the id is explained");
+check(parseIdentity("epic", "MyEpicName").reason === "epic_format" && /32 letters and numbers/.test(IDENTITY_MESSAGES.epic_format), "an Epic display name instead of the id is explained");
+check(parseIdentity("", `https://ballchasing.com/replay/${ID}`).reason === "needs_player_link" && /player link/.test(IDENTITY_MESSAGES.needs_player_link), "a replay link pasted as the identity is explained");
+check(parseIdentity("", "https://ballchasing.com/player/not valid/x").ok === false, "a malformed player link is refused");
+check(PLATFORM_OPTIONS.map((o) => o.value).join() === "steam,epic,xbox,ps4,psynet,switch" && platformLabel("psynet") === "PlayStation Network (psynet)" && platformLabel("ps5") === "ps5", "the platform list includes psynet, and an unlisted platform still shows its own name");
+check(!/steam/i.test(IDENTITY_MESSAGES.missing_platform + IDENTITY_MESSAGES.empty + IDENTITY_MESSAGES.unknown_platform), "nothing in the identity prompts assumes Steam");
+
+// replay link messages
+for (const [input, reason, rx, label] of [
+  ["", "empty", /Paste a Ballchasing replay link/, "an empty box"],
+  [`https://ballchasing.com/group/abcd1234`, "group", /group link, not a single replay/, "a group link"],
+  [`https://ballchasing.com/player/steam/${STEAM}`, "player", /player link, not a replay/, "a player link"],
+  [`https://ballchasing.com/replay/not-a-valid-id`, "replay_id", /not valid/, "a broken replay id"],
+  [`https://example.com/replay/${ID}`, "not_ballchasing", /not a Ballchasing replay link/, "another website"],
+  [`http://ballchasing.com/replay/${ID}`, "not_ballchasing", /https:\/\/ballchasing\.com\/replay/, "plain http"],
+]) {
+  const pr = parseReplayRef(input);
+  check(!pr.ok && pr.reason === reason && rx.test(messageFor(reason)), `link message: ${label} gets its own explanation`);
+}
+check(/Unlisted or Public/.test(messageFor("private")) && /Edit/.test(messageFor("private")) && /Unlisted or Public/.test(messageFor("not_found")) && /private/.test(messageFor("not_found")), "private and missing replays both tell the player to set the replay to Unlisted or Public");
+check(/finished processing|could not process/.test(messageFor("not_ok")) && /unsupported or unfinished/.test(messageFor("bad_shape")), "unfinished and unsupported replays are explained");
+{
+  const d = fakeDb(); seed(d);
+  const rr = await run(d, okClient(mixed({ visibility: "private" })));
+  check(rr.code === "visibility" && /Unlisted or Public/.test(rr.message) && d.t.game_matches.length === 0, "a private replay: refused with the instruction, nothing stored");
+  const g = await run(d, okClient(), `https://ballchasing.com/group/xyz`);
+  check(g.code === "group" && d.t.import_jobs.length === 1, "a group link is refused before anything is read or recorded");
+  const unsup = await run(d, okClient(mixed({ status: "failed" })));
+  check(unsup.code === "not_ok" && d.t.game_matches.length === 0, "a replay Ballchasing failed to process is refused");
+  const dup = fakeDb(); dup.t.game_accounts.push({ id: "a", profile_id: U, game: "ROCKET_LEAGUE", provider: "rocket_league", platform: "psynet", external_id: PSYNET });
+  const okp = await run(dup, okClient(mixed({ visibility: "unlisted" })));
+  check(okp.ok && dup.t.game_matches[0].me.slot === 3, "an unlisted replay is accepted for a psynet player");
+  const again = await run(dup, okClient(mixed()));
+  check(again.code === "already" && dup.t.game_matches.length === 1, "the same replay again (now public) is still detected as a duplicate");
+}
+
+// deadline: a hung Ballchasing read must end in a clear failure, never a job stuck running
+{
+  const d = fakeDb(); seed(d);
+  const hung = { details: () => new Promise(() => {}), ping: async () => true };
+  const t0 = Date.now();
+  const hr = await runReplayImport({ admin: d, client: hung, deadlineMs: 120 }, U, `https://ballchasing.com/replay/${ID}`, { authorized: true, consent: true, via: "discord" });
+  check(!hr.ok && hr.code === "timeout" && /took too long/.test(hr.message) && Date.now() - t0 < 2000, "a hung Ballchasing read ends at the deadline with a clear message");
+  check(d.t.import_jobs.length === 1 && d.t.import_jobs[0].status === "failed" && d.t.import_jobs[0].error_code === "timeout" && d.t.game_matches.length === 0, "the job is closed as failed (timeout) and nothing is saved");
+  const late = fakeDb(); seed(late);
+  const slow = { details: () => new Promise((res) => setTimeout(() => res(replay()), 250)), ping: async () => true };
+  const lr = await runReplayImport({ admin: late, client: slow, deadlineMs: 100 }, U, `https://ballchasing.com/replay/${ID}`, { authorized: true, consent: true, via: "web" });
+  await new Promise((r) => setTimeout(r, 400));
+  check(lr.code === "timeout" && late.t.game_matches.length === 0 && late.t.import_jobs[0].status === "failed", "work that finishes after the deadline is discarded, so the player is never told two different things");
+}
+// abandoned jobs
+{
+  const d = fakeDb(); seed(d);
+  d.t.import_jobs.push({ id: "old", profile_id: U, provider: "ballchasing", status: "running", created_at: new Date(Date.now() - 4 * 60_000).toISOString() },
+    { id: "fresh", profile_id: U, provider: "ballchasing", status: "running", created_at: new Date(Date.now() - 30_000).toISOString() });
+  await sweepStaleJobs(d, U);
+  const by = Object.fromEntries(d.t.import_jobs.map((j) => [j.id, j.status]));
+  check(by.old === "failed" && by.fresh === "running" && d.t.import_jobs.find((j) => j.id === "old").error_code === "timeout", "a job abandoned for over 3 minutes is closed as failed; a fresh one is left alone");
+  const r3 = await run(d, okClient(), ID);
+  check(r3.code === "busy", "a genuinely running job still blocks a second submission");
+}
 
 // ---- limits
 db = fakeDb(); seed(db);

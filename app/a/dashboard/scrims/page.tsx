@@ -3,7 +3,7 @@ import { ScrimUploader, type UploadRow } from "@/components/app/ScrimUploader";
 import Link from "next/link";
 import { buttonClass } from "@/components/ui/Button";
 import { Section } from "@/components/ui/form";
-import { scrimUploadsEnabled } from "@/lib/dashboard";
+import { lolImportEnabled, scrimUploadsEnabled } from "@/lib/dashboard";
 import { loadMe } from "@/lib/me";
 import { privateMetadata } from "@/lib/seo";
 
@@ -36,7 +36,7 @@ export default async function ScrimsPage() {
         </Section>
       ) : null}
 
-      {enabled ? (
+      {enabled && lolImportEnabled() ? (
         <Section title="League of Legends" line="Import your match history through the Riot API. Private to you.">
           <Link href="/dashboard/scrims/lol" className={buttonClass("secondary")}>Open League of Legends imports</Link>
         </Section>

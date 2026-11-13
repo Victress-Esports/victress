@@ -17,6 +17,8 @@ export type Services = {
   newCode: () => string;
   hashCode: (code: string) => string;
   linkUrl: (appUrl: string, code: string) => string;
+  /** Closes submissions that were abandoned (their function was stopped) so they never show as processing forever. */
+  sweepStale: (userId: string) => Promise<void>;
   importReplay: (userId: string, link: string, o: { authorized: boolean; consent: boolean; via: "discord" }) => Promise<{ ok: boolean; message: string }>;
   summarize: (rows: unknown[], kind: string) => null | {
     games: number; wins: number; losses: number; winRate: number | null; smallSample: boolean;
@@ -26,7 +28,7 @@ export type Services = {
   };
 };
 
-const PLATFORM = { steam: "Steam", epic: "Epic Games", xbox: "Xbox", ps4: "PlayStation", switch: "Nintendo Switch" } as Record<string, string>;
+const PLATFORM = { steam: "Steam", epic: "Epic Games", xbox: "Xbox", ps4: "PlayStation (numeric ID)", psynet: "PlayStation Network", switch: "Nintendo Switch" } as Record<string, string>;
 const masked = (id: string) => (id.length <= 6 ? id : `${id.slice(0, 3)}…${id.slice(-3)}`);
 const one = (n: number | null) => (n === null ? "n/a" : n.toFixed(1));
 
@@ -99,7 +101,7 @@ async function profile(discordId: string, s: Services) {
     "**Your Victress profile** (only you can see this message)",
     `Account: ${p?.display_name ? `${p.display_name}, ` : ""}${p?.handle ? `victress.gg/${p.handle}` : "linked"}`,
     `Team: ${team}`,
-    `Rocket League ID: ${rl ? `${PLATFORM[rl.platform] ?? rl.platform}, ${masked(rl.external_id)}` : "not added yet (add it on the Rocket League page in your dashboard)"}`,
+    `Rocket League ID: ${rl ? `${PLATFORM[rl.platform] ?? rl.platform}, ${masked(rl.external_id)}` : "not added yet. On the Rocket League page in your dashboard, paste your Ballchasing player link (easiest) or choose your platform and enter your ID."}`,
     `Saved Rocket League games: ${count ?? 0}`,
     "Linking does not make your profile or numbers visible to anyone. Visibility stays in your privacy settings on Victress.",
   ].join("\n"));
@@ -143,11 +145,12 @@ async function status(discordId: string, s: Services) {
   if (!pid) return reply("Link your Victress account first with `/link`.");
   const stop = await blocked(pid, s, true);
   if (stop) return stop;
+  await s.sweepStale(pid); // an abandoned submission is closed as failed instead of showing as processing forever
   const { data } = await s.admin.from("import_jobs").select("status, error_message, external_ref, submitted_via, created_at").eq("profile_id", pid).eq("game", "ROCKET_LEAGUE").order("created_at", { ascending: false }).limit(5);
   if (!data?.length) return reply("You have not submitted any Rocket League replays yet. Use `/scrim submit`.");
   const lines = data.map((j: { status: string; error_message: string | null; external_ref: string | null; created_at: string }) => {
     const when = new Date(j.created_at).toISOString().slice(0, 16).replace("T", " ") + " UTC";
-    const state = j.status === "succeeded" ? "saved" : j.status === "failed" ? "not saved" : "processing";
+    const state = j.status === "succeeded" ? "saved" : j.status === "failed" ? "not saved" : "still processing (give it a minute)";
     return `• ${when}: ${state}${j.status === "failed" && j.error_message ? ` (${j.error_message})` : ""}\n  ballchasing.com/replay/${j.external_ref ?? ""}`;
   });
   return reply(["**Your latest submissions** (only you can see this)", ...lines].join("\n"));
