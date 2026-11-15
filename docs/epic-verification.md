@@ -45,7 +45,7 @@ Also needed (already exist): `SCRIM_UPLOADS_ENABLED=true`, `BALLCHASING_API_TOKE
 2. Product Settings, Clients tab: add a client. Pick a Client Policy that requires an authenticated user (GameClient is the predefined one for untrusted client software). Copy the Client ID and Client Secret straight into Vercel.
 3. Same client, Edit: add the redirect URL(s) above.
 4. Epic Online Services, Accounts and Social, **Epic Account Services**: accept the agreement, then create the application.
-5. **Brand Settings** (founder decision 2026-11-15): company name Victress LLC, logo the Victress wings emblem, website `https://victress.gg`, privacy policy `https://victressesports.com/privacy`, support `https://victressesports.com/contact`. **Brand review submission is ON HOLD** until the release is deployed and the final policy is approved.
+5. **Brand Settings**: website `https://victress.gg`, privacy policy `https://victressesports.com/privacy`, support `https://victressesports.com/contact`. **Brand review submitted**, case `500QP00001tKTKIYA4` (2026-11-15). Until the release, that privacy URL shows the November 10 policy, which does not mention Epic.
 6. Brand review: until Epic approves the brand settings, only accounts inside your Epic organization can sign in. That is enough for your own staging test with your own Epic account. Submit for review only when you decide to open it to pilot players.
 
 ## Tests (local)
