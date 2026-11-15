@@ -15,6 +15,8 @@ export const PERSONAS = {
   scout: { n: 3, label: "Recruiter or scout", note: "Account type recruiter. Plan is still Rookie: Scout Desk stays locked", account_type: "recruiter", onboarded: true },
   partner: { n: 5, label: "Approved design partner", note: "On the upload allowlist (uploads still need the flag on)", account_type: "player", onboarded: true, allowlisted: true },
   oldterms: { n: 6, label: "Terms changed", note: "Onboarded, accepted an older Terms and Privacy version: must accept again", account_type: "player", onboarded: true, oldTerms: true },
+  nov10: { n: 8, label: "Accepted the live documents", note: "Accepted Terms and Privacy of November 10, 2026 (what production shows now): must accept the new Privacy Policy", account_type: "player", onboarded: true, versions: { terms: "2026-11-10", privacy: "2026-11-10" } },
+  noconsent: { n: 9, label: "No consent tables", note: "A database without migration 20261110000100, like production today: the gate must stay shut", account_type: "player", onboarded: true, missingConsent: true },
   soloteam: { n: 7, label: "Solo team owner", note: "Owns a team with no other players", account_type: "team", onboarded: true },
   new: { n: 4, label: "New user", note: "Not onboarded yet: starts at the account type step", account_type: undefined, onboarded: false },
 };
@@ -64,10 +66,11 @@ function seed(key) {
   // Everyone except the new user has confirmed their age and accepted the current documents (the oldterms persona an older version).
   if (key !== "new") {
     T.age_confirmations.push({ profile_id: uid, birth_date: "2000-01-01", confirmed_at: now() });
-    for (const document of ["terms", "privacy"]) T.legal_acceptances.push({ id: randomUUID(), profile_id: uid, document, version: p.oldTerms ? "2026-01-01" : CURRENT_VERSIONS[document], accepted_at: now() });
+    for (const document of ["terms", "privacy"]) T.legal_acceptances.push({ id: randomUUID(), profile_id: uid, document, version: p.oldTerms ? "2026-01-01" : p.versions?.[document] ?? CURRENT_VERSIONS[document], accepted_at: now() });
   }
   const meta = { ...(p.onboarded ? { onboarded: true } : {}), ...(p.account_type ? { account_type: p.account_type } : {}) };
   const user = { id: uid, aud: "authenticated", role: "authenticated", email: `${key}@example.invalid`, app_metadata: { provider: "email" }, user_metadata: meta, created_at: now() };
+  if (p.missingConsent) { delete T.age_confirmations; delete T.legal_acceptances; } // PostgREST answers PGRST205, as for an unapplied migration
   state = { persona: key, user, tables: T, files: new Map(), allowlisted: !!p.allowlisted };
 }
 

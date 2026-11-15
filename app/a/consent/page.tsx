@@ -12,7 +12,19 @@ export const metadata: Metadata = privateMetadata("Terms and Privacy | Victress"
 export default async function Consent() {
   const { sb, user } = await requireUser({ gate: false });
   const { status, returning } = await consentStatus(sb, user.id);
-  if (status === "ok" || status === "unavailable") redirect("/dashboard");
+  if (status === "ok") redirect("/dashboard");
+  if (status === "unavailable") {
+    // Fail closed: without the consent records Victress cannot know whether the current documents were accepted.
+    return (
+      <main id="main" className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-8 px-4 py-16">
+        <Logo href="/" />
+        <div>
+          <h1 className="font-display text-4xl font-bold leading-tight">Victress is finishing an update.</h1>
+          <p className="mt-3 text-mute">Your account is safe. Please try again in a few minutes.</p>
+        </div>
+      </main>
+    );
+  }
   const askAge = status === "needs_age";
 
   return (

@@ -148,7 +148,7 @@ const core = readFileSync("lib/epic/core.ts", "utf8").replace(/\/\/.*$/gm, "");
 check(!/console\./.test(core) && !/refresh_token/.test(core) && !/\.dn\b|displayName|display_name/.test(core), "core: no logging, no refresh token use, the display name is never read");
 check(E.EPIC_SCOPE === "basic_profile" && !/friends_list|presence|country/.test(core), "the only scope is basic_profile; friends, presence and country are never requested");
 const policy = readFileSync("content/legal.ts", "utf8");
-check(/PENDING LEGAL REVIEW/.test(policy), "the policy source is still marked pending legal review");
+check(/PENDING LEGAL REVIEW/.test(policy) && /notice: "This policy is pending legal review/.test(policy), "the policy is still marked pending legal review, in the source and on the page");
 
 // ------------------------------------------------------------ messages
 const all = Object.values(E.EPIC_MESSAGES).join(" ");

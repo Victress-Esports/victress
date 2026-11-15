@@ -19,6 +19,8 @@ export interface LegalSection {
 export interface LegalDoc {
   title: string;
   updated: string;
+  /** A short status line under the date, such as a pending legal review notice. */
+  notice?: string;
   intro: string;
   sections: LegalSection[];
 }
@@ -28,6 +30,8 @@ const UPDATED = "Effective November 7, 2026"; // refunds page: not a tracked acc
 export const privacyDoc: LegalDoc = {
   title: "Privacy",
   updated: effectiveLabel(LEGAL_VERSIONS.privacy),
+  // Remove only when counsel review is complete (CLAUDE.md: legal text stays labeled as pending legal review).
+  notice: "This policy is pending legal review. It describes how Victress works today, and we will update it if the review changes anything.",
   intro:
     "This page explains what Victress collects, why, who sees it and how you control it. Victress is an esports player development and recruitment platform run by Victress LLC. We keep it plain and describe how information is handled across the Victress website, platform and integrations, including Victress Scrim Intelligence, the Discord application run by Victress LLC (called the Discord integration on this page).",
   sections: [
@@ -45,6 +49,9 @@ export const privacyDoc: LegalDoc = {
         "Rocket League ID: if you use Rocket League replay import, the platform and player ID you enter. It is used only to find your own numbers in a replay you submit. Only you can see it, and Victress does not verify that it belongs to you, unless you verify an Epic Games account as described next.",
         "Epic Games account verification: when this option is available to you and you choose to verify an Epic Games account for Rocket League, you sign in on the Epic Games website and Epic sends Victress your Epic Account ID and temporary sign in tokens. Victress uses the tokens only to confirm that sign in with Epic and does not keep them. Victress saves your Epic Account ID with your Victress account as your Rocket League ID, marked as verified with the time you verified it, which is the information needed to associate your Epic account with your Victress account and to find your own numbers in replays you submit. Epic may include your Epic display name in what it sends; Victress does not read or keep it. Victress asks Epic only for basic profile access, the minimum Epic requires, and does not access your Epic friends list, online presence, country or game activity. Your Epic Account ID is not sent to Ballchasing or any other service. Verifying an Epic Games account does not sign you in to Victress or change how you sign in.",
         "Rocket League replays you submit: when you submit a Ballchasing replay link, Victress reads that replay from Ballchasing and saves your own numbers from it, such as goals, assists, saves, boost, speed and positioning, along with the result and basic facts about the match. Other players in the replay are not named or identified, and their numbers are kept only as anonymous entries. The replay file itself stays at Ballchasing.",
+        "Team scrims: if you are on a team and choose to add a Rocket League replay to your team's scrims (it is off unless you choose it), Victress saves for that team: the date, length and type of match, your side, the result and score, your side's totals and the other side's totals (goals, assists, saves, shots and score), an optional opponent label typed by the person submitting it, who submitted it and how (website or Discord), and the replay's Ballchasing ID. Players in the replay are not named or identified, and no other player's name or platform ID is saved.",
+        "Sharing your numbers with your team: off by default. If you turn it on, your own goals, assists, saves, shots and score in team scrims submitted while it is on are saved as your line for that team.",
+        "Product events: a short record of key steps in your account: completing registration, linking Discord, saving a game ID, creating or joining a team, submitting a first or later scrim and a scrim finishing processing. Each has the time and, where known, how you arrived (website, Discord, email, Google or an invite), a referral code from the link you used, and the game. Events contain no match numbers, replay or match IDs, game IDs, names, email addresses, IP addresses or page history. They are stored in the Victress database and are not sent to any analytics or advertising service.",
         "Your submissions: for each replay you submit, the replay link, the time, whether it came from the website or Discord, whether it worked, and that you confirmed you may submit it and agreed to this processing.",
         "Practice files: if you are approved as a design partner and upload a demo or replay file, it is stored privately with the file name and size.",
         "Game stats from earlier versions: earlier versions of Victress let players enter game stats. We still hold what was entered. We do not show it to anyone.",
@@ -66,6 +73,8 @@ export const privacyDoc: LegalDoc = {
         "To respond to Discord commands and provide team, scrim and match workflows.",
         "To process submitted match information and generate performance insights.",
         "To read the Rocket League replays you submit and show you your own numbers, privately.",
+        "To show your team the scrims it chose to save, and a teammate's numbers only when that teammate has chosen to share them.",
+        "To understand, from product events, whether people are able to complete key steps, so we can improve Victress.",
         "To confirm an Epic Games account you choose to verify, and to match you in replays by its Epic Account ID only, never by name.",
         "To send you emails you need, such as sign in links, a welcome message and a confirmation that we received a form.",
         "To keep Victress working, safe and fair, including handling reports of abuse.",
@@ -99,6 +108,8 @@ export const privacyDoc: LegalDoc = {
         "If you upload a profile photo, it is stored in a place where anyone who has the exact address of the photo can open it. Choose a photo you are comfortable with.",
         "We do not show contact details or private identity to anyone without your consent. Victress does not let people message you.",
         "Connecting a Discord account, joining a team, or submitting a scrim does not automatically make your Victress profile public. Your profile visibility and sharing choices remain separate.",
+        "Team scrims can be seen only by the current members of that team. Your line can be seen by your teammates only while you are on the team and sharing is on. If showing teammates' lines would let someone work out the numbers of a teammate who is not sharing, those lines are not shown.",
+        "Team scrims, team lines, your Rocket League games and product events are never shown on public profiles, private sharing links, search results or Scout Desk. Scouts and recruiters cannot see them. Other players cannot see your product events; you can download your own with your data from your account page.",
       ],
     },
     {
@@ -118,6 +129,7 @@ export const privacyDoc: LegalDoc = {
       p: [
         "You can change your profile, privacy choices and links in your dashboard at any time.",
         "You can delete a saved Rocket League game, or all of your Rocket League data, from the Rocket League page in your dashboard at any time.",
+        "You can turn sharing your numbers with your team on or off on the Team scrims page. Turning it off, leaving the team or being removed from it deletes your lines from that team's scrims. The team owner, or the person who submitted a team scrim, can remove it.",
         "You can remove a verified Epic Games account by deleting all of your Rocket League data from the Rocket League page in your dashboard, or by deleting your account.",
         "You can disconnect an authorized Discord connection or stop using the Discord integration. A team administrator can remove the integration from their server. Disconnecting an integration does not necessarily delete information already stored in Victress.",
         `To see your data, correct it, or delete your account, use the account controls when available or email ${PRIVACY_EMAIL} from the address on your account. We delete your account, profile, team membership and uploaded files, subject to any limited retention required by law or reasonably necessary to prevent abuse. We confirm account deletion by email. We act on requests as quickly as we can and no later than 30 days.`,
@@ -135,6 +147,9 @@ export const privacyDoc: LegalDoc = {
         "Scrim and match information: for as long as it is needed to provide team and player features, maintain match history and performance records, or meet legal and security requirements. Deletion of a personal account does not necessarily mean that every team match record is deleted.",
         "Uploaded practice files: until you delete them or your account, subject to any applicable retention requirements.",
         "Rocket League ID, saved games and submission history: until you delete a game, delete all of your Rocket League data from the Rocket League page in your dashboard, or delete your account. Deleting your Rocket League data also deletes the submission history and your saved ID.",
+        "Team scrims: while the team exists, until the team owner or the person who submitted one removes it. A team scrim stays with the team when a player leaves or deletes their account, and its side totals are not separated by player. If the person who submitted it deletes their account, the scrim no longer records who submitted it.",
+        "Your lines in team scrims: until you turn sharing off, leave or are removed from the team, the scrim or team is removed, or you delete your account.",
+        "Product events: until you delete your account.",
         "Epic Games verification: your Epic Account ID is kept as your saved Rocket League ID, as described above. Sign in tokens from Epic are used once and not kept.",
         "Waitlist emails: until you ask us to remove them or we have contacted you about the plan.",
         "Messages sent through our forms: in our email inbox for as long as we need them to reply and keep records.",

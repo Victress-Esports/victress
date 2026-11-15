@@ -54,6 +54,7 @@ for (const width of [1280, 390]) {
     const t = a.doc.text;
     check(/Epic Account ID/.test(t) && /does not read or keep it/.test(t) && /does not access your Epic friends list, online presence, country or game activity/.test(t) && /does not sign you in to Victress/.test(t), "the Epic Games disclosure says what is received, kept and not accessed");
     check(/Epic Games processes information under its own terms and privacy policy/.test(t) && t.indexOf("Epic Games: only if") > t.indexOf("Google: only if"), "Epic Games is listed with the other services, after Discord and Google");
+    check(/This policy is pending legal review/.test(t) && /This policy is pending legal review/.test(m.doc.text), "both pages show the pending legal review notice");
     check(/Discord integration/.test(t) && /Team level processing and individual consent are separate/.test(t) && /no later than 30 days/.test(t) && /No system is perfectly secure/.test(t), "existing Discord, consent, deletion and security text is intact");
   }
   await a.ctx.close(); await m.ctx.close();

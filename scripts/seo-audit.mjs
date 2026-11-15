@@ -457,6 +457,8 @@ console.log("\n######## STATUS WORDING, SELF-ENTERED STATS AND THE HOME HERO ###
   // content/pricing.ts holds founder approved verbatim plan text that still says "Track your stats, share your progress" and "share it with teams".
   // It is reported below as a known conflict and not edited without approval.
   const KNOWN_PRICING = /Track your stats, share your progress[^.]*\.|share it with teams/gi;
+  // Founder decision 2026-11-15: the Privacy Policy shows this exact pending legal review notice (content/legal.ts). Allowed on /privacy only.
+  const LEGAL_NOTICE = "This policy is pending legal review. It describes how Victress works today, and we will update it if the review changes anything.";
   const visibleText = (html) => decode(html.replace(/<(script|style)[\s\S]*?<\/\1>/g, " ").replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ");
   const sources = [];
   for (const host of [MARKETING, APP]) {
@@ -467,7 +469,8 @@ console.log("\n######## STATUS WORDING, SELF-ENTERED STATS AND THE HOME HERO ###
   for (const [label, html] of [...sources, ["llms.txt", llmsBody]]) {
     const raw = label === "llms.txt" ? llmsBody : visibleText(html);
     if (/pricing/.test(label)) knownPricing += (raw.match(KNOWN_PRICING) ?? []).length;
-    const text = raw.replace(KNOWN_PRICING, " ");
+    const text = (/\/privacy$/.test(label) ? raw.split(LEGAL_NOTICE).join(" ") : raw).replace(KNOWN_PRICING, " ");
+    if (/\/privacy$/.test(label)) ok(raw.includes(LEGAL_NOTICE), `${label} is missing the pending legal review notice`);
     const jsonld = label === "llms.txt" ? "" : [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => m[1]).join(" ").replace(/"slogan":"[^"]*"/g, "");
     for (const re of FORBIDDEN) ok(!re.test(text) && !re.test(jsonld), `${label} contains status wording ${re}`);
     for (const re of STATS) ok(!re.test(text) && !re.test(jsonld), `${label} mentions stats players enter ${re}`);

@@ -10,6 +10,7 @@ export function LegalPage({ doc, crumb, path, breadcrumbs = true }: { doc: Legal
       {breadcrumbs ? <JsonLd data={marketingCrumbs(crumb, path)} /> : null}
       <h1 className="font-display text-5xl font-bold">{doc.title}</h1>
       <p className="mt-3 text-sm text-mute">{doc.updated}</p>
+      {doc.notice ? <p className="mt-2 text-sm text-mute">{doc.notice}</p> : null}
       <p className="mt-8 text-lg text-mute">{doc.intro}</p>
       {doc.sections.map((s, i) => (
         <section key={s.h} aria-labelledby={`s${i}`} className="mt-10">
