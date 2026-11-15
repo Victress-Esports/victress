@@ -2,7 +2,9 @@ import { after } from "next/server";
 import { ballchasingClient } from "@/lib/ballchasing";
 import { runReplayImport, sweepStaleJobs } from "@/lib/ballchasing/rl";
 import { summarizeRl } from "@/lib/ballchasing/summary";
-import { sharingMembers, teamScrimFromReplay } from "@/lib/ballchasing/team";
+import { sharingMembers, snapshotSlots, teamScrimFromReplay } from "@/lib/ballchasing/team";
+import { claimKeyFn } from "@/lib/claim";
+import { APP_URL, appUrl as appLink } from "@/lib/urls";
 import { recordEvent } from "@/lib/events";
 import { scrimUploadsEnabled } from "@/lib/dashboard";
 import { LEGAL_VERSIONS } from "@/content/legal-versions";
@@ -73,16 +75,18 @@ export async function POST(req: Request) {
           if (!admin) return { content: "This is not available right now. Try again later.", flags: 64, allowed_mentions: { parse: [] as string[] } };
           const bc = ballchasingClient();
           return runDeferred(interaction, {
-            admin, appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "https://victress.gg", pilotOpen: scrimUploadsEnabled(),
+            admin, appUrl: APP_URL, pilotOpen: scrimUploadsEnabled(),
             consentOk: async (profileId) => {
               const { data, error } = await admin.rpc("discord_consent_current", { p_profile: profileId, p_terms: LEGAL_VERSIONS.terms, p_privacy: LEGAL_VERSIONS.privacy });
               return !error && data === true;
             },
             sweepStale: (userId) => sweepStaleJobs(admin, userId),
-            newCode: newLinkCode, hashCode: hashLinkCode, linkUrl,
+            newCode: newLinkCode, hashCode: hashLinkCode,
+            // Same address as before in production; on a Preview it goes through the /__site/app hop so it opens the application.
+            linkUrl: (_base: string, code: string) => appLink(linkUrl("", code)),
             importReplay: async (userId, link, o) =>
               bc
-                ? runReplayImport({ admin, client: bc, team: { build: teamScrimFromReplay, members: sharingMembers }, track: (u, n, p) => recordEvent(u, n, p, admin) }, userId, link, o)
+                ? runReplayImport({ admin, client: bc, team: { build: teamScrimFromReplay, members: sharingMembers, snapshots: { slots: snapshotSlots, key: claimKeyFn() } }, claimUrl: appLink("/claim"), track: (u, n, p) => recordEvent(u, n, p, admin) }, userId, link, o)
                 : { ok: false, message: "Rocket League replay import is not configured on this server yet." },
             summarize: (rows, kind) => summarizeRl(rows as never, kind),
           });

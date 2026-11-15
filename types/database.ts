@@ -152,6 +152,13 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      rl_snapshots: {
+        // identity_key and claimed_by are not readable by players (column grants); the server reads them with the service role.
+        Row: { id: string; replay_id: string; played_at: string; duration_seconds: number; queue_kind: "ranked" | "normal" | "custom" | "other"; result: "win" | "loss" | "no_result"; goals_for: number; goals_against: number; overtime: boolean; stats: Record<string, number>; claimed_at: string | null; claimed_by: string | null };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       team_stat_sharing: {
         Row: { game: "ROCKET_LEAGUE"; granted_at: string; profile_id: string; team_id: string };
         Insert: never;
@@ -241,6 +248,8 @@ export type Database = {
       };
       leave_team: { Args: Record<string, never>; Returns: string };
       set_team_stat_sharing: { Args: { p_on: boolean }; Returns: string };
+      claim_rl_snapshots: { Args: { p_profile: string; p_key: string }; Returns: number };
+      record_rl_snapshots: { Args: { p_scrim: string; p_submitter: string; p: unknown }; Returns: number };
       metrics_are_valid: { Args: { m: Json }; Returns: boolean };
       regenerate_invite_code: { Args: Record<string, never>; Returns: string | null };
       remove_team_member: { Args: { p_profile: string }; Returns: string };

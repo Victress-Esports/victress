@@ -3,7 +3,7 @@ import { z } from "zod";
 export const RESERVED_HANDLES = [
   "admin", "api", "login", "app", "www", "support", "victress",
   // other routes and obvious impersonation targets
-  "dashboard", "onboarding", "join", "settings", "pricing", "teams", "team", "about", "privacy", "terms",
+  "dashboard", "onboarding", "join", "settings", "claim", "pricing", "teams", "team", "about", "privacy", "terms",
   "staff", "help", "mod", "moderator", "official", "root", "null", "undefined", "auth",
   "leaderboard", "leaderboards", "games", "stats", "profile", "profiles", "signup", "logout",
 ];

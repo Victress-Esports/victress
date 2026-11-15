@@ -6,8 +6,11 @@ import type { Result } from "@/app/a/dashboard/actions";
 import { requireUser } from "@/lib/auth";
 import { ballchasingClient } from "@/lib/ballchasing";
 import { IDENTITY_MESSAGES, parseIdentity, runReplayImport } from "@/lib/ballchasing/rl";
-import { sharingMembers, teamScrimFromReplay } from "@/lib/ballchasing/team";
+import { sharingMembers, snapshotSlots, teamScrimFromReplay } from "@/lib/ballchasing/team";
+import { claimKeyFn } from "@/lib/claim";
+import { appUrl } from "@/lib/urls";
 import { scrimUploadsEnabled } from "@/lib/dashboard";
+import { isMissingTable } from "@/lib/db-errors";
 import { recordEvent } from "@/lib/events";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
@@ -64,7 +67,7 @@ export async function submitReplayAction(input: z.input<typeof submitSchema>): P
   const client = ballchasingClient();
   if (!admin || !client) return fail("Rocket League replay import is not configured on this server yet.");
   const r = await runReplayImport(
-    { admin, client, team: { build: teamScrimFromReplay, members: sharingMembers }, track: (u, n, pr) => recordEvent(u, n, pr, admin) },
+    { admin, client, team: { build: teamScrimFromReplay, members: sharingMembers, snapshots: { slots: snapshotSlots, key: claimKeyFn() } }, claimUrl: appUrl("/claim"), track: (u, n, pr) => recordEvent(u, n, pr, admin) },
     g.user.id, p.data.link,
     { authorized: p.data.authorized, consent: p.data.consent, via: "web", forTeam: p.data.forTeam === true, opponent: p.data.opponent },
   );
@@ -78,9 +81,12 @@ export async function deleteRlDataAction(): Promise<Result> {
   const { sb, user } = await requireUser();
   const j = await sb.from("import_jobs").delete().eq("profile_id", user.id).eq("game", "ROCKET_LEAGUE");
   const a = await sb.from("game_accounts").delete().eq("profile_id", user.id).eq("game", "ROCKET_LEAGUE"); // also removes the games (cascade)
+  // Claimed snapshots are Rocket League data too (row level security limits this to the player's own). Absent table: nothing to delete.
+  const s = await sb.from("rl_snapshots").delete().gte("played_at", "1900-01-01");
+  if (s.error && !isMissingTable(s.error)) return fail("Couldn't delete everything. Try again.");
   if (a.error || j.error) return fail("Couldn't delete everything. Try again.");
   revalidatePath(PAGE);
-  return { ok: true, message: "Deleted your saved Rocket League ID, games and submission history." };
+  return { ok: true, message: "Deleted your saved Rocket League ID, games, claimed snapshots and submission history." };
 }
 
 export async function deleteRlMatchAction(id: string): Promise<Result> {

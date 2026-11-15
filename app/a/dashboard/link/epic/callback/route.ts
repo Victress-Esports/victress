@@ -4,9 +4,9 @@ import { scrimUploadsEnabled } from "@/lib/dashboard";
 import { EPIC_COOKIE_PATH, EPIC_STATE_COOKIE, epicServerConfig, saveVerifiedEpic, verifyEpicCallback } from "@/lib/epic";
 import { recordEvent } from "@/lib/events";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { VERIFY_NEXT_COOKIE, verifyDestination } from "@/lib/verify-return";
 
 export const maxDuration = 30;
-const PAGE = "/dashboard/scrims/rocket-league";
 
 /**
  * Epic redirects here with ?code&state. The state cookie must match this signed in player. The Epic Account ID comes from Epic's token
@@ -21,9 +21,11 @@ export async function GET(req: NextRequest) {
   if (approved !== true) return new NextResponse(null, { status: 404 });
 
   const q = req.nextUrl.searchParams;
+  const dest = verifyDestination(req.cookies.get(VERIFY_NEXT_COOKIE)?.value);
   const done = (params: Record<string, string>) => {
-    const res = NextResponse.redirect(new URL(`${PAGE}?${new URLSearchParams(params)}`, new URL(cfg.redirectUri).origin));
+    const res = NextResponse.redirect(new URL(`${dest}?${new URLSearchParams(params)}`, new URL(cfg.redirectUri).origin));
     res.cookies.set(EPIC_STATE_COOKIE, "", { httpOnly: true, secure: true, sameSite: "lax", path: EPIC_COOKIE_PATH, maxAge: 0 });
+    res.cookies.set(VERIFY_NEXT_COOKIE, "", { httpOnly: true, secure: true, sameSite: "lax", path: "/dashboard/link", maxAge: 0 });
     res.headers.set("Cache-Control", "no-store");
     return res;
   };

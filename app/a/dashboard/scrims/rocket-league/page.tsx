@@ -10,6 +10,7 @@ import { RL_DATA_LABEL, platformLabel } from "@/lib/ballchasing/rl";
 import { summarizeRl, type RlRow } from "@/lib/ballchasing/summary";
 import { scrimUploadsEnabled } from "@/lib/dashboard";
 import { EPIC_MESSAGES, epicEnabled } from "@/lib/epic";
+import { STEAM_MESSAGES, steamEnabled } from "@/lib/steam";
 import { privateMetadata } from "@/lib/seo";
 
 export const maxDuration = 60;
@@ -23,7 +24,7 @@ const maskedId = (id: string) => (id.length <= 6 ? id : `${id.slice(0, 3)}…${i
 
 type MatchRow = RlRow & { id: string; queue_label: string | null; objectives: { blue_goals?: number; orange_goals?: number; overtime?: boolean; map?: string | null } };
 
-export default async function RocketLeaguePage({ searchParams }: { searchParams: Promise<{ kind?: string; epic?: string }> }) {
+export default async function RocketLeaguePage({ searchParams }: { searchParams: Promise<{ kind?: string; epic?: string; steam?: string }> }) {
   const { sb, user } = await requireUser();
   if (!scrimUploadsEnabled()) notFound();
   const { data: approved } = await sb.rpc("upload_allowed");
@@ -45,7 +46,9 @@ export default async function RocketLeaguePage({ searchParams }: { searchParams:
   const configured = ballchasingClient() !== null;
   const epicOn = epicEnabled();
   const verified = acct?.ownership_verified === true; // for Rocket League, true only with an Epic verification (database rule)
-  const epicNote = epicOn && sp.epic && sp.epic in EPIC_MESSAGES ? EPIC_MESSAGES[sp.epic as keyof typeof EPIC_MESSAGES] : null;
+  const steamOn = steamEnabled();
+  const epicNote = epicOn && sp.epic && sp.epic in EPIC_MESSAGES ? EPIC_MESSAGES[sp.epic as keyof typeof EPIC_MESSAGES]
+    : steamOn && sp.steam && sp.steam in STEAM_MESSAGES ? STEAM_MESSAGES[sp.steam as keyof typeof STEAM_MESSAGES] : null;
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
@@ -56,7 +59,7 @@ export default async function RocketLeaguePage({ searchParams }: { searchParams:
         <p className="mt-3 flex flex-wrap items-center gap-3 text-sm text-mute"><ProvenanceTag source="api" /> {RL_DATA_LABEL}. Nothing here is typed in.</p>
       </div>
 
-      <Section title="Your Rocket League ID" line={acct ? (verified ? `${platformLabel(acct.platform)}, ${maskedId(acct.external_id)}. Verified by signing in with Epic Games. Only you can see this.` : `${platformLabel(acct.platform)}, ${maskedId(acct.external_id)}. Only you can see this. Victress does not verify that it is yours.`) : "Needed once, so Victress can find your own numbers in a replay. Any platform works: Steam, Epic Games, PlayStation, Xbox or Switch. Only you can see it, and Victress does not verify that it is yours."}>
+      <Section title="Your Rocket League ID" line={acct ? (verified ? `${platformLabel(acct.platform)}, ${maskedId(acct.external_id)}. Verified by signing in with ${acct.platform === "steam" ? "Steam" : "Epic Games"}. Only you can see this.` : `${platformLabel(acct.platform)}, ${maskedId(acct.external_id)}. Only you can see this. Victress does not verify that it is yours.`) : "Needed once, so Victress can find your own numbers in a replay. Any platform works: Steam, Epic Games, PlayStation, Xbox or Switch. Only you can see it, and Victress does not verify that it is yours."}>
         {epicNote ? (
           <div role="status" className="mb-4 rounded-xl border border-line bg-surface-2 px-4 py-3 text-sm">
             <p>{epicNote}</p>
@@ -71,6 +74,12 @@ export default async function RocketLeaguePage({ searchParams }: { searchParams:
           <div className="mt-4 rounded-xl border border-line px-4 py-3 text-sm">
             <p className="text-mute">Play on Epic Games? Sign in with Epic instead of typing an ID. Victress keeps only your Epic account ID and uses it to find you in replays, by that ID only. Signing in with Epic does not sign you in to Victress.</p>
             <a href="/dashboard/link/epic/start" className="mt-3 inline-flex min-h-11 items-center rounded-full border border-white px-4 font-semibold text-white">Verify with Epic Games</a>
+          </div>
+        ) : null}
+        {steamOn && !verified ? (
+          <div className="mt-4 rounded-xl border border-line px-4 py-3 text-sm">
+            <p className="text-mute">Play on Steam? Sign in through Steam to verify your SteamID. Victress keeps only your SteamID and uses it to find you in replays, by that ID only. Signing in through Steam does not sign you in to Victress.</p>
+            <a href="/dashboard/link/steam/start" className="mt-3 inline-flex min-h-11 items-center rounded-full border border-white px-4 font-semibold text-white">Verify with Steam</a>
           </div>
         ) : null}
       </Section>

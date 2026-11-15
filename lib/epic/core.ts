@@ -134,13 +134,21 @@ type Admin = {
  */
 export async function saveVerifiedEpic(admin: Admin, profileId: string, accountId: string, now = new Date()): Promise<SaveOutcome> {
   if (!EPIC_ACCOUNT_ID.test(accountId)) return "error";
-  const verified = { platform: "epic", external_id: accountId, ownership_verified: true, verified_via: "epic_oauth", verified_at: now.toISOString() };
-  const { data: other } = await admin.from("game_accounts").select("profile_id").eq("game", "ROCKET_LEAGUE").eq("platform", "epic").eq("external_id", accountId).eq("ownership_verified", true).maybeSingle();
+  return saveVerifiedIdentity(admin, profileId, { platform: "epic", id: accountId, via: "epic_oauth" }, now);
+}
+
+/**
+ * Saves a verified game identity (Epic sign in or Steam sign in) as the player's Rocket League identity. The same rules for every
+ * provider: one identity per player; an identity with saved games is never swapped for another; one verified account per Victress account.
+ */
+export async function saveVerifiedIdentity(admin: Admin, profileId: string, who: { platform: "epic" | "steam"; id: string; via: "epic_oauth" | "steam_openid" }, now = new Date()): Promise<SaveOutcome> {
+  const verified = { platform: who.platform, external_id: who.id, ownership_verified: true, verified_via: who.via, verified_at: now.toISOString() };
+  const { data: other } = await admin.from("game_accounts").select("profile_id").eq("game", "ROCKET_LEAGUE").eq("platform", who.platform).eq("external_id", who.id).eq("ownership_verified", true).maybeSingle();
   if (other && other.profile_id !== profileId) return "taken";
   const { data: cur, error: readErr } = await admin.from("game_accounts").select("id, platform, external_id, ownership_verified").eq("profile_id", profileId).eq("game", "ROCKET_LEAGUE").maybeSingle();
   if (readErr) return "error";
   if (cur) {
-    const same = cur.platform === "epic" && String(cur.external_id).toLowerCase() === accountId;
+    const same = cur.platform === who.platform && String(cur.external_id).toLowerCase() === who.id.toLowerCase();
     if (same && cur.ownership_verified) return "already";
     if (!same) {
       const { count } = await admin.from("game_matches").select("id", { count: "exact", head: true }).eq("profile_id", profileId).eq("game", "ROCKET_LEAGUE");

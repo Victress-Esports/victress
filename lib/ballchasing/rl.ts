@@ -202,14 +202,40 @@ export type Deps = {
   team?: {
     build: (detail: unknown, submitter: { platform: string; id: string }, members: TeamMember[], base: { queue_kind: ReplayRow["queue_kind"]; played_at: string; duration_seconds: number }, opponentLabel?: unknown) => { ok: true; payload: unknown } | { ok: false; reason: string };
     members: (admin: any, teamId: string) => Promise<TeamMember[]>;
+    /** Claimable snapshots for the other players on the submitter's side (lib/ballchasing/team.ts snapshotSlots, lib/claim.ts). Optional:
+     *  without it, or without a key (no VICTRESS_CLAIM_KEY), no snapshots are created. */
+    snapshots?: {
+      slots: (detail: unknown, submitter: { platform: string; id: string }) => { platform: string; id: string; stats: Record<string, number> }[];
+      key: ((platform: string, id: string) => string) | null;
+    };
   };
+  /** Where a teammate claims a snapshot, shown in the result card (for example https://victress.gg/claim). */
+  claimUrl?: string;
   /** First party product events (public.events). Never given replay numbers or ids. Failures are ignored. */
   track?: (userId: string, name: "first_scrim_submitted" | "scrim_processing_completed", props: { source: "web" | "discord"; game: "ROCKET_LEAGUE" }) => Promise<unknown>;
 };
 export type TeamMember = { profile_id: string; platform: string; id: string };
 /** What happened on the team side: added, already there, not on a roster, a 1v1 replay, or failed. Absent when not asked. */
 export type TeamOutcome = "added" | "already" | "no_team" | "solo_replay" | "failed";
-export type ImportResult = { ok: boolean; message: string; code: string; jobId?: string; imported?: boolean; team?: TeamOutcome };
+export type ResultCard = { result: "win" | "loss" | "no_result"; goals_for: number; goals_against: number; overtime: boolean; opponent: string | null; totals: Record<string, number>; snapshots: number };
+export type ImportResult = { ok: boolean; message: string; code: string; jobId?: string; imported?: boolean; team?: TeamOutcome; card?: ResultCard };
+
+/** The team result card: score, W or L, the side's totals and how many snapshots are ready. No individual numbers. */
+export function cardText(c: ResultCard, claimUrl?: string): string {
+  const res = c.result === "win" ? "Win" : c.result === "loss" ? "Loss" : "Draw";
+  const t = c.totals;
+  const totals = [["goals", t.goals], ["assists", t.assists], ["saves", t.saves], ["shots", t.shots], ["score", t.score]]
+    .filter(([, v]) => typeof v === "number").map(([k, v]) => `${v} ${k}`).join(", ");
+  const lines = [
+    "Added to your team's scrims.",
+    `${res} ${c.goals_for} to ${c.goals_against}${c.overtime ? " (overtime)" : ""}${c.opponent ? ` vs ${c.opponent}` : ""}`,
+    `Team totals: ${totals || "not available"}`,
+    c.snapshots > 0
+      ? `${c.snapshots} snapshot${c.snapshots === 1 ? "" : "s"} ready. Claim yours${claimUrl ? `: ${claimUrl}` : " on Victress"}`
+      : "No snapshots to claim: no other player on your side has a platform ID in this replay.",
+  ];
+  return lines.join("\n");
+}
 export type ImportOptions = {
   authorized: boolean; consent: boolean; via: "web" | "discord";
   /** The player chose to add this replay to their current team's scrims (off unless chosen). */
@@ -337,6 +363,7 @@ async function importOnce(deps: Deps, userId: string, linkOrId: string, opts: Im
   // Team side, only when the player chose it: the submitter's CURRENT team (one team per player). A player on no roster gets no team row.
   let teamId: string | null = null;
   let teamOutcome: TeamOutcome | undefined;
+  let teamCard: ResultCard | undefined;
   let teamHave = false;
   if (opts.forTeam) {
     const { data: tm } = await admin.from("team_members").select("team_id").eq("profile_id", userId).maybeSingle();
@@ -348,7 +375,7 @@ async function importOnce(deps: Deps, userId: string, linkOrId: string, opts: Im
       if (teamHave) teamOutcome = "already";
     }
   }
-  const teamNote = () => (teamOutcome ? `\n${TEAM_MESSAGES[teamOutcome]}` : "");
+  const teamNote = () => (teamOutcome === "added" && teamCard ? `\n${cardText(teamCard, deps.claimUrl)}` : teamOutcome ? `\n${TEAM_MESSAGES[teamOutcome]}` : "");
 
   const finish = async (code: string, ok: boolean, extra: Record<string, unknown> = {}, info?: NormalizeInfo): Promise<ImportResult> => {
     if (state.timedOut) return { ok: false, code: "timeout", message: say("timeout"), jobId: job.id }; // the deadline already closed this job
@@ -360,7 +387,7 @@ async function importOnce(deps: Deps, userId: string, linkOrId: string, opts: Im
     const base = !ok ? say(code, info)
       : !extra.skipped_existing ? "Saved. Your numbers from this replay are on your Rocket League page."
       : teamOutcome === "added" ? "Your own numbers from this replay were already saved." : say("already");
-    return { ok, code, message: base + (ok ? teamNote() : ""), jobId: job.id, imported, team: teamOutcome };
+    return { ok, code, message: base + (ok ? teamNote() : ""), jobId: job.id, imported, team: teamOutcome, card: teamOutcome === "added" ? teamCard : undefined };
   };
   const already = async () => ({ ...(await finish("already", true, { skipped_existing: 1 })), code: "already" });
 
@@ -400,7 +427,7 @@ async function importOnce(deps: Deps, userId: string, linkOrId: string, opts: Im
 
     if (teamPending && teamId) {
       if (state.timedOut) return fail("timeout", ids);
-      teamOutcome = await addToTeam(deps, userId, teamId, detail, who, n.row, opts);
+      ({ outcome: teamOutcome, card: teamCard } = await addToTeam(deps, userId, teamId, detail, who, n.row, opts));
     }
     return personalNew ? await finish("ok", true, { imported: 1 }) : await already();
   } catch {
@@ -412,17 +439,33 @@ async function importOnce(deps: Deps, userId: string, linkOrId: string, opts: Im
  * Adds the replay to the submitter's current team. The opponent side becomes totals only; individual lines are built only for roster
  * members who opted in, and the database (record_team_scrim) checks membership and the opt in again before storing anything.
  */
-async function addToTeam(deps: Deps, userId: string, teamId: string, detail: unknown, who: { platform: string; id: string }, row: ReplayRow, opts: ImportOptions): Promise<TeamOutcome> {
-  if (!deps.team) return "failed";
+async function addToTeam(deps: Deps, userId: string, teamId: string, detail: unknown, who: { platform: string; id: string }, row: ReplayRow, opts: ImportOptions): Promise<{ outcome: TeamOutcome; card?: ResultCard }> {
+  if (!deps.team) return { outcome: "failed" };
   try {
     const members = await deps.team.members(deps.admin, teamId);
     const built = deps.team.build(detail, who, members, { queue_kind: row.queue_kind, played_at: row.played_at, duration_seconds: row.duration_seconds }, opts.opponent);
-    if (!built.ok) return built.reason === "solo_replay" ? "solo_replay" : "failed";
+    if (!built.ok) return { outcome: built.reason === "solo_replay" ? "solo_replay" : "failed" };
     const { data, error } = await deps.admin.rpc("record_team_scrim", { p_submitter: userId, p: { ...(built.payload as object), via: opts.via } });
-    if (error) return "failed";
-    const status = (data as { status?: string } | null)?.status;
-    return status === "ok" ? "added" : status === "already" ? "already" : status === "no_team" ? "no_team" : status === "solo_replay" ? "solo_replay" : "failed";
+    if (error) return { outcome: "failed" };
+    const status = (data as { status?: string; scrim_id?: string } | null)?.status;
+    const outcome: TeamOutcome = status === "ok" ? "added" : status === "already" ? "already" : status === "no_team" ? "no_team" : status === "solo_replay" ? "solo_replay" : "failed";
+    if (outcome !== "added") return { outcome };
+    // Snapshots for the other players on the submitter's side: keyed hashes and five numbers only. A failure here never undoes the scrim.
+    let snapshots = 0;
+    const snap = deps.team.snapshots;
+    const scrimId = (data as { scrim_id?: string }).scrim_id;
+    if (snap?.key && scrimId) {
+      const key = snap.key;
+      const rows = snap.slots(detail, who).map((s) => ({ key: key(s.platform, s.id), stats: s.stats }));
+      if (rows.length) {
+        const r = await deps.admin.rpc("record_rl_snapshots", { p_scrim: scrimId, p_submitter: userId, p: rows });
+        snapshots = r.error ? 0 : Number(r.data ?? 0);
+      }
+    }
+    const p = built.payload as { goals_for: number; goals_against: number; overtime: boolean; opponent_label: string | null; team_totals: Record<string, number> };
+    const result = p.goals_for > p.goals_against ? "win" : p.goals_for < p.goals_against ? "loss" : "no_result";
+    return { outcome, card: { result, goals_for: p.goals_for, goals_against: p.goals_against, overtime: p.overtime, opponent: p.opponent_label, totals: p.team_totals, snapshots } };
   } catch {
-    return "failed";
+    return { outcome: "failed" };
   }
 }

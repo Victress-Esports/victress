@@ -49,6 +49,13 @@ export async function buildAccountExport(sb: SupabaseClient<Database>, user: Use
     team_scrims: {
       sharing: await own("team_stat_sharing", "team_id, game, granted_at"),
       your_lines: await own("team_scrim_lines", "scrim_id, stats"),
+      // Snapshots you claimed with a verified game account (row level security returns only your own).
+      claimed_snapshots: await (async () => {
+        const { data, error } = await (sb as unknown as SupabaseClient).from("rl_snapshots").select("replay_id, played_at, duration_seconds, queue_kind, result, goals_for, goals_against, overtime, stats, claimed_at");
+        if (isMissingTable(error)) return null;
+        if (error) throw new Error("export failed reading rl_snapshots");
+        return data ?? [];
+      })(),
     },
     product_events: events ? await events() : null,
     consents: {
