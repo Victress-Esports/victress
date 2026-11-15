@@ -54,5 +54,5 @@ Also needed (already exist): `SCRIM_UPLOADS_ENABLED=true`, `BALLCHASING_API_TOKE
 - SQL `supabase/tests/rl_verified_identity.sql`: 18 checks.
 
 ## Still needs your approval
-- Privacy Policy text: Victress receives the Epic account ID from Epic when a player chooses to verify (legal text stays pending legal review).
+- Privacy Policy: Epic wording added on 2026-11-15 (`content/legal.ts`, privacy version `2026-11-15`, which asks signed in players to accept again). Legal text stays pending legal review.
 - Applying `20261115000100` to staging, then setting the Preview variables.

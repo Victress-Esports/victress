@@ -3,10 +3,11 @@ import { marketingCrumbs } from "@/lib/jsonld";
 import type { LegalDoc } from "@/content/legal";
 
 /** A final legal page: title, effective date, short intro, numbered plain sections. */
-export function LegalPage({ doc, crumb, path }: { doc: LegalDoc; crumb: string; path: string }) {
+/** `breadcrumbs={false}` on victress.gg, where the marketing breadcrumb trail does not apply. */
+export function LegalPage({ doc, crumb, path, breadcrumbs = true }: { doc: LegalDoc; crumb: string; path: string; breadcrumbs?: boolean }) {
   return (
     <div className="mx-auto max-w-3xl px-4 py-20 sm:px-6">
-      <JsonLd data={marketingCrumbs(crumb, path)} />
+      {breadcrumbs ? <JsonLd data={marketingCrumbs(crumb, path)} /> : null}
       <h1 className="font-display text-5xl font-bold">{doc.title}</h1>
       <p className="mt-3 text-sm text-mute">{doc.updated}</p>
       <p className="mt-8 text-lg text-mute">{doc.intro}</p>

@@ -29,7 +29,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       </main>
       <footer className="mt-16 flex flex-wrap gap-x-6 gap-y-1 border-t border-line pt-6 text-sm text-mute">
         <a href={marketingUrl("/terms")} className="inline-flex min-h-11 items-center hover:text-white">Terms</a>
-        <a href={marketingUrl("/privacy")} className="inline-flex min-h-11 items-center hover:text-white">Privacy</a>
+        <a href="/privacy" className="inline-flex min-h-11 items-center hover:text-white">Privacy</a>
         <a href={marketingUrl("/refunds")} className="inline-flex min-h-11 items-center hover:text-white">Cancellation and Refunds</a>
       </footer>
       {lolImportEnabled() ? <p className="mt-4 text-xs text-mute">{RIOT_LEGAL_NOTICE}</p> : null}
