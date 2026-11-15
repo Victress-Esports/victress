@@ -32,7 +32,7 @@ export class Limiter {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 export const MAX_REPLAY_BYTES = 20 * 1024 * 1024;
 
-export type BcListQuery = { playlist?: string[]; season?: string; minRank?: string; maxRank?: string; replayDateAfter?: string; replayDateBefore?: string; count?: number; sortBy?: "replay-date" | "upload-date"; sortDir?: "asc" | "desc" };
+export type BcListQuery = { playlist?: string[]; season?: string; minRank?: string; maxRank?: string; replayDateAfter?: string; replayDateBefore?: string; count?: number; playerId?: string; sortBy?: "replay-date" | "upload-date"; sortDir?: "asc" | "desc" };
 export type BcReplaySummary = { id: string; title?: string; visibility: string; playlist_id?: string; season?: number | string; date?: string; blue?: { goals?: number }; orange?: { goals?: number } };
 
 export function createBallchasingClient(opts: { token: string; fetch?: typeof fetch; clock?: Clock; maxRetries?: number; timeoutMs?: number }) {
@@ -67,6 +67,7 @@ export function createBallchasingClient(opts: { token: string; fetch?: typeof fe
       const p = new URLSearchParams({ visibility: "public", count: String(Math.min(200, Math.max(1, q.count ?? 50))) });
       for (const pl of q.playlist ?? []) p.append("playlist", pl);
       if (q.season) p.set("season", q.season);
+      if (q.playerId) p.set("player-id", q.playerId);
       if (q.minRank) p.set("min-rank", q.minRank);
       if (q.maxRank) p.set("max-rank", q.maxRank);
       if (q.replayDateAfter) p.set("replay-date-after", q.replayDateAfter);

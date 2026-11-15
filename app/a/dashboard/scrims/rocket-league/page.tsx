@@ -9,6 +9,7 @@ import { ballchasingClient } from "@/lib/ballchasing";
 import { RL_DATA_LABEL, platformLabel } from "@/lib/ballchasing/rl";
 import { summarizeRl, type RlRow } from "@/lib/ballchasing/summary";
 import { scrimUploadsEnabled } from "@/lib/dashboard";
+import { EPIC_MESSAGES, epicEnabled } from "@/lib/epic";
 import { privateMetadata } from "@/lib/seo";
 
 export const maxDuration = 60;
@@ -22,16 +23,17 @@ const maskedId = (id: string) => (id.length <= 6 ? id : `${id.slice(0, 3)}…${i
 
 type MatchRow = RlRow & { id: string; queue_label: string | null; objectives: { blue_goals?: number; orange_goals?: number; overtime?: boolean; map?: string | null } };
 
-export default async function RocketLeaguePage({ searchParams }: { searchParams: Promise<{ kind?: string }> }) {
+export default async function RocketLeaguePage({ searchParams }: { searchParams: Promise<{ kind?: string; epic?: string; bc?: string }> }) {
   const { sb, user } = await requireUser();
   if (!scrimUploadsEnabled()) notFound();
   const { data: approved } = await sb.rpc("upload_allowed");
   if (approved !== true) notFound();
-  const wanted = (await searchParams).kind;
+  const sp = await searchParams;
+  const wanted = sp.kind;
   const kind = KINDS.some(([k]) => k === wanted) ? (wanted as string) : "all";
 
   const [{ data: acct }, { data: jobs }, { data: rows }, { data: membership }] = await Promise.all([
-    sb.from("game_accounts").select("platform, external_id, last_imported_at").eq("profile_id", user.id).eq("game", "ROCKET_LEAGUE").maybeSingle(),
+    sb.from("game_accounts").select("platform, external_id, last_imported_at, ownership_verified").eq("profile_id", user.id).eq("game", "ROCKET_LEAGUE").maybeSingle(),
     sb.from("import_jobs").select("id, status, error_message, external_ref, submitted_via, created_at").eq("profile_id", user.id).eq("game", "ROCKET_LEAGUE").order("created_at", { ascending: false }).limit(8),
     sb.from("game_matches").select("id, queue_kind, queue_label, played_at, duration_seconds, result, me, objectives, participants").eq("profile_id", user.id).eq("game", "ROCKET_LEAGUE").order("played_at", { ascending: false }).limit(60),
     sb.from("team_members").select("team_id, teams(name)").eq("profile_id", user.id).maybeSingle(),
@@ -41,6 +43,10 @@ export default async function RocketLeaguePage({ searchParams }: { searchParams:
   const shown = all.filter((r) => kind === "all" || r.queue_kind === kind);
   const s = summarizeRl(all, kind);
   const configured = ballchasingClient() !== null;
+  const epicOn = epicEnabled();
+  const verified = acct?.ownership_verified === true; // for Rocket League, true only with an Epic verification (database rule)
+  const epicNote = epicOn && sp.epic && sp.epic in EPIC_MESSAGES ? EPIC_MESSAGES[sp.epic as keyof typeof EPIC_MESSAGES] : null;
+  const bcSeen = epicNote && /^[0-9]{1,2}$/.test(sp.bc ?? "") ? Number(sp.bc) : null;
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
@@ -51,8 +57,26 @@ export default async function RocketLeaguePage({ searchParams }: { searchParams:
         <p className="mt-3 flex flex-wrap items-center gap-3 text-sm text-mute"><ProvenanceTag source="api" /> {RL_DATA_LABEL}. Nothing here is typed in.</p>
       </div>
 
-      <Section title="Your Rocket League ID" line={acct ? `${platformLabel(acct.platform)}, ${maskedId(acct.external_id)}. Only you can see this. Victress does not verify that it is yours.` : "Needed once, so Victress can find your own numbers in a replay. Any platform works: Steam, Epic Games, PlayStation, Xbox or Switch. Only you can see it, and Victress does not verify that it is yours."}>
-        <RlIdentityForm saved={acct ? { platform: acct.platform ?? "", id: acct.external_id } : null} />
+      <Section title="Your Rocket League ID" line={acct ? (verified ? `${platformLabel(acct.platform)}, ${maskedId(acct.external_id)}. Verified by signing in with Epic Games. Only you can see this.` : `${platformLabel(acct.platform)}, ${maskedId(acct.external_id)}. Only you can see this. Victress does not verify that it is yours.`) : "Needed once, so Victress can find your own numbers in a replay. Any platform works: Steam, Epic Games, PlayStation, Xbox or Switch. Only you can see it, and Victress does not verify that it is yours."}>
+        {epicNote ? (
+          <div role="status" className="mb-4 rounded-xl border border-line bg-surface-2 px-4 py-3 text-sm">
+            <p>{epicNote}</p>
+            {bcSeen !== null ? (
+              <p className="mt-1 text-mute">{bcSeen === 0 ? "Ballchasing has no public replays with this Epic account ID yet. Submit an Unlisted or Public replay you played on Epic to check the match." : `Ballchasing has ${bcSeen >= 10 ? "at least 10" : bcSeen} public replay${bcSeen === 1 ? "" : "s"} with exactly this Epic account ID.`}</p>
+            ) : null}
+          </div>
+        ) : null}
+        {verified ? (
+          <p className="text-sm text-mute">To use a different account, delete your Rocket League data below first.</p>
+        ) : (
+          <RlIdentityForm saved={acct ? { platform: acct.platform ?? "", id: acct.external_id } : null} />
+        )}
+        {epicOn && !verified ? (
+          <div className="mt-4 rounded-xl border border-line px-4 py-3 text-sm">
+            <p className="text-mute">Play on Epic Games? Sign in with Epic instead of typing an ID. Victress keeps only your Epic account ID and uses it to find you in replays, by that ID only. Signing in with Epic does not sign you in to Victress.</p>
+            <a href="/dashboard/link/epic/start" className="mt-3 inline-flex min-h-11 items-center rounded-full border border-white px-4 font-semibold text-white">Verify with Epic Games</a>
+          </div>
+        ) : null}
       </Section>
 
       <Section title="Submit a replay" line="One replay at a time. Victress reads it from Ballchasing, which does not use any upload allowance of yours.">

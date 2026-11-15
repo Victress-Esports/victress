@@ -1,9 +1,25 @@
 # Development status
 
-Updated 2026-11-13. Authoritative references: `CLAUDE.md`, `docs/strategy/victress-business-purpose.md`, the living roadmap artifact, `docs/status.md` (feature table).
+Updated 2026-11-15. Authoritative references: `CLAUDE.md`, `docs/strategy/victress-business-purpose.md`, the living roadmap artifact, `docs/status.md` (feature table).
 
 ## Current milestone and task
 Milestone 1, Foundation. Age gate and Terms/Privacy acceptance are built and tested (consent PR open, not merged). Next: account deletion and data export, then consent before game account linking.
+
+## Status check and Epic verification (2026-11-15)
+**`rl-mvp-weekend.md` is still not in the repo, any branch or the artifact gallery.** Item status below is measured against the order given in the request (schema, Ballchasing fetch, bot commands, unclaimed records, consent, claim page, team scrim page, events table); a ninth item could not be identified.
+| Item | State |
+|---|---|
+| Schema | Built and tested locally (SQL 349 PASS, 0 FAIL). Staging: only the three grant fixes applied (below); the four pilot migrations are not applied |
+| Ballchasing fetch | Built and tested locally (`test:rl` 113). Not run on staging |
+| Bot commands | Built and tested locally (`test:discord` 94, env 13). Not registered for a staging app |
+| Unclaimed records | Not started. Needs a decision: it would store other players' platform ids and numbers, which the approved pilot rules forbid |
+| Consent | Built (age gate, Terms and Privacy, per replay confirmation, team sharing opt in); age gate migration applied on staging |
+| Claim page | Not started (depends on unclaimed records and verified identity) |
+| Team scrim page | Built and tested locally (pipeline 27, page 20). Not on staging |
+| Events table | Built and tested locally. Not on staging |
+**Staging (`cmvifuayvqhbfkeskoqi`), 2026-11-15:** applied `invite_info_service_grant`, `invite_info_revoke_public`, `waitlist_service_role_grants` (grant and revoke only; verified afterwards: service role can run the invite lookup, anon cannot, waitlist is server insert only). `discord_account_link` was sent but the Supabase tool's confirmation prompt went unanswered; verified that nothing from it exists. Still to apply, in order: `20261112000100`, `20261112000200`, `20261113000100`, `20261115000100`. History repair for the effect only migrations is not done.
+**Epic verification** (branch `claude/wizardly-ride-bafh0x`, stacked on `claude/eager-carson-2b79tb`): behind `VICTRESS_EPIC_SIGNIN_ENABLED`, off by default. Stores the Epic Account ID from Epic's token endpoint (confirmed by token info) as a verified `epic` identity; matches Ballchasing by platform and id only. Migration `20261115000100` (local only). Tests: `epic-test` 39, `epic-page-test` 17, SQL 18 new; pilot pages 30, signed in 55, team scrims page, typecheck, lint, build, SEO 1653/0. Format of Ballchasing Epic ids matches Epic account ids (32 lower case hex); equality for a real account needs the founder's own sign in. Setup: `docs/epic-verification.md`.
+**Ballchasing:** the connected token's account (`victressesports`, Steam) has no uploaded replays, so "my own replays" needs the founder's Ballchasing player link or replay links.
 
 ## Discord bot and Rocket League pilot
 Working branch `claude/rl-pilot`. Not merged, not deployed, no migration applied anywhere (staging or production). Built and tested locally: Rocket League replay link import, account linking, `/scrim` commands, migrations `20261112000100` and `20261112000200`, Privacy text. **Fixes after the 2026-11-13 readiness audit:** platform handling is extensible (psynet and any platform Ballchasing reports; no Steam default or dependency; exact matching, nothing guessed); onboarding leads with the Ballchasing player link and explains unmatched replays; clearer replay messages (private, group or player link, unfinished); Discord replies are acknowledged at once with a 40 second deadline inside a 60 second function limit (no paid plan) and abandoned submissions are closed after 3 minutes; the descriptive `VICTRESS_SCRIM_DISCORD_*` variable names are preferred (generic names still work; the bot token is local only); the League of Legends experience is hidden unless `LOL_IMPORT_ENABLED=true`; the database test runner now fails if a test file crashes. Not claimed: live, production validated, or validated against the game. Runbook `docs/rocket-league-pilot.md`; player guide `docs/rocket-league-pilot-guide.md`; data model `docs/rocket-league-data-model.md`. Prerequisites still open: PRs #53, #47, #50, #35 and the external setup listed in the pilot docs.

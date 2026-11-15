@@ -122,9 +122,9 @@ export type Database = {
         Relationships: [];
       };
       game_accounts: {
-        Row: { created_at: string; display_name: string | null; external_id: string; game: string; id: string; last_imported_at: string | null; ownership_verified: boolean; platform: string | null; profile_id: string; provider: "riot" | "rocket_league"; region: "americas" | "europe" | "asia" | "sea" | null; tag: string | null };
-        Insert: { display_name?: string | null; external_id: string; game: string; platform?: string | null; profile_id: string; provider: "riot" | "rocket_league"; region?: "americas" | "europe" | "asia" | "sea" | null; tag?: string | null; last_imported_at?: string | null };
-        Update: { display_name?: string | null; external_id?: string; platform?: string | null; region?: "americas" | "europe" | "asia" | "sea" | null; tag?: string | null; last_imported_at?: string | null };
+        Row: { created_at: string; display_name: string | null; external_id: string; game: string; id: string; last_imported_at: string | null; ownership_verified: boolean; platform: string | null; profile_id: string; provider: "riot" | "rocket_league"; region: "americas" | "europe" | "asia" | "sea" | null; tag: string | null; verified_via: "epic_oauth" | null; verified_at: string | null };
+        Insert: { display_name?: string | null; external_id: string; game: string; platform?: string | null; ownership_verified?: boolean; verified_via?: "epic_oauth" | null; verified_at?: string | null; profile_id: string; provider: "riot" | "rocket_league"; region?: "americas" | "europe" | "asia" | "sea" | null; tag?: string | null; last_imported_at?: string | null };
+        Update: { display_name?: string | null; external_id?: string; platform?: string | null; region?: "americas" | "europe" | "asia" | "sea" | null; tag?: string | null; last_imported_at?: string | null; ownership_verified?: boolean; verified_via?: "epic_oauth" | null; verified_at?: string | null };
         Relationships: [];
       };
       game_matches: {

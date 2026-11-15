@@ -35,8 +35,9 @@ export async function saveRlIdentityAction(input: z.input<typeof identitySchema>
   if (!who.ok) return fail(IDENTITY_MESSAGES[who.reason]);
   const admin = supabaseAdmin();
   if (!admin) return fail();
-  const { data: cur } = await admin.from("game_accounts").select("id, platform, external_id").eq("profile_id", g.user.id).eq("game", "ROCKET_LEAGUE").maybeSingle();
+  const { data: cur } = await admin.from("game_accounts").select("id, platform, external_id, ownership_verified").eq("profile_id", g.user.id).eq("game", "ROCKET_LEAGUE").maybeSingle();
   if (cur) {
+    if (cur.ownership_verified) return fail("Your Epic Games account is verified. To use a different ID, delete your Rocket League data first.");
     if (cur.platform === who.platform && cur.external_id === who.id) return { ok: true, message: "Already saved." };
     const { count } = await admin.from("game_matches").select("id", { count: "exact", head: true }).eq("profile_id", g.user.id).eq("game", "ROCKET_LEAGUE");
     if ((count ?? 0) > 0) return fail("Delete your saved Rocket League games before changing your ID, so old games are never attached to a different player.");
