@@ -2,6 +2,7 @@
 
 Branch `claude/wizardly-ride-bafh0x` (PR #54), Preview host `https://victress-git-claude-wizardl-6d3298-matt-hills-projects-54d303a1.vercel.app`, staging Supabase.
 Staging only: no production setting, migration or deployment.
+**Use only this branch address.** On a Preview every link Victress makes (the Discord `/link` link, the **Claim your stats** button, sign in returns, and the Steam and Epic callbacks) uses this branch address, never the per-deployment `…vercel.app` address of a single build, so you stay signed in on one host. Vercel's "Automatically expose System Environment Variables" must be on for this.
 
 ## The loop (docs/rl-mvp-weekend.md)
 `/scrim submit link:<replay> authorized:True consent:True team:True [side:Blue|Orange]` in Discord. Victress reads the replay from Ballchasing, stores your own row once, adds the team scrim (one session per team per day, opponents as totals only), and makes a **player snapshot** for **every player on your side, you included**, who has a platform ID: five numbers and MVP under a coded key, never the ID or name.
@@ -31,7 +32,7 @@ Supabase staging, Authentication, URL Configuration: allow `https://victress-git
 3. Redeploy the Preview, then General Information, **Interactions Endpoint URL**:
    `https://victress-git-claude-wizardl-6d3298-matt-hills-projects-54d303a1.vercel.app/api/discord/interactions?x-vercel-protection-bypass=<that secret>` and Save. Discord sends a signed PING; it saves only if the endpoint answers.
 4. Bot tab: **Presence, Server Members and Message Content intents all off.** The bot uses HTTP interactions only, with no Gateway connection.
-5. Installation (or OAuth2, URL Generator): scope **`applications.commands` only**. No `bot` scope and no permissions are needed: every reply is private and is sent through the interaction itself. Open the link and add the app to your **private test server**.
+5. Installation (or OAuth2, URL Generator): scope **`applications.commands` only**. No `bot` scope and no permissions are needed: replies are private, and the result card is posted in the channel as a follow-up to the interaction itself, so the bot needs no channel permissions. Open the link and add the app to your **private test server**.
 6. Discord, Developer Mode on, right-click the test server, Copy Server ID.
 7. Bot tab, Reset Token (shown once). In your own terminal only:
    ```bash
@@ -49,7 +50,7 @@ Supabase staging, Authentication, URL Configuration: allow `https://victress-git
 **Replay:** an Unlisted or Public Ballchasing replay (2v2 or 3v3) that you played on the Steam or Epic account you will verify, on your team's side.
 1. On the Preview, open `/__site/app?to=/login` and sign up with your real email. Complete the age gate and Terms and Privacy.
 2. **Claude**: tell Claude "signed up". Claude finds your new staging account by its sign up time and email and adds it to the staging pilot allowlist (staging only), then confirms.
-3. Rocket League page: **Verify with Epic Games** (or **Verify with Steam**). **Claude**: compares your verified ID with the replay (`scripts/epic-ballchasing-match.mjs`, fingerprints only). It must say EXACT MATCH: YES. If NO, stop: Claude shows both fingerprints.
+3. Rocket League page: **Verify with Steam** (or **Verify with Epic Games**). **Claude**: compares your verified ID with the replay by SHA-256 fingerprints only (for Epic `scripts/epic-ballchasing-match.mjs`; for Steam the same comparison on the replay's `steam` slots). It must be an exact match on your side. If not, stop: Claude shows both fingerprints.
 4. Team page: create a team. (Team scrims page: "Share my numbers" is optional and separate.)
 5. Discord test server: `/help`, `/privacy`, then `/link` and open the link while signed in.
 6. `/scrim submit link:<replay> authorized:True consent:True team:True opponent:Test side:<your side>`. Expect the private reply, then in the channel the result card with **Claim your stats**: "Win X to Y" or "Loss", "Team totals: …", "N player snapshots ready. Claim yours." No individual numbers. **Claude**: checks staging: one `game_matches` row, one `team_scrims` row with a session, one `rl_snapshots` row per player on your side with an ID (coded keys only), events.
