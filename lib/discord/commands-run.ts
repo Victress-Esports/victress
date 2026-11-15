@@ -1,6 +1,7 @@
 // The Discord commands that need Victress data: /link, /unlink, /profile and /scrim. Dependencies are injected so this module has no
 // imports of its own (other than types) and is tested with stubs. It never returns another player's information: every reply is about the
-// Discord user who ran the command, is visible only to them, and cannot ping anyone.
+// Discord user who ran the command, is visible only to them, and cannot ping anyone. The one public message is the team result card
+// (channelCard): score, W or L, team totals and a Claim link button, with no individual numbers and no mentions.
 import type { Interaction, MessageData } from "./types";
 
 export const DB_COMMANDS = new Set(["link", "unlink", "profile", "scrim"]);
@@ -19,7 +20,9 @@ export type Services = {
   linkUrl: (appUrl: string, code: string) => string;
   /** Closes submissions that were abandoned (their function was stopped) so they never show as processing forever. */
   sweepStale: (userId: string) => Promise<void>;
-  importReplay: (userId: string, link: string, o: { authorized: boolean; consent: boolean; via: "discord"; forTeam?: boolean; opponent?: string }) => Promise<{ ok: boolean; message: string }>;
+  importReplay: (userId: string, link: string, o: { authorized: boolean; consent: boolean; via: "discord"; forTeam?: boolean; opponent?: string; side?: "blue" | "orange" }) => Promise<{ ok: boolean; message: string; card?: TeamCard }>;
+  /** Where the result card's Claim button points (victress.gg/claim?from=card, or the Preview equivalent). */
+  claimUrl?: string;
   summarize: (rows: unknown[], kind: string) => null | {
     games: number; wins: number; losses: number; winRate: number | null; smallSample: boolean;
     perGame: { score: number; goals: number; assists: number; saves: number; shots: number; demosInflicted: number; demosTaken: number };
@@ -27,6 +30,25 @@ export type Services = {
     team: null | { games: number; teamGoalsFor: number; teamGoalsAgainst: number; teamShotsFor: number; teamShotsAgainst: number; yourShareOfTeamGoals: number | null; yourShareOfTeamShots: number | null };
   };
 };
+
+export type TeamCard = { result: "win" | "loss" | "no_result"; goals_for: number; goals_against: number; overtime: boolean; opponent: string | null; totals: Record<string, number>; snapshots: number };
+
+/** The result card posted in the team's channel: score, W or L, team totals and the claim button. No individual numbers, no names, no pings. */
+export function channelCard(c: TeamCard, claimUrl: string): Omit<MessageData, "publicFollowup"> {
+  const res = c.result === "win" ? "Win" : c.result === "loss" ? "Loss" : "Draw";
+  const t = c.totals;
+  const totals = (["goals", "assists", "saves", "shots", "score"] as const).filter((k) => typeof t[k] === "number").map((k) => `${t[k]} ${k}`).join(", ");
+  const content = [
+    "**Team scrim result**",
+    `${res} ${c.goals_for} to ${c.goals_against}${c.overtime ? " (overtime)" : ""}${c.opponent ? ` vs ${c.opponent}` : ""}`,
+    `Team totals: ${totals || "not available"}`,
+    c.snapshots > 0 ? `${c.snapshots} player snapshot${c.snapshots === 1 ? "" : "s"} ready. Claim yours.` : "No player snapshots in this replay.",
+  ].join("\n");
+  return {
+    content, allowed_mentions: NO_MENTIONS,
+    components: c.snapshots > 0 ? [{ type: 1, components: [{ type: 2, style: 5, label: "Claim your stats", url: claimUrl }] }] : undefined,
+  };
+}
 
 const PLATFORM = { steam: "Steam", epic: "Epic Games", xbox: "Xbox", ps4: "PlayStation (numeric ID)", psynet: "PlayStation Network", switch: "Nintendo Switch" } as Record<string, string>;
 const masked = (id: string) => (id.length <= 6 ? id : `${id.slice(0, 3)}…${id.slice(-3)}`);
@@ -138,10 +160,14 @@ async function submit(discordId: string, opts: Map<string, unknown>, s: Services
   if (!authorized || !consent) return reply("Nothing was submitted. Set both confirmations to True: that you are allowed to submit this replay, and that you agree to Victress reading it from Ballchasing and saving your own numbers.");
   const forTeam = opts.get("team") === true;
   const opponent = typeof opts.get("opponent") === "string" ? (opts.get("opponent") as string) : undefined;
-  const r = await s.importReplay(pid, linkText, { authorized, consent, via: "discord", forTeam, opponent });
+  const side = opts.get("side") === "blue" || opts.get("side") === "orange" ? (opts.get("side") as "blue" | "orange") : undefined;
+  const r = await s.importReplay(pid, linkText, { authorized, consent, via: "discord", forTeam, opponent, side });
   const app = s.appUrl.replace(/\/+$/, "");
   const where = forTeam ? `${app}/dashboard/team/scrims` : `${app}/dashboard/scrims/rocket-league`;
-  return reply(r.ok ? `${r.message}\nSee \`/scrim stats\`, or open ${where}` : r.message);
+  const out = reply(r.ok ? `${r.message}\nSee \`/scrim stats\`, or open ${where}` : r.message);
+  // A new team scrim: the result card also goes to the team channel (docs/rl-mvp-weekend.md item 6).
+  if (r.ok && r.card && s.claimUrl) out.publicFollowup = channelCard(r.card, s.claimUrl);
+  return out;
 }
 
 async function status(discordId: string, s: Services) {

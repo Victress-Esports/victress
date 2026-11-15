@@ -1,4 +1,4 @@
-// Final plain English legal pages (founder approved 2026-11-07). They describe only what Victress does today, make no
+// Plain English legal pages (founder approved 2026-11-07). They describe only what Victress does today, make no
 // compliance or security claim that is not true, and avoid hyphens and dashes like the rest of the marketing copy.
 // Facts below come from the code and schema: Supabase Auth, database and file storage; Vercel hosting; Resend email; Stripe for
 // paid plans; no advertising or third party tracking tags. Prices come from content/pricing.ts and are repeated on the refunds page.
@@ -18,6 +18,8 @@ export interface LegalSection {
 export interface LegalDoc {
   title: string;
   updated: string;
+  /** An optional short line under the date. */
+  notice?: string;
   intro: string;
   sections: LegalSection[];
 }
@@ -41,8 +43,15 @@ export const privacyDoc: LegalDoc = {
         "Discord link request: when you run the link command in Discord, Victress holds a short lived code tied to your Discord user ID, and the Discord name you use, for up to 10 minutes so you can confirm the link on Victress. The name is removed once the code is used or expires, and codes are deleted within a day. Linking saves only your Discord user ID with your Victress account.",
         "Scrim and match information: if you or an authorized team representative submits a scrim, replay, match reference or related information through Victress or its Discord integration, we may process the submission, match identifiers, participating teams and players, game information, replay files or links, and resulting performance data.",
         "Game imports: if you are approved and connect a Riot ID, we store that Riot ID and the League of Legends matches we fetch for it from Riot's API (results, your numbers, and the other players in each match as anonymous entries with no names). They are private to you. You can delete a match or all of it at any time.",
-        "Rocket League ID: if you use Rocket League replay import, the platform and player ID you enter. It is used only to find your own numbers in a replay you submit. Only you can see it, and Victress does not verify that it belongs to you.",
+        "Rocket League ID: if you use Rocket League replay import, the platform and player ID you enter. It is used only to find your own numbers in a replay you submit. Only you can see it, and Victress does not verify that it belongs to you, unless you verify a Steam or Epic Games account as described below.",
+        "Steam account verification: when this option is available to you and you choose to verify a Steam account for Rocket League, you sign in on the Steam website and Steam sends Victress your SteamID. Victress asks Steam to confirm that sign in and then saves your SteamID with your Victress account as your Rocket League ID, marked as verified with the time you verified it. Victress does not receive your Steam password, name, friends or games list. Verifying a Steam account does not sign you in to Victress.",
+        "Epic Games account verification: when this option is available to you and you choose to verify an Epic Games account for Rocket League, you sign in on the Epic Games website and Epic sends Victress your Epic Account ID and temporary sign in tokens. Victress uses the tokens only to confirm that sign in with Epic and does not keep them. Victress saves your Epic Account ID with your Victress account as your Rocket League ID, marked as verified with the time you verified it, which is the information needed to associate your Epic account with your Victress account and to find your own numbers in replays you submit. Epic may include your Epic display name in what it sends; Victress does not read or keep it. Victress asks Epic only for basic profile access, the minimum Epic requires, and does not access your Epic friends list, online presence, country or game activity. Your Epic Account ID is not sent to Ballchasing or any other service. Verifying an Epic Games account does not sign you in to Victress or change how you sign in.",
         "Rocket League replays you submit: when you submit a Ballchasing replay link, Victress reads that replay from Ballchasing and saves your own numbers from it, such as goals, assists, saves, boost, speed and positioning, along with the result and basic facts about the match. Other players in the replay are not named or identified, and their numbers are kept only as anonymous entries. The replay file itself stays at Ballchasing.",
+        "Team scrims: if you are on a team and choose to add a Rocket League replay to your team's scrims (it is off unless you choose it), Victress saves for that team: the date, length and type of match, your side, the result and score, your side's totals and the other side's totals (goals, assists, saves, shots and score), an optional opponent label typed by the person submitting it, who submitted it and how (website or Discord), and the replay's Ballchasing ID. Team scrims played on the same day are grouped together for the team. Players in the replay are not named, and no other player's name or platform ID is saved.",
+        "Result card: when a scrim is added to a team from Discord, the Victress bot posts a result card in that Discord channel with the score, win or loss, the team's totals and a Claim button. It shows no one's individual numbers and mentions no one.",
+        "Player snapshots from that game: for every player on your side who has a platform ID in the replay, you included, Victress also saves a snapshot of that player's goals, assists, saves, shots and score in that game, whether they were MVP, and the game's result and score. It is stored under a coded key made from their platform ID with a secret only Victress holds, not under the ID itself, so it cannot be traced back to the ID without that secret. Nobody can see a snapshot, including the person who submitted the replay, until that player signs up, verifies the same platform account through Steam or Epic Games, and claims it. Opponents get no snapshots.",
+        "Sharing your numbers with your team: off by default. If you turn it on, your own goals, assists, saves, shots and score in team scrims submitted while it is on are saved as your line for that team.",
+        "Product events: a short record of key steps in your account: completing registration, linking Discord, saving a game ID, creating or joining a team, submitting a first or later scrim, a scrim finishing processing, opening Victress from a result card's Claim button, and claiming a snapshot. Each has the time and, where known, how you arrived (website, Discord, email, Google or an invite), a referral code from the link you used, and the game. Events contain no match numbers, replay or match IDs, game IDs, names, email addresses, IP addresses or page history. They are stored in the Victress database and are not sent to any analytics or advertising service.",
         "Your submissions: for each replay you submit, the replay link, the time, whether it came from the website or Discord, whether it worked, and that you confirmed you may submit it and agreed to this processing.",
         "Practice files: if you are approved as a design partner and upload a demo or replay file, it is stored privately with the file name and size.",
         "Game stats from earlier versions: earlier versions of Victress let players enter game stats. We still hold what was entered. We do not show it to anyone.",
@@ -64,6 +73,9 @@ export const privacyDoc: LegalDoc = {
         "To respond to Discord commands and provide team, scrim and match workflows.",
         "To process submitted match information and generate performance insights.",
         "To read the Rocket League replays you submit and show you your own numbers, privately.",
+        "To show your team the scrims it chose to save, and a teammate's numbers only when that teammate has chosen to share them.",
+        "To understand, from product events, whether people are able to complete key steps, so we can improve Victress.",
+        "To confirm an Epic Games account you choose to verify, and to match you in replays by its Epic Account ID only, never by name.",
         "To send you emails you need, such as sign in links, a welcome message and a confirmation that we received a form.",
         "To keep Victress working, safe and fair, including handling reports of abuse.",
         "To process payments for paid plans, when you choose one.",
@@ -81,6 +93,8 @@ export const privacyDoc: LegalDoc = {
         "Stripe: payments for paid plans. Stripe handles your card details. We do not see or store your card number.",
         "Discord: if you choose Discord sign in or use a Victress Discord integration, information is exchanged with Discord to authenticate users, receive bot interactions and provide the integration. Discord processes information under its own terms and privacy policy.",
         "Google: only if you choose Google sign in.",
+        "Steam (Valve): only if you choose to verify a Steam account. You sign in on Steam's website, and Victress asks Steam to confirm that sign in and receives your SteamID. Valve processes information under its own terms and privacy policy.",
+        "Epic Games: only if you choose to verify an Epic Games account. You sign in on Epic's website, and Victress exchanges information with Epic to confirm that sign in and receive your Epic Account ID. Epic Games processes information under its own terms and privacy policy.",
         "Ballchasing: when you submit a replay link, Victress asks Ballchasing for that replay. The request carries the replay ID and Victress credentials, not your name or account. Ballchasing handles replays under its own terms.",
       ],
       after: [
@@ -95,6 +109,8 @@ export const privacyDoc: LegalDoc = {
         "If you upload a profile photo, it is stored in a place where anyone who has the exact address of the photo can open it. Choose a photo you are comfortable with.",
         "We do not show contact details or private identity to anyone without your consent. Victress does not let people message you.",
         "Connecting a Discord account, joining a team, or submitting a scrim does not automatically make your Victress profile public. Your profile visibility and sharing choices remain separate.",
+        "Team scrims can be seen only by the current members of that team. Your line can be seen by your teammates only while you are on the team and sharing is on. If showing teammates' lines would let someone work out the numbers of a teammate who is not sharing, those lines are not shown. A snapshot can be seen only by the player who claimed it, not by the team or the person who submitted the replay.",
+        "Team scrims, team lines, your Rocket League games and product events are never shown on public profiles, private sharing links, search results or Scout Desk. Scouts and recruiters cannot see them. Other players cannot see your product events; you can download your own with your data from your account page.",
       ],
     },
     {
@@ -114,6 +130,9 @@ export const privacyDoc: LegalDoc = {
       p: [
         "You can change your profile, privacy choices and links in your dashboard at any time.",
         "You can delete a saved Rocket League game, or all of your Rocket League data, from the Rocket League page in your dashboard at any time.",
+        "You can turn sharing your numbers with your team on or off on the Team scrims page. Turning it off, leaving the team or being removed from it deletes your lines from that team's scrims. The team owner, or the person who submitted a team scrim, can remove it.",
+        "You can delete a claimed snapshot on the claim page, or all of them with your Rocket League data.",
+        "You can remove a verified Steam or Epic Games account by deleting all of your Rocket League data from the Rocket League page in your dashboard, or by deleting your account.",
         "You can disconnect an authorized Discord connection or stop using the Discord integration. A team administrator can remove the integration from their server. Disconnecting an integration does not necessarily delete information already stored in Victress.",
         `To see your data, correct it, or delete your account, use the account controls when available or email ${PRIVACY_EMAIL} from the address on your account. We delete your account, profile, team membership and uploaded files, subject to any limited retention required by law or reasonably necessary to prevent abuse. We confirm account deletion by email. We act on requests as quickly as we can and no later than 30 days.`,
         "If you ask us to delete Discord linked information, we will remove or disassociate the relevant information from your Victress account where applicable, subject to legitimate retention requirements. Information retained as part of a team's records or match history may need to be handled separately from your personal account and profile.",
@@ -130,6 +149,11 @@ export const privacyDoc: LegalDoc = {
         "Scrim and match information: for as long as it is needed to provide team and player features, maintain match history and performance records, or meet legal and security requirements. Deletion of a personal account does not necessarily mean that every team match record is deleted.",
         "Uploaded practice files: until you delete them or your account, subject to any applicable retention requirements.",
         "Rocket League ID, saved games and submission history: until you delete a game, delete all of your Rocket League data from the Rocket League page in your dashboard, or delete your account. Deleting your Rocket League data also deletes the submission history and your saved ID.",
+        "Team scrims: while the team exists, until the team owner or the person who submitted one removes it. A team scrim stays with the team when a player leaves or deletes their account, and its side totals are not separated by player. If the person who submitted it deletes their account, the scrim no longer records who submitted it.",
+        "Your lines in team scrims: until you turn sharing off, leave or are removed from the team, the scrim or team is removed, or you delete your account.",
+        "Product events: until you delete your account.",
+        "Unclaimed snapshots: deleted 90 days after they are made, or as soon as the team scrim they come from is removed. Claimed snapshots: until you delete them, delete your Rocket League data, or delete your account.",
+        "Epic Games verification: your Epic Account ID is kept as your saved Rocket League ID, as described above. Sign in tokens from Epic are used once and not kept.",
         "Waitlist emails: until you ask us to remove them or we have contacted you about the plan.",
         "Messages sent through our forms: in our email inbox for as long as we need them to reply and keep records.",
         "Technical logs: kept by our providers for a short time under their own settings.",

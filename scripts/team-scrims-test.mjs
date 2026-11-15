@@ -113,7 +113,7 @@ check(r.ok && r.imported && db.t.team_scrims.length === 0 && r.team === undefine
 // 2. Duplicate, now choosing the team: the personal row exists, the team scrim is added (one more read), with the label.
 r = await submit("me", { forTeam: true, opponent: "Rival" });
 check(r.ok && r.team === "added" && db.t.team_scrims.length === 1 && db.t.game_matches.filter((m) => m.profile_id === "me").length === 1, "choosing the team later adds the team scrim without a second personal row");
-check(/already saved/.test(r.message) && r.message.includes(TEAM_MESSAGES.added), "the reply says the own numbers were already saved and the scrim was added");
+check(/already saved/.test(r.message) && r.message.includes("Added to your team's scrims.") && /Win 3 to 1 \(overtime\) vs Rival/.test(r.message) && /Team totals: /.test(r.message), "the reply says the own numbers were already saved, then the team result card (score, W or L, team totals)");
 check(db.t.team_scrim_lines.map((l) => l.profile_id).sort().join() === "mate1,me", "lines only for opted in members who were found on the side (mate2 did not opt in)");
 check(db.t.team_scrims[0].opponent_label === "Rival" && db.t.team_scrims[0].via === "discord" && db.t.team_scrims[0].side === "blue", "the scrim records the typed label, the channel and the side");
 // 3. Exact duplicate: nothing new, no Ballchasing read.

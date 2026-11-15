@@ -122,9 +122,9 @@ export type Database = {
         Relationships: [];
       };
       game_accounts: {
-        Row: { created_at: string; display_name: string | null; external_id: string; game: string; id: string; last_imported_at: string | null; ownership_verified: boolean; platform: string | null; profile_id: string; provider: "riot" | "rocket_league"; region: "americas" | "europe" | "asia" | "sea" | null; tag: string | null };
-        Insert: { display_name?: string | null; external_id: string; game: string; platform?: string | null; profile_id: string; provider: "riot" | "rocket_league"; region?: "americas" | "europe" | "asia" | "sea" | null; tag?: string | null; last_imported_at?: string | null };
-        Update: { display_name?: string | null; external_id?: string; platform?: string | null; region?: "americas" | "europe" | "asia" | "sea" | null; tag?: string | null; last_imported_at?: string | null };
+        Row: { created_at: string; display_name: string | null; external_id: string; game: string; id: string; last_imported_at: string | null; ownership_verified: boolean; platform: string | null; profile_id: string; provider: "riot" | "rocket_league"; region: "americas" | "europe" | "asia" | "sea" | null; tag: string | null; verified_via: "epic_oauth" | null; verified_at: string | null };
+        Insert: { display_name?: string | null; external_id: string; game: string; platform?: string | null; ownership_verified?: boolean; verified_via?: "epic_oauth" | null; verified_at?: string | null; profile_id: string; provider: "riot" | "rocket_league"; region?: "americas" | "europe" | "asia" | "sea" | null; tag?: string | null; last_imported_at?: string | null };
+        Update: { display_name?: string | null; external_id?: string; platform?: string | null; region?: "americas" | "europe" | "asia" | "sea" | null; tag?: string | null; last_imported_at?: string | null; ownership_verified?: boolean; verified_via?: "epic_oauth" | null; verified_at?: string | null };
         Relationships: [];
       };
       game_matches: {
@@ -148,6 +148,13 @@ export type Database = {
       };
       team_scrim_lines: {
         Row: { profile_id: string; scrim_id: string; stats: Json };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      rl_snapshots: {
+        // identity_key and claimed_by are not readable by players (column grants); the server reads them with the service role.
+        Row: { id: string; replay_id: string; played_at: string; duration_seconds: number; queue_kind: "ranked" | "normal" | "custom" | "other"; result: "win" | "loss" | "no_result"; goals_for: number; goals_against: number; overtime: boolean; stats: Record<string, number>; mvp: boolean; claimed_at: string | null; claimed_by: string | null };
         Insert: never;
         Update: never;
         Relationships: [];
@@ -241,6 +248,8 @@ export type Database = {
       };
       leave_team: { Args: Record<string, never>; Returns: string };
       set_team_stat_sharing: { Args: { p_on: boolean }; Returns: string };
+      claim_rl_snapshots: { Args: { p_profile: string; p_key: string }; Returns: number };
+      record_rl_snapshots: { Args: { p_scrim: string; p_submitter: string; p: unknown }; Returns: number };
       metrics_are_valid: { Args: { m: Json }; Returns: boolean };
       regenerate_invite_code: { Args: Record<string, never>; Returns: string | null };
       remove_team_member: { Args: { p_profile: string }; Returns: string };

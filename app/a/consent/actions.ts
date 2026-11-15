@@ -26,7 +26,7 @@ export async function submitConsentAction(input: z.input<typeof schema>): Promis
   if (!p.success) return { ok: false, message: "Please accept the Terms and the Privacy Policy to continue." };
 
   const { status } = await consentStatus(sb, user.id);
-  if (status === "unavailable") redirect("/dashboard");
+  if (status === "unavailable") return { ok: false, message: "Victress is finishing an update. Please try again in a few minutes." };
 
   if (status === "needs_age") {
     if (!p.data.birthDate) return { ok: false, message: "Enter your date of birth." };

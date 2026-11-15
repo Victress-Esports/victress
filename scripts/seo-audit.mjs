@@ -264,7 +264,7 @@ const pages = [
   { host: MARKETING, path: "/platform", index: true, types: ["BreadcrumbList"], contains: ["Practice", "Performance Evidence", "Development", "Recognition", "Opportunity", "Scrim Intelligence", "Player Resume", "Scout Desk", "Coming soon"] },
   { host: MARKETING, path: "/women-in-esports", index: true, types: ["BreadcrumbList"], contains: ["Women in Esports", "Victress is called Victress for a purpose.", "Delivered through", "Victress is not currently offering funding, coaching, mentorship, scholarships or recruitment."] },
   { host: MARKETING, path: "/design-partner", index: true, types: ["BreadcrumbList"], contains: ["Founding Design Partner pilot", "4 to 6 week", "What partners receive", "What we ask", "Applying does not guarantee a place.", "Active women", "Game Changers teams", "Collegiate programs"] },
-  { host: MARKETING, path: "/privacy", index: true, types: ["BreadcrumbList"], contains: ["What we collect", "Who we share it with", "We do not sell your data", "private by default", "privacy@victressesports.com", "Victress Scrim Intelligence", "at least 13"] },
+  { host: MARKETING, path: "/privacy", index: true, types: ["BreadcrumbList"], contains: ["What we collect", "Who we share it with", "We do not sell your data", "private by default", "privacy@victressesports.com", "Victress Scrim Intelligence", "at least 13", "Epic Games processes information under its own terms and privacy policy", "does not access your Epic friends list"] },
   { host: MARKETING, path: "/refunds", index: true, types: ["BreadcrumbList"], contains: ["Cancel any time", "14 days", "7 day grace period", "$7.99 per month", "$75 per year", "$49 per month", "$249 per month", "per roster", "hello@victressesports.com"] },
   { host: MARKETING, path: "/terms", index: true, types: ["BreadcrumbList"], contains: ["at least 13 years old", "parent or guardian", "State of Utah", "Verification", "Stripe", "privacy@victressesports.com", "Victress Scrim Intelligence", "Report"] },
   mk(APP, "/", true),
@@ -419,10 +419,26 @@ console.log("\n######## HOME FAQ, PRODUCT SCHEMA, llms.txt ########");
 }
 
 console.log("\n######## DOMAIN SEPARATION ########");
-for (const [h, p] of [[APP, "/pricing"], [APP, "/teams"], [APP, "/about"], [APP, "/privacy"], [APP, "/terms"], [MARKETING, "/login"], [MARKETING, "/dashboard"], [MARKETING, "/leaderboard/valorant"]]) {
+for (const [h, p] of [[APP, "/pricing"], [APP, "/teams"], [APP, "/about"], [APP, "/terms"], [MARKETING, "/login"], [MARKETING, "/dashboard"], [MARKETING, "/leaderboard/valorant"]]) {
   const r = await get(h, p);
   console.log(`   ${h}${p} -> ${r.status}`);
   ok(r.status === 404, `${h}${p} should be 404 (no duplicate of the other domain's pages), got ${r.status}`);
+}
+{
+  // The one deliberate exception (founder request 2026-11-15): the Privacy Policy is also served on the application domain. It is the
+  // same document from the same source (content/legal.ts), and its canonical and og:url point at the marketing page, so it is not a
+  // duplicate for search engines.
+  const app = await get(APP, "/privacy");
+  const mkt = await get(MARKETING, "/privacy");
+  console.log(`   ${APP}/privacy -> ${app.status} (same policy as ${MARKETING}/privacy)`);
+  ok(app.status === 200, `${APP}/privacy should be 200, got ${app.status}`);
+  const canon = app.body.match(/<link[^>]*rel="canonical"[^>]*>/i)?.[0].match(/href="([^"]*)"/i)?.[1];
+  ok(canon === `https://${MARKETING}/privacy`, `${APP}/privacy canonical is ${canon}, want https://${MARKETING}/privacy`);
+  ok(meta(app.body, "property", "og:url") === `https://${MARKETING}/privacy`, `${APP}/privacy og:url should be the marketing page`);
+  ok(!/noindex/i.test((meta(app.body, "name", "robots") ?? "") + (app.headers["x-robots-tag"] ?? "")), `${APP}/privacy should be public, not noindex`);
+  const policy = (html) => html.slice(html.indexOf("<h1"), html.lastIndexOf("</section>"));
+  ok(policy(app.body).length > 5000 && policy(app.body) === policy(mkt.body), `${APP}/privacy and ${MARKETING}/privacy must show the identical policy`);
+  for (const h of ["What we collect", "Why we use it", "Who we share it with", "Public and private profiles", "Discord, teams and player consent", "Your choices and your data", "How long we keep it", "Security", "Age", "Changes and contact", "Epic Games account verification", "Epic Games: only if you choose"]) ok(app.body.includes(h), `${APP}/privacy is missing "${h}"`);
 }
 {
   // the application domain must never be the marketing home's canonical or og:url

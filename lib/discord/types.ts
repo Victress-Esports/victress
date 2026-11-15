@@ -22,6 +22,10 @@ export interface MessageData {
   content: string;
   flags?: number;
   allowed_mentions?: { parse: string[] };
+  /** Link buttons only (type 2, style 5): they open a URL and send nothing back to Victress. */
+  components?: { type: 1; components: { type: 2; style: 5; label: string; url: string }[] }[];
+  /** A message to post in the channel AFTER the private reply (the team result card). Never sent to Discord as a field. */
+  publicFollowup?: Omit<MessageData, "publicFollowup">;
 }
 export interface InteractionResponse {
   type: number;

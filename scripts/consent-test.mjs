@@ -67,7 +67,7 @@ const submit = async (page, birth) => {
   await page.waitForURL(/\/onboarding/, { timeout: 15000 });
   const s = await state();
   check(s.ages === 1, "age 13 today: accepted, age confirmation recorded once");
-  check(s.acceptances.length === 2 && s.acceptances.every((a) => a.version === (a.document === "privacy" ? "2026-11-12" : "2026-11-10") && !!a.accepted_at) && new Set(s.acceptances.map((a) => a.document)).size === 2, "acceptance: Terms and Privacy recorded with the version and a timestamp");
+  check(s.acceptances.length === 2 && s.acceptances.every((a) => a.version === (a.document === "privacy" ? "2026-11-15" : "2026-11-10") && !!a.accepted_at) && new Set(s.acceptances.map((a) => a.document)).size === 2, "acceptance: Terms and Privacy recorded with the version and a timestamp");
   check(/\/onboarding/.test(page.url()), "after accepting, a new user continues to onboarding");
   await page.goto(`http://app.localhost:${APP}/consent`);
   check(/\/onboarding|\/dashboard/.test(page.url()) && !/\/consent$/.test(page.url()), "an accepted player is not shown the consent page again");
@@ -110,9 +110,47 @@ const submit = async (page, birth) => {
   await page.waitForURL(/\/dashboard/, { timeout: 15000 });
   const s = await state();
   const versions = s.acceptances.map((a) => `${a.document}:${a.version}`).sort();
-  check(JSON.stringify(versions) === JSON.stringify(["privacy:2026-01-01", "privacy:2026-11-12", "terms:2026-01-01", "terms:2026-11-10"]), "reacceptance: new version rows added, the older acceptances are kept");
+  check(JSON.stringify(versions) === JSON.stringify(["privacy:2026-01-01", "privacy:2026-11-15", "terms:2026-01-01", "terms:2026-11-10"]), "reacceptance: new version rows added, the older acceptances are kept");
   await page.goto(`http://app.localhost:${APP}/dashboard/resume`);
   check(!/\/consent/.test(page.url()), "reacceptance: the dashboard is open again");
+  await ctx.close();
+}
+
+// --- an existing player who accepted the documents live in production today (Terms and Privacy of November 10) must accept the
+// November 15 Privacy Policy; only the changed document gets a new row, with its version and a time; nothing is overwritten
+{
+  const { ctx, page } = await session("nov10");
+  const before = (await state()).acceptances.map((a) => ({ ...a }));
+  await page.goto(`http://app.localhost:${APP}/dashboard`);
+  check(/\/consent/.test(page.url()), "November 10 acceptance: sent to /consent for the November 15 Privacy Policy");
+  check(/changed/.test(await text(page)) && (await page.locator("#consent-birth").count()) === 0, "November 10 acceptance: told the documents changed, not asked for age again");
+  for (const path of ["/dashboard/scrims", "/dashboard/team", "/dashboard/account"]) {
+    await page.goto(`http://app.localhost:${APP}${path}`);
+    check(/\/consent/.test(page.url()), `November 10 acceptance: ${path} is blocked until accepted`);
+  }
+  await page.goto(`http://app.localhost:${APP}/consent`);
+  await submit(page, null);
+  await page.waitForURL(/\/dashboard/, { timeout: 15000 });
+  const after = (await state()).acceptances;
+  const versions = after.map((a) => `${a.document}:${a.version}`).sort();
+  check(JSON.stringify(versions) === JSON.stringify(["privacy:2026-11-10", "privacy:2026-11-15", "terms:2026-11-10"]), "November 15 acceptance: one new Privacy row; the November 10 rows are kept; Terms (unchanged) gets no new row");
+  const fresh = after.find((a) => a.version === "2026-11-15");
+  check(!!fresh && !Number.isNaN(Date.parse(fresh.accepted_at)) && fresh.document === "privacy", "November 15 acceptance: recorded with document, version and a timestamp");
+  check(before.every((b) => after.some((a) => a.id === b.id && a.version === b.version && a.accepted_at === b.accepted_at)), "earlier acceptance rows are unchanged (version and time)");
+  await page.goto(`http://app.localhost:${APP}/dashboard/scrims`);
+  check(!/\/consent/.test(page.url()), "November 15 acceptance: the dashboard is open again");
+  await ctx.close();
+}
+
+// --- fail closed: a database without the consent tables (like production before migration 20261110000100) never lets anyone in
+{
+  const { ctx, page } = await session("noconsent");
+  for (const path of ["/dashboard", "/dashboard/scrims", "/dashboard/account", "/onboarding"]) {
+    await page.goto(`http://app.localhost:${APP}${path}`);
+    check(/\/consent/.test(page.url()), `no consent tables: ${path} stays shut (sent to /consent)`);
+  }
+  const t = await text(page);
+  check(/finishing an update/.test(t) && (await page.locator("#consent-accept").count()) === 0, "no consent tables: a neutral update message, no form, never the dashboard");
   await ctx.close();
 }
 

@@ -1,4 +1,4 @@
-// Builds the SQL for a staging dry run of the three pilot migrations (linking, Rocket League import, team scrims and events) and their database checks, from the repo files (so it cannot drift).
+// Builds the SQL for a staging dry run of the four pilot migrations (linking, Rocket League import, team scrims and events, verified Epic identity) and their database checks, from the repo files (so it cannot drift).
 //   node scripts/staging-dry-run.mjs > dry-run.sql
 // The script is ONE transaction: begin; the migrations; the test files (each caught and recorded); then an unconditional error and
 // rollback. It cannot commit. Run it with the Supabase SQL tool on victress-staging only. Afterwards, check that staging is unchanged:
@@ -12,11 +12,13 @@ let out = "begin;\n";
 out += rd("supabase/migrations/20261112000100_discord_account_link.sql") + "\n";
 out += rd("supabase/migrations/20261112000200_rocket_league_link_import.sql") + "\n";
 out += rd("supabase/migrations/20261113000100_team_scrims_and_events.sql") + "\n";
+out += rd("supabase/migrations/20261115000100_rl_verified_identity.sql") + "\n";
 out += "create temp table dry_results(t text, msg text);\ndo $outer$ begin\n";
 for (const [name, file] of [
   ["discord_link", "supabase/tests/discord_link.sql"],
   ["rocket_league_import", "supabase/tests/rocket_league_import.sql"],
   ["team_scrims", "supabase/tests/team_scrims.sql"],
+  ["rl_verified_identity", "supabase/tests/rl_verified_identity.sql"],
 ]) {
   out += `  begin execute $t$${rd(file)}$t$; exception when others then insert into dry_results values ('${name}', sqlerrm); end;\n`;
 }

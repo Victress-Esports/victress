@@ -97,3 +97,32 @@ export async function sharingMembers(admin: any, teamId: string): Promise<Member
   const { data: accts } = await admin.from("game_accounts").select("profile_id, platform, external_id").eq("game", "ROCKET_LEAGUE").in("profile_id", ids);
   return (accts ?? []).filter((a: { platform: string | null }) => a.platform).map((a: { profile_id: string; platform: string; external_id: string }) => ({ profile_id: a.profile_id, platform: a.platform, id: a.external_id }));
 }
+
+/**
+ * Snapshot candidates for a team scrim: EVERY player on the submitting team's side who has a platform and an id in the replay, the
+ * submitter included (docs/rl-mvp-weekend.md item 5). Opponents are never read. The platform and id are returned exactly as Ballchasing
+ * reports them, only so the server can turn them into a keyed hash (lib/claim.ts); they are never stored. A slot without a platform or id
+ * is skipped.
+ */
+export type SnapshotSlot = { platform: string; id: string; stats: Numbers; mvp: boolean };
+export function snapshotSlots(detail: unknown, submitter: { platform: string; id: string }): SnapshotSlot[] {
+  if (!isRec(detail)) return [];
+  const want = { platform: submitter.platform.toLowerCase(), id: submitter.id.toLowerCase() };
+  for (const color of ["blue", "orange"] as const) {
+    const t = detail[color];
+    if (!isRec(t) || !Array.isArray(t.players)) return [];
+    const players = t.players.filter(isRec);
+    const mine = players.some((p) => { const x = idOf(p); return x.platform === want.platform && x.id === want.id; });
+    if (!mine) continue;
+    const out: SnapshotSlot[] = [];
+    for (const p of players) {
+      const raw = isRec(p.id) ? p.id : {};
+      const platform = typeof raw.platform === "string" ? raw.platform : "";
+      const id = typeof raw.id === "string" ? raw.id : "";
+      if (!platform || !id) continue;
+      out.push({ platform, id, stats: numbersOf(p), mvp: core(p).mvp === true });
+    }
+    return out.slice(0, 8);
+  }
+  return [];
+}

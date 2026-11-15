@@ -7,8 +7,9 @@ import type { Database } from "@/types/database";
 /**
  * ok: age confirmed and the current Terms and Privacy accepted.
  * needs_age: no age confirmation yet (first sign in). needs_acceptance: a document's current version is not accepted
- * (first sign in, or the document changed). unavailable: the tables are not in this database yet (migration not applied),
- * so the gate cannot be enforced; the app keeps working as it did before the migration.
+ * (first sign in, or the document changed). unavailable: the tables are not in this database (migration 20261110000100 not
+ * applied). The gate FAILS CLOSED: signed in pages stay shut and the consent page says Victress is finishing an update. Apply the
+ * migration before deploying this code (changed 2026-11-15; it used to let everyone through).
  */
 export type ConsentStatus = "ok" | "needs_age" | "needs_acceptance" | "unavailable";
 
@@ -28,4 +29,4 @@ export async function consentStatus(sb: SupabaseClient<Database>, userId: string
   return { status: missing ? "needs_acceptance" : "ok", returning };
 }
 
-export const needsConsent = (s: ConsentStatus) => s === "needs_age" || s === "needs_acceptance";
+export const needsConsent = (s: ConsentStatus) => s !== "ok";
