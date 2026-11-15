@@ -1,18 +1,15 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { buttonClass } from "@/components/ui/Button";
 import { claimNameAction, finishOnboardingAction } from "@/app/a/onboarding/actions";
 import type { GameConfig } from "@/content/games";
+import { ROLES, getRole, type RoleId } from "@/lib/roles";
 
 type Step = "type" | "name" | "game" | "role";
-type AccountType = "player" | "team" | "recruiter";
+type AccountType = RoleId;
 
-const TYPES: { id: AccountType; title: string; line: string }[] = [
-  { id: "player", title: "Player", line: "Add your games and roles." },
-  { id: "team", title: "Team or coach", line: "Run a roster and follow your team." },
-  { id: "recruiter", title: "Recruiter or scout", line: "Scout Desk is coming soon. You can still create a player profile." },
-];
+const TYPES = ROLES.map((r) => ({ id: r.id, title: r.title, line: r.line }));
 
 const card =
   "min-h-16 rounded-2xl border border-line bg-surface px-5 py-4 text-left text-lg font-semibold transition-colors hover:border-white focus-visible:border-white aria-pressed:border-crimson aria-pressed:bg-crimson";
@@ -25,10 +22,13 @@ const NAME_MESSAGES: Record<string, string> = {
   error: "Something went wrong. Try again.",
 };
 
-export function OnboardingWizard({ games, needsName }: { games: GameConfig[]; needsName: boolean }) {
+export function OnboardingWizard({ games, needsName, initialRole = null }: { games: GameConfig[]; needsName: boolean; initialRole?: RoleId | null }) {
   const [pending, start] = useTransition();
-  const [step, setStep] = useState<Step>("type");
-  const [accountType, setAccountType] = useState<AccountType>("player");
+  // A role chosen on the website (in the sign in link) skips the "how will you use Victress" question.
+  const needsGameFor = (t: AccountType) => getRole(t)?.game !== false;
+  const firstStep = (t: AccountType): Step => (needsName ? "name" : "game");
+  const [step, setStep] = useState<Step>(initialRole ? firstStep(initialRole) : "type");
+  const [accountType, setAccountType] = useState<AccountType>(initialRole ?? "player");
   const [game, setGame] = useState<GameConfig | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -60,8 +60,17 @@ export function OnboardingWizard({ games, needsName }: { games: GameConfig[]; ne
   }
   function pickType(t: AccountType) {
     setAccountType(t);
-    setStep(needsName ? "name" : "game");
+    setStep(firstStep(t));
   }
+  // Roles without a game question (scout, college, partner) finish as soon as the name is settled.
+  const auto = useRef(false);
+  useEffect(() => {
+    if (initialRole && !needsGameFor(initialRole) && !needsName && !auto.current) {
+      auto.current = true;
+      finish(null, null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   function back() {
     if (step === "role") setStep("game");
   }
@@ -72,7 +81,8 @@ export function OnboardingWizard({ games, needsName }: { games: GameConfig[]; ne
       const { status } = await claimNameAction(name);
       if (status === "ok") {
         setNameMsg("");
-        setStep("game");
+        if (needsGameFor(accountType)) setStep("game");
+        else await finishOnboardingAction({ game: null, role: null, account_type: accountType });
       } else setNameMsg(NAME_MESSAGES[status] ?? NAME_MESSAGES.error);
     });
   }

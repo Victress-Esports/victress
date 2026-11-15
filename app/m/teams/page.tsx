@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { copy } from "@/content/copy";
 import { seo } from "@/content/seo";
 import { marketingCrumbs } from "@/lib/jsonld";
+import { WomenStrip } from "@/components/marketing/WomenStrip";
 import { pageMetadata } from "@/lib/seo";
 import { appUrl } from "@/lib/urls";
 
@@ -14,6 +15,7 @@ export const metadata: Metadata = pageMetadata({ ...seo.marketing.teams, path: "
 export default function Teams() {
   const t = copy.teams;
   return (
+    <>
     <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
       <JsonLd data={marketingCrumbs("For teams", "/teams")} />
       <div className="grid items-center gap-12 lg:grid-cols-2">
@@ -40,5 +42,7 @@ export default function Teams() {
         ))}
       </ul>
     </div>
+    <WomenStrip />
+    </>
   );
 }

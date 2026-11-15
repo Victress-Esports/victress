@@ -5,6 +5,7 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { copy } from "@/content/copy";
 import { seo } from "@/content/seo";
 import { faqPage, marketingCrumbs } from "@/lib/jsonld";
+import { WomenStrip } from "@/components/marketing/WomenStrip";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({ ...seo.marketing.pricing, path: "/pricing", image: "pricing" });
@@ -12,6 +13,7 @@ export const metadata: Metadata = pageMetadata({ ...seo.marketing.pricing, path:
 export default function Pricing() {
   const p = copy.pricing;
   return (
+    <>
     <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
       <JsonLd data={marketingCrumbs("Pricing", "/pricing")} />
       <JsonLd data={faqPage(p.faq)} />
@@ -31,5 +33,7 @@ export default function Pricing() {
         </div>
       </section>
     </div>
+    <WomenStrip />
+    </>
   );
 }

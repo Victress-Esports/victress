@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { ROLE_IDS, getRole } from "@/lib/roles";
 import { requireUser, safeNext } from "@/lib/auth";
 import { sendWelcome } from "@/lib/email";
 import { checkHandle } from "@/lib/handles";
@@ -32,7 +33,7 @@ export async function claimNameAction(raw: string): Promise<{ status: ClaimStatu
 const finishSchema = z.object({
   game: z.enum(GAME_IDS).nullable().optional(),
   role: z.string().max(40).nullable().optional(),
-  account_type: z.enum(["player", "team", "recruiter"]).optional(),
+  account_type: z.enum(ROLE_IDS).optional(),
 });
 
 /** Saves the onboarding answers (all optional: skipping is always allowed). The first game becomes the primary game. */
@@ -52,7 +53,8 @@ export async function finishOnboardingAction(input: z.input<typeof finishSchema>
 
   // An invite link opened before signup: continue to it.
   const store = await cookies();
-  const next = safeNext(decodeURIComponent(store.get("v_next")?.value ?? ""), "/dashboard");
+  const next = safeNext(decodeURIComponent(store.get("v_next")?.value ?? ""), getRole(parsed.data.account_type)?.destination ?? "/dashboard");
   store.delete("v_next");
+  store.delete("v_role");
   redirect(next);
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { buttonClass } from "@/components/ui/Button";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
@@ -14,10 +14,15 @@ function remember(claim: string, next: string) {
   if (next) document.cookie = `v_next=${encodeURIComponent(next)}${attrs}`;
 }
 
-export function LoginForm({ claim, next }: { claim: string; next: string }) {
+export function LoginForm({ claim, next, role = "" }: { claim: string; next: string; role?: string }) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [oauthError, setOauthError] = useState(false);
+
+  // The role chosen on the website travels in a short lived cookie, like the claimed name, and onboarding reads it.
+  useEffect(() => {
+    if (role) document.cookie = `v_role=${encodeURIComponent(role)}; path=/; max-age=1800; SameSite=Lax${location.protocol === "https:" ? "; Secure" : ""}`;
+  }, [role]);
 
   const redirectTo = () => `${location.origin}/auth/callback`;
 
