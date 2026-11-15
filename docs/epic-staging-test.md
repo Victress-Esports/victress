@@ -7,7 +7,7 @@ Preview host (branch alias): `https://victress-git-claude-wizardl-6d3298-matt-hi
 - PR #54 head `039baab` (branch `claude/wizardly-ride-bafh0x`) has a successful Vercel Preview build (04:00:56 UTC, GitHub status "Vercel: Deployment has completed").
 - The code accepts the registered Preview callback exactly and sends it to Epic unchanged: `https://victress-git-claude-wizardl-6d3298-matt-hills-projects-54d303a1.vercel.app/dashboard/link/epic/callback`. A trailing `/`, or `http://`, would leave Epic off; spaces are trimmed.
 - Staging database: every pilot migration is applied, including `20261115000100`; tests pass on staging.
-- Staging pilot allowlist: **empty**. The tester has **no staging account** yet.
+- Staging pilot allowlist: the tester account `cbc8cbf5…` (ae***@vtmpj.net) was added 2026-11-15 05:38 UTC; its consent step was not yet recorded at that time.
 - The ID match tool works: `scripts/epic-ballchasing-match.mjs` (compares SHA-256 fingerprints and prints no ids).
 
 ## Cannot be checked from here (no Vercel access; the Preview is behind Deployment Protection)
