@@ -12,7 +12,7 @@ import { DB_COMMANDS, runDeferred } from "@/lib/discord/commands-run";
 import { discordEnv } from "@/lib/discord/env";
 import { hashLinkCode, linkUrl, newLinkCode } from "@/lib/discord/link";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import { completeDeferred } from "@/lib/discord/followup";
+import { completeDeferred, postFollowup } from "@/lib/discord/followup";
 import { handleInteraction, logLine } from "@/lib/discord/handler";
 import type { Interaction } from "@/lib/discord/types";
 import { verifyDiscordSignature } from "@/lib/discord/verify";
@@ -86,9 +86,10 @@ export async function POST(req: Request) {
             linkUrl: (_base: string, code: string) => appLink(linkUrl("", code)),
             importReplay: async (userId, link, o) =>
               bc
-                ? runReplayImport({ admin, client: bc, team: { build: teamScrimFromReplay, members: sharingMembers, snapshots: { slots: snapshotSlots, key: claimKeyFn() } }, claimUrl: appLink("/claim"), track: (u, n, p) => recordEvent(u, n, p, admin) }, userId, link, o)
+                ? runReplayImport({ admin, client: bc, team: { build: teamScrimFromReplay, members: sharingMembers, snapshots: { slots: snapshotSlots, key: claimKeyFn() } }, claimUrl: appLink("/claim?from=card"), track: (u, n, p) => recordEvent(u, n, p, admin) }, userId, link, o)
                 : { ok: false, message: "Rocket League replay import is not configured on this server yet." },
             summarize: (rows, kind) => summarizeRl(rows as never, kind),
+            claimUrl: appLink("/claim?from=card"),
           });
         },
       };
@@ -115,7 +116,9 @@ export async function POST(req: Request) {
       logLine("deferred_error", { command: interaction.data?.name });
       message = { content: "Something went wrong. Try again.", flags: 64, allowed_mentions: { parse: [] as string[] } };
     }
-    if (!(await completeDeferred(appId, token, message))) logLine("followup_failed", { command: interaction.data?.name });
+    const { publicFollowup, ...privateReply } = message as typeof message & { publicFollowup?: Parameters<typeof postFollowup>[2] };
+    if (!(await completeDeferred(appId, token, privateReply))) logLine("followup_failed", { command: interaction.data?.name });
+    else if (publicFollowup && !(await postFollowup(appId, token, publicFollowup))) logLine("card_failed", { command: interaction.data?.name });
   });
   return Response.json({ type: 5, data: { flags: 64 } }, { headers: { "cache-control": "no-store" } });
 }

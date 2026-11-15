@@ -209,5 +209,25 @@ check(submitDef.find((o) => o.name === "team")?.required === false && submitDef.
 r = await runDeferred(cmd("profile", "not-a-snowflake"), svc(db()));
 check(/could not tell which Discord account/.test(r.content), "a malformed Discord user id is refused");
 
+// ---- the team result card in the channel (docs/rl-mvp-weekend.md item 6) and the side option
+d = db(); d.t.discord_links.push({ discord_user_id: A, profile_id: PA, linked_at: "x" });
+const CARD = { result: "win", goals_for: 3, goals_against: 1, overtime: false, opponent: "Northside", totals: { goals: 3, assists: 2, saves: 4, shots: 9, score: 900 }, snapshots: 3 };
+const withCard = (over = {}) => svc(d, { claimUrl: "https://victress.gg/claim?from=card", importReplay: async (uid, link, o) => { imports.push({ uid, link, o }); return { ok: true, message: "Saved.\nAdded to your team's scrims.", card: CARD, ...over }; } });
+r = await runDeferred(cmd("scrim", A, sub("submit", [["link", REPLAY], ["authorized", true], ["consent", true], ["team", true], ["side", "blue"]])), withCard());
+check(r.flags === 64 && r.publicFollowup && r.publicFollowup.flags === undefined, "the reply stays private; the result card is a separate public message for the channel");
+const pc = r.publicFollowup;
+check(/Win 3 to 1 vs Northside/.test(pc.content) && /Team totals: 3 goals, 2 assists, 4 saves, 9 shots, 900 score/.test(pc.content) && /3 player snapshots ready\. Claim yours\./.test(pc.content), "the card shows score, W or L, team totals and N player snapshots ready");
+check(pc.components?.[0]?.components?.[0]?.style === 5 && pc.components[0].components[0].label === "Claim your stats" && pc.components[0].components[0].url === "https://victress.gg/claim?from=card", "the card has a Claim your stats link button to victress.gg/claim");
+check(JSON.stringify(pc.allowed_mentions) === JSON.stringify({ parse: [] }) && !/@|alice/i.test(pc.content), "the card mentions nobody and names nobody");
+check(imports.at(-1).o.side === "blue", "the side option is passed to the import (it must match the side of the player's own ID)");
+r = await runDeferred(cmd("scrim", A, sub("submit", [["link", REPLAY], ["authorized", true], ["consent", true], ["team", true]])), withCard({ card: undefined }));
+check(!r.publicFollowup, "no new team scrim (private only, already added, or no team): no card in the channel");
+r = await runDeferred(cmd("scrim", A, sub("submit", [["link", REPLAY], ["authorized", true], ["consent", true], ["team", true]])), withCard({ ok: false, message: "That replay is private." }));
+check(!r.publicFollowup, "a failed submission posts nothing in the channel");
+r = await runDeferred(cmd("scrim", A, sub("submit", [["link", REPLAY], ["authorized", true], ["consent", true], ["team", true]])), withCard({ card: { ...CARD, snapshots: 0 } }));
+check(r.publicFollowup && !r.publicFollowup.components && /No player snapshots/.test(r.publicFollowup.content), "with no snapshots the card has no Claim button");
+const sideDef = COMMANDS.find((c) => c.name === "scrim").options.find((o) => o.name === "submit").options.find((o) => o.name === "side");
+check(sideDef && sideDef.required === false && sideDef.choices.map((c) => c.value).join() === "blue,orange", "/scrim submit has an optional side option: blue or orange");
+
 console.log(failed ? `\n${failed} FAILED` : "\nAll Discord command checks passed.");
 process.exit(failed ? 1 : 0);

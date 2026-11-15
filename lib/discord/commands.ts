@@ -55,6 +55,7 @@ export const COMMANDS = [
           { type: 5, name: "consent", description: "I agree Victress reads this replay and saves my own numbers, privately.", required: true },
           { type: 5, name: "team", description: "Also add the result and side totals to my team's scrims. Off unless you choose True.", required: false },
           { type: 3, name: "opponent", description: "Optional label for the opponent, seen only by your team. Leave out real player names.", required: false, max_length: 40 },
+          { type: 3, name: "side", description: "Your team's side. Checked against your ID in the replay.", required: false, choices: [{ name: "Blue", value: "blue" }, { name: "Orange", value: "orange" }] },
         ],
       },
       { type: 1, name: "status", description: "See what happened to your latest submissions." },

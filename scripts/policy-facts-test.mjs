@@ -38,12 +38,13 @@ check(!/replay_id/.test(page), "the team page does not show the replay id");
 // Snapshots: keyed hash only, players cannot read the key, own side only, 90 day purge (migration 20261116000100, lib/ballchasing/team.ts)
 const snap = read("supabase/migrations/20261116000100_rl_snapshots_and_steam_verification.sql");
 check(/identity_key text not null check \(identity_key ~ '\^\[0-9a-f\]\{64\}\$'\)/.test(snap) && !/platform text|external_id/.test(snap.slice(snap.indexOf("create table public.rl_snapshots"), snap.indexOf("create index rl_snapshots_key_idx"))), "snapshots store a 64 hex key, never a platform or id column");
-check(/grant select \(id, replay_id, played_at, duration_seconds, queue_kind, result, goals_for, goals_against, overtime, stats, claimed_at\)/.test(snap), "players cannot read the identity key (column grants)");
+check(/grant select \(id, replay_id, played_at, duration_seconds, queue_kind, result, goals_for, goals_against, overtime, stats, mvp, claimed_at\)/.test(snap), "players cannot read the identity key (column grants)");
 check(/purge_rl_snapshots\(p_days integer default 90\)/.test(snap) && /claimed_by is null and \(created_at < now\(\) - make_interval\(days => p_days\) or team_scrim_id is null\)/.test(snap), "unclaimed snapshots: 90 days, or when the scrim is gone");
 check(/Opponents are never read/.test(read("lib/ballchasing/team.ts")), "snapshots are built from the submitter's own side only");
 for (const t of ["coded key made from their platform ID with a secret only Victress holds", "Opponents get no snapshots", "Unclaimed snapshots: deleted 90 days after they are made", "Steam (Valve): only if you choose to verify a Steam account"]) check(policy.includes(t), `policy says: ${t}`);
 
 // The policy says each of these
-for (const t of ["Team scrims can be seen only by the current members of that team", "Scouts and recruiters cannot see them", "Product events: until you delete your account.", "deletes your lines from that team's scrims", "not sent to any analytics or advertising service", "This policy is pending legal review"]) check(policy.includes(t), `policy says: ${t}`);
+for (const t of ["Team scrims can be seen only by the current members of that team", "Scouts and recruiters cannot see them", "Product events: until you delete your account.", "deletes your lines from that team's scrims", "not sent to any analytics or advertising service"]) check(policy.includes(t), `policy says: ${t}`);
+check(!/pending legal review/i.test(legal), "the legal pages carry no pending legal review notice (founder decision 2026-11-15: final text)");
 console.log(failed ? `\n${failed} FAILED` : "\nAll policy fact checks passed.");
 process.exit(failed ? 1 : 0);

@@ -1,9 +1,11 @@
--- Claimable Rocket League snapshots for the submitter's own side, and Steam as a second verified identity (additive). Run after
+-- Claimable Rocket League snapshots for the submitting team's side, Steam as a second verified identity, automatic sessions and two
+-- more product events (additive; docs/rl-mvp-weekend.md items 4, 5, 6, 8). Run after
 -- 20261115000100_rl_verified_identity.sql. Test on the throwaway local Postgres first (supabase/tests/rl_snapshots.sql).
 --
 -- What this is:
---  * When a player adds a replay to their team's scrims, each OTHER player on the submitter's own side who has a platform id in the
---    replay gets a snapshot: that player's five numbers (score, goals, assists, saves, shots) and the match facts. Opponents get nothing.
+--  * When a player adds a replay to their team's scrims, EVERY player on the submitting team's side who has a platform id in the replay,
+--    the submitter included, gets a snapshot: that player's five numbers (score, goals, assists, saves, shots), the MVP flag and the
+--    match facts. Opponents get nothing.
 --    No name and no platform id is stored: the snapshot is keyed by identity_key, an HMAC SHA-256 of "platform:id" made by the server
 --    with a secret (VICTRESS_CLAIM_KEY) that the database never sees. Without the secret the key cannot be turned back into an id.
 --  * A player can claim a snapshot only after verifying a game account (Epic sign in, or Steam sign in): the server computes the HMAC of
@@ -11,12 +13,17 @@
 --  * Nobody can read an unclaimed snapshot. A claimed snapshot is readable and deletable only by the player who claimed it.
 --  * Unclaimed snapshots are deleted after 90 days, and at once when their team scrim is removed. Claimed ones stay until the player
 --    deletes them, deletes their Rocket League data, or deletes their account.
+--  * Sessions: one per team per day (the replay's UTC date), created automatically when a team scrim is stored. No UI. Server only.
+--  * Events: claim_button_clicked and profile_claimed join the fixed list.
 --
 -- Rollback (nothing else depends on these):
 --   drop function public.claim_rl_snapshots(uuid, text);
 --   drop function public.record_rl_snapshots(uuid, uuid, jsonb); drop function public.purge_rl_snapshots(integer);
 --   drop trigger team_scrims_drop_unclaimed on public.team_scrims; drop function public.team_scrims_drop_unclaimed();
 --   drop table public.rl_snapshots;
+--   drop trigger team_scrims_session on public.team_scrims; drop function public.team_scrims_session();
+--   alter table public.team_scrims drop column session_id; drop table public.team_scrim_sessions;
+--   restore events_name_check to the eight names of 20261113000100 (delete rows with the two new names first).
 --   alter table public.game_accounts drop constraint game_accounts_verification_fits, drop constraint game_accounts_verified_via_check;
 --   then restore both constraints exactly as in 20261115000100 (no steam_openid rows may exist first).
 
@@ -46,6 +53,7 @@ create table public.rl_snapshots (
   goals_against integer not null check (goals_against between 0 and 99),
   overtime boolean not null default false,
   stats jsonb not null check (public.rl_numbers_ok(stats)),
+  mvp boolean not null default false,
   claimed_by uuid references public.profiles (id) on delete cascade,
   claimed_at timestamptz,
   created_at timestamptz not null default now(),
@@ -60,7 +68,7 @@ alter table public.rl_snapshots enable row level security;
 create policy "claimers read their snapshots" on public.rl_snapshots for select to authenticated using (claimed_by = (select auth.uid()));
 create policy "claimers delete their snapshots" on public.rl_snapshots for delete to authenticated using (claimed_by = (select auth.uid()));
 revoke all on public.rl_snapshots from public, anon, authenticated, service_role;
-grant select (id, replay_id, played_at, duration_seconds, queue_kind, result, goals_for, goals_against, overtime, stats, claimed_at) on public.rl_snapshots to authenticated;
+grant select (id, replay_id, played_at, duration_seconds, queue_kind, result, goals_for, goals_against, overtime, stats, mvp, claimed_at) on public.rl_snapshots to authenticated;
 grant delete on public.rl_snapshots to authenticated;
 grant select, delete on public.rl_snapshots to service_role;
 
@@ -80,7 +88,7 @@ revoke execute on function public.team_scrims_drop_unclaimed() from public, anon
 create trigger team_scrims_drop_unclaimed before delete on public.team_scrims for each row execute function public.team_scrims_drop_unclaimed();
 
 -- Server only: store snapshots for a team scrim this submitter just created. Facts are copied from the scrim (the submitter's side).
--- p = [{"key": "<64 hex>", "stats": {...}}], at most 7 (a side has at most 8 players, minus the submitter).
+-- p = [{"key": "<64 hex>", "stats": {...}, "mvp": true|false}], at most 8 (a side has at most 8 players).
 create function public.record_rl_snapshots(p_scrim uuid, p_submitter uuid, p jsonb)
 returns integer
 language plpgsql
@@ -90,10 +98,10 @@ as $$
 declare s record; e jsonb; n int := 0; k int;
 begin
   select * into s from public.team_scrims where id = p_scrim and submitted_by = p_submitter;
-  if not found or jsonb_typeof(p) <> 'array' or jsonb_array_length(p) > 7 then return 0; end if;
+  if not found or jsonb_typeof(p) <> 'array' or jsonb_array_length(p) > 8 then return 0; end if;
   for e in select * from jsonb_array_elements(p) loop
-    insert into public.rl_snapshots (team_scrim_id, replay_id, identity_key, played_at, duration_seconds, queue_kind, result, goals_for, goals_against, overtime, stats)
-    values (s.id, s.replay_id, e->>'key', s.played_at, s.duration_seconds, s.queue_kind, s.result, s.goals_for, s.goals_against, s.overtime, e->'stats')
+    insert into public.rl_snapshots (team_scrim_id, replay_id, identity_key, played_at, duration_seconds, queue_kind, result, goals_for, goals_against, overtime, stats, mvp)
+    values (s.id, s.replay_id, e->>'key', s.played_at, s.duration_seconds, s.queue_kind, s.result, s.goals_for, s.goals_against, s.overtime, e->'stats', coalesce((e->>'mvp')::boolean, false))
     on conflict (replay_id, identity_key) do nothing;
     get diagnostics k = row_count;
     n := n + k;
@@ -143,3 +151,38 @@ end;
 $$;
 revoke execute on function public.purge_rl_snapshots(integer) from public, anon, authenticated;
 grant execute on function public.purge_rl_snapshots(integer) to service_role;
+
+-- 3. Sessions: one per team per day (UTC date of the replay), set automatically on every new team scrim. Server only; no UI.
+create table public.team_scrim_sessions (
+  id uuid primary key default gen_random_uuid(),
+  team_id uuid not null references public.teams (id) on delete cascade,
+  day date not null,
+  created_at timestamptz not null default now(),
+  unique (team_id, day)
+);
+alter table public.team_scrim_sessions enable row level security;  -- no policies: server only
+revoke all on public.team_scrim_sessions from public, anon, authenticated, service_role;
+grant select on public.team_scrim_sessions to service_role;
+alter table public.team_scrims add column session_id uuid references public.team_scrim_sessions (id) on delete set null;
+
+create function public.team_scrims_session()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare d date := (new.played_at at time zone 'UTC')::date;
+begin
+  insert into public.team_scrim_sessions (team_id, day) values (new.team_id, d) on conflict (team_id, day) do nothing;
+  select id into new.session_id from public.team_scrim_sessions where team_id = new.team_id and day = d;
+  return new;
+end;
+$$;
+revoke execute on function public.team_scrims_session() from public, anon, authenticated;
+create trigger team_scrims_session before insert on public.team_scrims for each row execute function public.team_scrims_session();
+
+-- 4. Two more product events (docs/rl-mvp-weekend.md item 8). Same table, same rules for extra data.
+alter table public.events drop constraint events_name_check;
+alter table public.events add constraint events_name_check check (name in (
+  'registration_completed', 'discord_linked', 'game_identity_linked', 'team_created', 'team_joined',
+  'first_scrim_submitted', 'scrim_processing_completed', 'repeat_scrim_submitted', 'claim_button_clicked', 'profile_claimed'));

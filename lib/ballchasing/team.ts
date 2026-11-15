@@ -99,11 +99,12 @@ export async function sharingMembers(admin: any, teamId: string): Promise<Member
 }
 
 /**
- * Snapshot candidates for a team scrim: every OTHER player on the submitter's own side who has a platform and an id in the replay.
- * Opponents are never read. The platform and id are returned exactly as Ballchasing reports them, only so the server can turn them
- * into a keyed hash (lib/claim.ts); they are never stored. A slot without a platform or id, or the submitter's own slot, is skipped.
+ * Snapshot candidates for a team scrim: EVERY player on the submitting team's side who has a platform and an id in the replay, the
+ * submitter included (docs/rl-mvp-weekend.md item 5). Opponents are never read. The platform and id are returned exactly as Ballchasing
+ * reports them, only so the server can turn them into a keyed hash (lib/claim.ts); they are never stored. A slot without a platform or id
+ * is skipped.
  */
-export type SnapshotSlot = { platform: string; id: string; stats: Numbers };
+export type SnapshotSlot = { platform: string; id: string; stats: Numbers; mvp: boolean };
 export function snapshotSlots(detail: unknown, submitter: { platform: string; id: string }): SnapshotSlot[] {
   if (!isRec(detail)) return [];
   const want = { platform: submitter.platform.toLowerCase(), id: submitter.id.toLowerCase() };
@@ -119,10 +120,9 @@ export function snapshotSlots(detail: unknown, submitter: { platform: string; id
       const platform = typeof raw.platform === "string" ? raw.platform : "";
       const id = typeof raw.id === "string" ? raw.id : "";
       if (!platform || !id) continue;
-      if (platform.toLowerCase() === want.platform && id.toLowerCase() === want.id) continue;
-      out.push({ platform, id, stats: numbersOf(p) });
+      out.push({ platform, id, stats: numbersOf(p), mvp: core(p).mvp === true });
     }
-    return out.slice(0, 7);
+    return out.slice(0, 8);
   }
   return [];
 }

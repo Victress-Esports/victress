@@ -205,7 +205,7 @@ export type Deps = {
     /** Claimable snapshots for the other players on the submitter's side (lib/ballchasing/team.ts snapshotSlots, lib/claim.ts). Optional:
      *  without it, or without a key (no VICTRESS_CLAIM_KEY), no snapshots are created. */
     snapshots?: {
-      slots: (detail: unknown, submitter: { platform: string; id: string }) => { platform: string; id: string; stats: Record<string, number> }[];
+      slots: (detail: unknown, submitter: { platform: string; id: string }) => { platform: string; id: string; stats: Record<string, number>; mvp: boolean }[];
       key: ((platform: string, id: string) => string) | null;
     };
   };
@@ -231,8 +231,8 @@ export function cardText(c: ResultCard, claimUrl?: string): string {
     `${res} ${c.goals_for} to ${c.goals_against}${c.overtime ? " (overtime)" : ""}${c.opponent ? ` vs ${c.opponent}` : ""}`,
     `Team totals: ${totals || "not available"}`,
     c.snapshots > 0
-      ? `${c.snapshots} snapshot${c.snapshots === 1 ? "" : "s"} ready. Claim yours${claimUrl ? `: ${claimUrl}` : " on Victress"}`
-      : "No snapshots to claim: no other player on your side has a platform ID in this replay.",
+      ? `${c.snapshots} player snapshot${c.snapshots === 1 ? "" : "s"} ready. Claim yours${claimUrl ? `: ${claimUrl}` : " on Victress"}`
+      : "No player snapshots: no player on your side has a platform ID in this replay.",
   ];
   return lines.join("\n");
 }
@@ -242,6 +242,8 @@ export type ImportOptions = {
   forTeam?: boolean;
   /** Optional opponent label typed by the player. Never read from the replay. */
   opponent?: string;
+  /** Optional side the player says their team was on. If given, it must be the side their own ID is on, or nothing is saved. */
+  side?: "blue" | "orange";
 };
 
 export const TEAM_MESSAGES: Record<TeamOutcome, string> = {
@@ -274,6 +276,7 @@ export const MESSAGES: Record<string, string> = {
   not_configured: "Rocket League replay import is not configured on this server yet.",
   not_ok: "Ballchasing has not finished processing that replay, or could not process it. Wait a few minutes and submit it again. If it still fails, upload the replay to Ballchasing again.",
   bad_shape: "Victress could not read that replay's data. It may be an unsupported or unfinished replay, so nothing was saved.",
+  side_mismatch: "The side you chose is not the side your Rocket League ID is on in this replay, so nothing was saved. Check the side, or leave it out.",
   ambiguous_identity: "Your Rocket League ID appears more than once in this replay, so nothing was saved. Victress will not guess which one is you.",
   bad_date: "Victress could not read when that replay was played, so nothing was saved.",
   already: "You already submitted this replay. Nothing new was saved.",
@@ -414,6 +417,7 @@ async function importOnce(deps: Deps, userId: string, linkOrId: string, opts: Im
     const who = { platform: String(acct.platform), id: String(acct.external_id) };
     const n = normalizeReplay(detail, who);
     if (!n.ok) return await finish(n.reason, false, { failed_matches: 1 }, n.info);
+    if (opts.side && (n.row.me as { team?: string }).team !== opts.side) return await finish("side_mismatch", false, { failed_matches: 1 });
 
     let personalNew = false;
     if (!have) {
@@ -456,7 +460,7 @@ async function addToTeam(deps: Deps, userId: string, teamId: string, detail: unk
     const scrimId = (data as { scrim_id?: string }).scrim_id;
     if (snap?.key && scrimId) {
       const key = snap.key;
-      const rows = snap.slots(detail, who).map((s) => ({ key: key(s.platform, s.id), stats: s.stats }));
+      const rows = snap.slots(detail, who).map((s) => ({ key: key(s.platform, s.id), stats: s.stats, mvp: s.mvp }));
       if (rows.length) {
         const r = await deps.admin.rpc("record_rl_snapshots", { p_scrim: scrimId, p_submitter: userId, p: rows });
         snapshots = r.error ? 0 : Number(r.data ?? 0);

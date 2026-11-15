@@ -35,8 +35,11 @@ begin
     'queue_kind', 'custom', 'side', 'blue', 'goals_for', 3, 'goals_against', 1, 'side_players', 3,
     'team_totals', '{"goals": 3, "saves": 2}'::jsonb, 'opponent_totals', '{"goals": 1}'::jsonb));
   sid := (res->>'scrim_id')::uuid;
-  n := public.record_rl_snapshots(sid, sub, jsonb_build_array(jsonb_build_object('key', k1, 'stats', '{"goals": 1, "saves": 2, "score": 400}'::jsonb), jsonb_build_object('key', k2, 'stats', '{"goals": 0}'::jsonb)));
-  r := array_append(r, case when n = 2 then 'PASS two snapshots stored for the submitter''s side' else 'FAIL stored ' || n end);
+  n := public.record_rl_snapshots(sid, sub, jsonb_build_array(jsonb_build_object('key', k1, 'stats', '{"goals": 1, "saves": 2, "score": 400}'::jsonb, 'mvp', true), jsonb_build_object('key', k2, 'stats', '{"goals": 0}'::jsonb)));
+  r := array_append(r, case when n = 2 then 'PASS snapshots stored for the submitting side' else 'FAIL stored ' || n end);
+  r := array_append(r, case when (select mvp from public.rl_snapshots where identity_key = k1) and not (select mvp from public.rl_snapshots where identity_key = k2) then 'PASS the MVP flag is kept per snapshot' else 'FAIL mvp' end);
+  n := public.record_rl_snapshots(sid, sub, (select jsonb_agg(jsonb_build_object('key', lpad(to_hex(g), 64, 'a'), 'stats', '{}'::jsonb)) from generate_series(1, 9) g));
+  r := array_append(r, case when n = 0 then 'PASS more than 8 snapshots for one side are refused' else 'FAIL nine accepted' end);
   n := public.record_rl_snapshots(sid, sub, jsonb_build_array(jsonb_build_object('key', k1, 'stats', '{"goals": 1}'::jsonb)));
   r := array_append(r, case when n = 0 then 'PASS the same player in the same replay is stored once' else 'FAIL duplicate' end);
   n := public.record_rl_snapshots(sid, mate, jsonb_build_array(jsonb_build_object('key', k3, 'stats', '{"goals": 1}'::jsonb)));
@@ -50,6 +53,17 @@ begin
   if (select result from public.rl_snapshots where identity_key = k1) = 'win' and (select goals_for from public.rl_snapshots where identity_key = k1) = 3
   then r := array_append(r, 'PASS a snapshot carries the scrim''s facts for that side'); else r := array_append(r, 'FAIL facts'); end if;
   reset role;
+
+  -- sessions: one per team per day, automatic
+  if (select session_id from public.team_scrims where id = sid) is not null then r := array_append(r, 'PASS a team scrim gets a session automatically'); else r := array_append(r, 'FAIL no session'); end if;
+  res := public.record_team_scrim(sub, jsonb_build_object('replay_id', '3b0a1e7c-0000-4000-8000-0000000000dd', 'via', 'web', 'played_at', '2026-11-15T23:00:00Z', 'duration_seconds', 300,
+    'queue_kind', 'custom', 'side', 'blue', 'goals_for', 1, 'goals_against', 2, 'side_players', 3, 'team_totals', '{}'::jsonb, 'opponent_totals', '{}'::jsonb));
+  if (select session_id from public.team_scrims where id = (res->>'scrim_id')::uuid) = (select session_id from public.team_scrims where id = sid) then r := array_append(r, 'PASS a second scrim the same day joins the same session'); else r := array_append(r, 'FAIL same day'); end if;
+  res := public.record_team_scrim(sub, jsonb_build_object('replay_id', '3b0a1e7c-0000-4000-8000-0000000000ee', 'via', 'web', 'played_at', '2026-11-16T10:00:00Z', 'duration_seconds', 300,
+    'queue_kind', 'custom', 'side', 'blue', 'goals_for', 1, 'goals_against', 2, 'side_players', 3, 'team_totals', '{}'::jsonb, 'opponent_totals', '{}'::jsonb));
+  if (select session_id from public.team_scrims where id = (res->>'scrim_id')::uuid) <> (select session_id from public.team_scrims where id = sid) then r := array_append(r, 'PASS a scrim on another day gets a new session'); else r := array_append(r, 'FAIL other day'); end if;
+  if public.record_event(sub, 'claim_button_clicked', '{"source": "discord", "game": "ROCKET_LEAGUE"}') = 'claim_button_clicked' and public.record_event(sub, 'profile_claimed', '{"game": "ROCKET_LEAGUE"}') = 'profile_claimed'
+  then r := array_append(r, 'PASS claim_button_clicked and profile_claimed are recorded'); else r := array_append(r, 'FAIL new events'); end if;
 
   -- nobody reads or writes unclaimed snapshots
   perform set_config('request.jwt.claims', json_build_object('sub', mate, 'role', 'authenticated')::text, true);

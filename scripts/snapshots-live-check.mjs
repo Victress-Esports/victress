@@ -2,7 +2,7 @@
 // 2 calls per replay). Prints counts only: no names or ids.
 //   NODE_USE_ENV_PROXY=1 node scripts/snapshots-live-check.mjs [replays=10]
 // For each 3v3 replay: acts as the first player on blue who has an id, submits it for a team, and checks that snapshots are made for
-// exactly the other blue players who have ids (never orange), as keyed hashes only, and that the reply is the result card.
+// exactly the blue players who have ids, the submitter included (never orange), as keyed hashes only, and that the reply is the result card.
 import { runReplayImport } from "../lib/ballchasing/rl.ts";
 import { snapshotSlots, teamScrimFromReplay, sharingMembers } from "../lib/ballchasing/team.ts";
 import { claimKeyFn } from "../lib/claim-core.ts";
@@ -34,14 +34,14 @@ for (const s of list) {
   const client = { details: async () => detail, ping: async () => true };
   const r = await runReplayImport({ admin, client, team: { build: teamScrimFromReplay, members: sharingMembers, snapshots: { slots: snapshotSlots, key } }, claimUrl: "https://victress.gg/claim" }, "u", `https://ballchasing.com/replay/${s.id}`, { authorized: true, consent: true, via: "discord", forTeam: true });
   const snap = calls.find((c) => c.fn === "record_rl_snapshots");
-  const expected = blue.filter((p) => p !== me && p.id?.platform && p.id?.id).map((p) => key(p.id.platform, p.id.id)).sort();
+  const expected = blue.filter((p) => p.id?.platform && p.id?.id).map((p) => key(p.id.platform, p.id.id)).sort();
   const got = (snap?.args.p ?? []).map((x) => x.key).sort();
   const oppKeys = orange.filter((p) => p.id?.platform && p.id?.id).map((p) => key(p.id.platform, p.id.id));
   const sent = JSON.stringify(calls);
   const leak = [...blue, ...orange].some((p) => (p.id?.id && sent.includes(p.id.id)) || (p.name && p.name.length > 3 && sent.includes(p.name)));
   const pass = r.ok && r.team === "added" && JSON.stringify(got) === JSON.stringify(expected) && !got.some((k) => oppKeys.includes(k)) && !leak
-    && new RegExp(`${expected.length ? expected.length + " snapshot" : "No snapshots"}`).test(r.message) && !/assists, \d+ saves, \d+ shots, score/.test(r.message.split("Team totals:")[0]);
+    && new RegExp(`${expected.length ? expected.length + " player snapshot" : "No player snapshots"}`).test(r.message) && !/assists, \d+ saves, \d+ shots, score/.test(r.message.split("Team totals:")[0]);
   if (pass) ok++; else console.log(`replay ${s.id}: MISMATCH (expected ${expected.length} snapshots, got ${got.length}, leak ${leak}, team ${r.team})`);
 }
-console.log(`${ok} of ${checked} real replays: snapshots for exactly the submitter's other teammates with ids, none for opponents, keys only (no ids or names sent), result card shown.`);
+console.log(`${ok} of ${checked} real replays: snapshots for exactly the submitting side's players with ids (submitter included), none for opponents, keys only (no ids or names sent), result card shown.`);
 process.exit(ok === checked && checked > 0 ? 0 : 1);

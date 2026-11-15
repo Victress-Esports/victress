@@ -7,7 +7,7 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export type EventName =
   | "registration_completed" | "discord_linked" | "game_identity_linked" | "team_created" | "team_joined"
-  | "first_scrim_submitted" | "scrim_processing_completed" | "repeat_scrim_submitted";
+  | "first_scrim_submitted" | "scrim_processing_completed" | "repeat_scrim_submitted" | "claim_button_clicked" | "profile_claimed";
 export type EventProps = { source?: "web" | "discord" | "email" | "google" | "invite"; referral?: string; game?: "ROCKET_LEAGUE" | "LOL" | "VALORANT" | "CS2" | "APEX" | "OVERWATCH2" };
 
 const REFERRAL = /^[a-z0-9][a-z0-9_-]{0,31}$/;

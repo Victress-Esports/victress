@@ -154,7 +154,7 @@ export type Database = {
       };
       rl_snapshots: {
         // identity_key and claimed_by are not readable by players (column grants); the server reads them with the service role.
-        Row: { id: string; replay_id: string; played_at: string; duration_seconds: number; queue_kind: "ranked" | "normal" | "custom" | "other"; result: "win" | "loss" | "no_result"; goals_for: number; goals_against: number; overtime: boolean; stats: Record<string, number>; claimed_at: string | null; claimed_by: string | null };
+        Row: { id: string; replay_id: string; played_at: string; duration_seconds: number; queue_kind: "ranked" | "normal" | "custom" | "other"; result: "win" | "loss" | "no_result"; goals_for: number; goals_against: number; overtime: boolean; stats: Record<string, number>; mvp: boolean; claimed_at: string | null; claimed_by: string | null };
         Insert: never;
         Update: never;
         Relationships: [];

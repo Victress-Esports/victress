@@ -19,9 +19,9 @@ const me = { platform: "steam", id: "76561198000000001" };
 
 // ---- snapshot candidates
 const slots = snapshotSlots(replay(), me);
-check(slots.length === 1 && slots[0].platform === "epic" && slots[0].id === "aaaabbbbccccddddeeeeffff00001111", "snapshots only for OTHER players on the submitter's own side who have a platform id");
+check(slots.length === 2 && slots[0].platform === "steam" && slots[0].id === "76561198000000001" && slots[1].platform === "epic" && slots[1].id === "aaaabbbbccccddddeeeeffff00001111", "a snapshot for every player on the submitting side who has a platform id, the submitter included");
 check(!slots.some((s) => s.id === "5551212" || s.id === "76561198000000009"), "opponents never get a snapshot");
-check(Object.keys(slots[0].stats).sort().join() === "assists,goals,saves,score,shots" && slots[0].stats.goals === 1, "a snapshot holds the five numbers only");
+check(Object.keys(slots[1].stats).sort().join() === "assists,goals,saves,score,shots" && slots[1].stats.goals === 1 && slots.every((x) => typeof x.mvp === "boolean"), "a snapshot holds the five numbers and the MVP flag only");
 check(!JSON.stringify(slots).includes("Mate One"), "no name is carried");
 check(snapshotSlots(replay(), { platform: "steam", id: "1" }).length === 0 && snapshotSlots(null, me).length === 0, "a submitter not in the replay, or a malformed replay, gives no snapshots");
 
@@ -34,9 +34,9 @@ check(key("epic", "abc") !== claimKeyFn({ VICTRESS_CLAIM_KEY: "j".repeat(40) })(
 
 // ---- result card
 const card = cardText({ result: "win", goals_for: 3, goals_against: 1, overtime: true, opponent: "Rival", totals: { goals: 3, assists: 2, saves: 4, shots: 9, score: 900 }, snapshots: 2 }, "https://victress.gg/claim");
-check(card.includes("Win 3 to 1 (overtime) vs Rival") && card.includes("Team totals: 3 goals, 2 assists, 4 saves, 9 shots, 900 score") && card.includes("2 snapshots ready. Claim yours: https://victress.gg/claim"), "the card shows score, W or L, team totals and N snapshots ready with the claim link");
+check(card.includes("Win 3 to 1 (overtime) vs Rival") && card.includes("Team totals: 3 goals, 2 assists, 4 saves, 9 shots, 900 score") && card.includes("2 player snapshots ready. Claim yours: https://victress.gg/claim"), "the card shows score, W or L, team totals and N player snapshots ready with the claim link");
 check(!/Me Player|Mate One|76561198/.test(card), "the card shows no individual player or id");
-check(/No snapshots to claim/.test(cardText({ result: "loss", goals_for: 0, goals_against: 2, overtime: false, opponent: null, totals: {}, snapshots: 0 })), "zero snapshots says so plainly");
+check(/No player snapshots/.test(cardText({ result: "loss", goals_for: 0, goals_against: 2, overtime: false, opponent: null, totals: {}, snapshots: 0 })), "zero snapshots says so plainly");
 
 // ---- pipeline: snapshots stored as keys only
 const t = { game_accounts: [{ id: "acc-me", profile_id: "me", game: "ROCKET_LEAGUE", platform: "steam", external_id: "76561198000000001" }], game_matches: [], import_jobs: [], team_members: [{ team_id: "A", profile_id: "me" }], team_scrims: [], team_stat_sharing: [], events: [] };
@@ -53,14 +53,22 @@ const deps = { admin, client: { details: async () => replay(), ping: async () =>
 const r = await runReplayImport(deps, "me", `https://ballchasing.com/replay/${ID}`, { authorized: true, consent: true, via: "discord", forTeam: true, opponent: "Rival" });
 const snapCall = rpcCalls.find((c) => c.fn === "record_rl_snapshots");
 check(r.ok && r.team === "added" && snapCall && snapCall.args.p_scrim === "ts-1" && snapCall.args.p_submitter === "me", "after the team scrim is added, its snapshots are recorded for that scrim and submitter");
-check(snapCall && snapCall.args.p.length === 1 && snapCall.args.p[0].key === key("epic", "aaaabbbbccccddddeeeeffff00001111"), "the stored key is the keyed hash of the teammate's exact platform and id");
-check(snapCall && !JSON.stringify(snapCall.args).includes("aaaabbbbccccddddeeeeffff00001111") && !JSON.stringify(snapCall.args).includes("epic"), "no platform id or platform name is sent to the database");
-check(r.card && r.card.snapshots === 1 && /1 snapshot ready\. Claim yours: https:\/\/victress\.gg\/claim/.test(r.message) && /Win 3 to 1 vs Rival/.test(r.message), "the reply is the result card with 1 snapshot ready");
+check(snapCall && snapCall.args.p.length === 2 && snapCall.args.p[0].key === key("steam", "76561198000000001") && snapCall.args.p[1].key === key("epic", "aaaabbbbccccddddeeeeffff00001111"), "the stored keys are the keyed hashes of each player's exact platform and id, the submitter included");
+check(snapCall && !/aaaabbbbccccddddeeeeffff00001111|76561198000000001|"epic"|"steam"/.test(JSON.stringify(snapCall.args)), "no platform id or platform name is sent to the database");
+check(r.card && r.card.snapshots === 2 && /2 player snapshots ready\. Claim yours: https:\/\/victress\.gg\/claim/.test(r.message) && /Win 3 to 1 vs Rival/.test(r.message), "the reply is the result card with 2 player snapshots ready");
 check(!/Mate One|Opp One|aaaabbbb|5551212/.test(r.message), "the reply names no player and shows no id or individual numbers of others");
 const noKey = { ...deps, team: { ...deps.team, snapshots: { slots: snapshotSlots, key: null } } };
 t.team_scrims.length = 0; t.game_matches.length = 0; t.import_jobs.length = 0; rpcCalls.length = 0;
 const r2 = await runReplayImport(noKey, "me", `https://ballchasing.com/replay/${ID}`, { authorized: true, consent: true, via: "web", forTeam: true });
-check(r2.ok && r2.team === "added" && !rpcCalls.some((c) => c.fn === "record_rl_snapshots") && /No snapshots to claim/.test(r2.message), "without the claim secret the scrim still saves and no snapshots are made");
+check(r2.ok && r2.team === "added" && !rpcCalls.some((c) => c.fn === "record_rl_snapshots") && /No player snapshots/.test(r2.message), "without the claim secret the scrim still saves and no snapshots are made");
+
+// ---- side option: must match the side of the submitter's own ID
+t.team_scrims.length = 0; t.game_matches.length = 0; t.import_jobs.length = 0; rpcCalls.length = 0;
+const r3 = await runReplayImport(deps, "me", `https://ballchasing.com/replay/${ID}`, { authorized: true, consent: true, via: "discord", forTeam: true, side: "orange" });
+check(!r3.ok && r3.code === "side_mismatch" && t.game_matches.length === 0 && !rpcCalls.length, "a side that is not the side of the player's own ID saves nothing");
+t.import_jobs.length = 0;
+const r4 = await runReplayImport(deps, "me", `https://ballchasing.com/replay/${ID}`, { authorized: true, consent: true, via: "discord", forTeam: true, side: "blue" });
+check(r4.ok && r4.team === "added", "the matching side is accepted");
 
 // ---- Steam OpenID
 const cfg = steamConfig({ VICTRESS_STEAM_SIGNIN_ENABLED: "true", VICTRESS_STEAM_RETURN_URL: "https://victress.gg/dashboard/link/steam/callback" });

@@ -3,9 +3,10 @@
 Branch `claude/wizardly-ride-bafh0x` (PR #54), Preview host `https://victress-git-claude-wizardl-6d3298-matt-hills-projects-54d303a1.vercel.app`, staging Supabase.
 Staging only: no production setting, migration or deployment.
 
-## The loop
-`/scrim submit link:<replay> authorized:True consent:True team:True` in Discord. Victress reads the replay from Ballchasing and stores your own row once. It adds the team scrim (opponents as totals only) and makes a **snapshot** for each other player on **your side** who has a platform ID: their five numbers under a coded key, never their ID or name. The private reply is the **result card**: W/L and score, team totals, "N snapshots ready. Claim yours: <link>". No individual numbers.
-A teammate opens `/claim`, signs up (age, Terms and Privacy), verifies Steam or Epic, and sees their snapshot only if the coded key of their **verified** platform ID matches exactly.
+## The loop (docs/rl-mvp-weekend.md)
+`/scrim submit link:<replay> authorized:True consent:True team:True [side:Blue|Orange]` in Discord. Victress reads the replay from Ballchasing, stores your own row once, adds the team scrim (one session per team per day, opponents as totals only), and makes a **player snapshot** for **every player on your side, you included**, who has a platform ID: five numbers and MVP under a coded key, never the ID or name.
+You get a private reply. The channel gets the **result card**: score, W/L, team totals, "N player snapshots ready. Claim yours" and a **Claim your stats** button to `/claim`. No individual numbers.
+On `/claim` a player signs up (age, Terms and Privacy), verifies Steam or Epic, and sees their own snapshot only if the coded key of the **verified** platform ID matches exactly.
 
 ## Vercel, Preview, branch `claude/wizardly-ride-bafh0x` (you enter the values; secrets never in the repo or chat)
 | Variable | Value |
@@ -44,16 +45,18 @@ Supabase staging, Authentication, URL Configuration: allow `https://victress-git
    ```
    This registers the commands to that server only: `/help`, `/privacy`, `/link`, `/unlink`, `/profile`, `/scrim submit|status|stats`. The bot token is never needed by Vercel.
 
-## Test script (run in order; tell Claude after each step marked Claude)
-**Accounts:** A = you. B = a second staging account for the teammate whose snapshot will be claimed. Use your own second Steam or Epic account if one of them appears on your side of the replay; otherwise a real teammate who agrees.
-**Replay:** a 2v2 or 3v3 Ballchasing replay set to Unlisted or Public, where you and that teammate are on the same side.
-1. A: on the Preview, finish the consent page (staging account already allowlisted). Rocket League page: **Verify with Epic Games** (or Steam). Claude checks the stored ID against the replay with `scripts/epic-ballchasing-match.mjs` (it must say EXACT MATCH: YES; if NO, stop, and Claude shows both fingerprints).
-2. A: Team page, create a team. Team scrims page: optional "Share my numbers".
-3. Discord (test server): `/link` and open the link while signed in as A. Then `/privacy` and `/help`.
-4. Discord: `/scrim submit link:<replay> authorized:True consent:True team:True opponent:Test`. Expect the private result card: "Added to your team's scrims.", "Win X to Y" (or Loss), "Team totals: …", "1 snapshot ready. Claim yours: <link>". No individual numbers. **Claude**: checks staging: one `game_matches` row, one `team_scrims` row, one `rl_snapshots` row per teammate with an ID (coded key only), events.
-5. The same command again: "You already submitted this replay…", nothing new (Claude checks counts).
-6. `/scrim stats`: your own summary only.
-7. B: open the claim link from the card, sign up, age and Terms and Privacy. **Claude** adds B to the staging pilot allowlist. B: **Verify with Steam** or **Verify with Epic Games** with the teammate's account. Expect "1 new snapshot found" and that game with B's own five numbers only.
-8. Negative: a third account that verifies a different Steam or Epic account sees no snapshot. Typing B's ID without verifying claims nothing.
-9. Team scrims page as A: the scrim, team and opponent totals; no opponent names.
-10. Clean up: B deletes the snapshot on `/claim`; A runs `/unlink` in Discord; A, Rocket League page, Delete all Rocket League data; A, Account, Delete my account. **Claude** confirms on staging that the rows are gone (cascade) and the unclaimed snapshots go with the scrim.
+## Test script (your real account only; tell Claude at the steps marked Claude)
+**Replay:** an Unlisted or Public Ballchasing replay (2v2 or 3v3) that you played on the Steam or Epic account you will verify, on your team's side.
+1. On the Preview, open `/__site/app?to=/login` and sign up with your real email. Complete the age gate and Terms and Privacy.
+2. **Claude**: tell Claude "signed up". Claude finds your new staging account by its sign up time and email and adds it to the staging pilot allowlist (staging only), then confirms.
+3. Rocket League page: **Verify with Epic Games** (or **Verify with Steam**). **Claude**: compares your verified ID with the replay (`scripts/epic-ballchasing-match.mjs`, fingerprints only). It must say EXACT MATCH: YES. If NO, stop: Claude shows both fingerprints.
+4. Team page: create a team. (Team scrims page: "Share my numbers" is optional and separate.)
+5. Discord test server: `/help`, `/privacy`, then `/link` and open the link while signed in.
+6. `/scrim submit link:<replay> authorized:True consent:True team:True opponent:Test side:<your side>`. Expect the private reply, then in the channel the result card with **Claim your stats**: "Win X to Y" or "Loss", "Team totals: …", "N player snapshots ready. Claim yours." No individual numbers. **Claude**: checks staging: one `game_matches` row, one `team_scrims` row with a session, one `rl_snapshots` row per player on your side with an ID (coded keys only), events.
+7. The same command again: "You already submitted this replay…". No second card, nothing new (Claude checks counts).
+8. Same replay with the wrong `side`: nothing saved.
+9. `/scrim stats`: your own summary only.
+10. Press **Claim your stats** in the channel. On `/claim` (already verified) you see **your own** snapshot: goals, saves, shots, shooting %, score, MVP. **Claude**: checks `claim_button_clicked` and `profile_claimed` events.
+11. Team scrims page: the scrim, team and opponent totals; no opponent names.
+12. Clean up: delete the snapshot on `/claim`; `/unlink` in Discord; Rocket League page, Delete all Rocket League data; Account, Delete my account. **Claude** confirms on staging that the rows are gone.
+Teammates on your side get snapshots too; they can claim later the same way once Claude adds them to the allowlist.

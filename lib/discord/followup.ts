@@ -2,6 +2,25 @@
 // reply through a webhook URL. It is NOT the bot token and needs no other credential. The token is never logged.
 const API = "https://discord.com/api/v10";
 
+/** Posts a follow-up message in the channel where the command ran (public unless flags say otherwise). Same token, no bot needed. */
+export async function postFollowup(
+  applicationId: string,
+  interactionToken: string,
+  message: { content: string; flags?: number; allowed_mentions?: { parse: string[] }; components?: unknown[] },
+  doFetch: typeof fetch = fetch,
+): Promise<boolean> {
+  try {
+    const res = await doFetch(`${API}/webhooks/${encodeURIComponent(applicationId)}/${encodeURIComponent(interactionToken)}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(message),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 export async function completeDeferred(
   applicationId: string,
   interactionToken: string,

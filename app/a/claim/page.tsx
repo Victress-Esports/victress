@@ -10,6 +10,7 @@ import { platformLabel, RL_DATA_LABEL } from "@/lib/ballchasing/rl";
 import { claimKeyFn } from "@/lib/claim";
 import { scrimUploadsEnabled } from "@/lib/dashboard";
 import { EPIC_MESSAGES, epicEnabled } from "@/lib/epic";
+import { recordEvent } from "@/lib/events";
 import { privateMetadata } from "@/lib/seo";
 import { STEAM_MESSAGES, steamEnabled } from "@/lib/steam";
 import { supabaseAdmin } from "@/lib/supabase-admin";
@@ -17,16 +18,19 @@ import { supabaseServer } from "@/lib/supabase/server";
 
 export const metadata: Metadata = privateMetadata("Claim your snapshot | Victress", "Verify your game account to see the Rocket League snapshots your team saved for you.");
 
-type Snap = { id: string; played_at: string; duration_seconds: number; queue_kind: string; result: string; goals_for: number; goals_against: number; overtime: boolean; stats: Record<string, number> };
+type Snap = { id: string; played_at: string; duration_seconds: number; queue_kind: string; result: string; goals_for: number; goals_against: number; overtime: boolean; stats: Record<string, number>; mvp: boolean };
+const shooting = (s: Record<string, number>) => (s.shots ? `${Math.round(((s.goals ?? 0) / s.shots) * 100)}%` : "n/a");
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
-export default async function Claim({ searchParams }: { searchParams: Promise<{ epic?: string; steam?: string }> }) {
+export default async function Claim({ searchParams }: { searchParams: Promise<{ epic?: string; steam?: string; from?: string }> }) {
   if (!scrimUploadsEnabled()) notFound();
   const pre = await supabaseServer();
   const { data: { user: signedIn } } = await pre.auth.getUser();
-  if (!signedIn) redirect("/login?next=%2Fclaim"); // sign up or sign in first; the age gate and Terms and Privacy follow
-  const { sb, user } = await requireUser();
   const sp = await searchParams;
+  const fromCard = sp.from === "card";
+  // Sign up or sign in first; the age gate and Terms and Privacy follow. The card marker survives the trip.
+  if (!signedIn) redirect(`/login?next=${encodeURIComponent(fromCard ? "/claim?from=card" : "/claim")}`);
+  const { sb, user } = await requireUser();
 
   const { data: approved } = await sb.rpc("upload_allowed");
   const { data: acct } = await sb.from("game_accounts").select("platform, external_id, ownership_verified").eq("profile_id", user.id).eq("game", "ROCKET_LEAGUE").maybeSingle();
@@ -39,9 +43,12 @@ export default async function Claim({ searchParams }: { searchParams: Promise<{ 
   if (approved === true && verified && key && admin && acct?.platform) {
     const { data } = await admin.rpc("claim_rl_snapshots", { p_profile: user.id, p_key: key(acct.platform, acct.external_id) });
     claimedNow = Number(data ?? 0);
+    if (claimedNow > 0) await recordEvent(user.id, "profile_claimed", { game: "ROCKET_LEAGUE" }, admin);
   }
+  // Arrived from the result card's Claim button (the link carries ?from=card). Recorded once the visitor is a signed in player.
+  if (fromCard && admin) await recordEvent(user.id, "claim_button_clicked", { source: "discord", game: "ROCKET_LEAGUE" }, admin);
   const { data: rows } = verified
-    ? await sb.from("rl_snapshots").select("id, played_at, duration_seconds, queue_kind, result, goals_for, goals_against, overtime, stats").order("played_at", { ascending: false }).limit(50)
+    ? await sb.from("rl_snapshots").select("id, played_at, duration_seconds, queue_kind, result, goals_for, goals_against, overtime, stats, mvp").order("played_at", { ascending: false }).limit(50)
     : { data: [] };
   const snaps = (rows ?? []) as Snap[];
   const note = sp.epic && sp.epic in EPIC_MESSAGES ? EPIC_MESSAGES[sp.epic as keyof typeof EPIC_MESSAGES] : sp.steam && sp.steam in STEAM_MESSAGES ? STEAM_MESSAGES[sp.steam as keyof typeof STEAM_MESSAGES] : null;
@@ -77,7 +84,7 @@ export default async function Claim({ searchParams }: { searchParams: Promise<{ 
                   <li key={s.id} className="rounded-xl border border-line bg-surface-2 px-4 py-3">
                     <p className="font-semibold">{s.result === "win" ? "Win" : s.result === "loss" ? "Loss" : "Draw"} <span className="font-normal text-mute">{s.goals_for} to {s.goals_against}{s.overtime ? ", overtime" : ""}</span></p>
                     <p className="mt-1 text-sm text-mute">{new Date(s.played_at).toLocaleDateString("en-US")} · {s.queue_kind === "custom" ? "Private match" : s.queue_kind} · {mmss(s.duration_seconds)} · from a team scrim a teammate submitted</p>
-                    <p className="mt-1 text-sm">{s.stats.goals ?? 0} goals, {s.stats.assists ?? 0} assists, {s.stats.saves ?? 0} saves, {s.stats.shots ?? 0} shots, score {s.stats.score ?? 0}</p>
+                    <p className="mt-1 text-sm">{s.stats.goals ?? 0} goals, {s.stats.saves ?? 0} saves, {s.stats.shots ?? 0} shots, shooting {shooting(s.stats)}, score {s.stats.score ?? 0}{s.mvp ? ", MVP" : ""}</p>
                     <div className="mt-3"><DeleteSnapshot id={s.id} /></div>
                   </li>
                 ))}
@@ -85,6 +92,7 @@ export default async function Claim({ searchParams }: { searchParams: Promise<{ 
             ) : (
               <p className="text-mute">No snapshots for your account yet. When a teammate adds a replay you played in to their team, it appears here.</p>
             )}
+            <p className="mt-5 text-sm"><Link href="/dashboard/profile" className="font-semibold underline">Finish your free Rookie profile</Link><span className="text-mute"> to keep building your Player Resume. It stays private until you choose to share it.</span></p>
           </Section>
         )}
         <p className="text-sm text-mute">Unclaimed snapshots are deleted after 90 days. <Link href="/privacy" className="underline">Privacy Policy</Link></p>
