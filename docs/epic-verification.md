@@ -46,7 +46,7 @@ Also needed (already exist): `SCRIM_UPLOADS_ENABLED=true`, `BALLCHASING_API_TOKE
 3. Same client, Edit: add the redirect URL(s) above.
 4. Epic Online Services, Accounts and Social, **Epic Account Services**: accept the agreement, then create the application.
 5. **Brand Settings**: website `https://victress.gg`, privacy policy `https://victressesports.com/privacy`, support `https://victressesports.com/contact`. **Brand review submitted**, case `500QP00001tKTKIYA4` (2026-11-15). Until the release, that privacy URL shows the November 10 policy, which does not mention Epic.
-6. Brand review: until Epic approves the brand settings, only accounts inside your Epic organization can sign in. That is enough for your own staging test with your own Epic account. Submit for review only when you decide to open it to pilot players.
+6. Brand review (submitted, case `500QP00001tKTKIYA4`): until Epic approves it, only accounts inside your Epic organization can sign in. That is enough for your own staging test with your own Epic account.
 
 ## Tests (local)
 - `node scripts/epic-test.mjs`: 39 checks (flag, config, authorize URL, token and token info requests, every refusal path, saving rules).
