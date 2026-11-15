@@ -5,7 +5,7 @@ Branch `claude/wizardly-ride-bafh0x`, stacked on `claude/eager-carson-2b79tb`. *
 ## What it does
 A pilot player on victress.gg, Rocket League page, can choose **Verify with Epic Games**. They sign in at Epic, and Victress stores the **Epic Account ID** that Epic returns as their Rocket League identity (platform `epic`), marked verified. Replays are matched exactly as before: platform and id, exact, never by name.
 - This is **not** a way to sign in to Victress. It proves control of an Epic account and nothing about ability.
-- Only the account id is kept. Access and refresh tokens are never stored or logged. Nothing from the Epic profile is read.
+- Only the account id (and the time it was verified) is kept. Access and refresh tokens are never stored or logged. Nothing from the Epic profile is read. The account id is not sent to Ballchasing or any other service.
 - One Epic account can be verified on one Victress account (database unique index). Typed IDs are unchanged.
 - An identity that already has saved games is never swapped for another account.
 - **Steam works without Epic.** With the flag off, nothing Epic is shown, both routes return 404, and no code reads the new columns. Typed Steam, PlayStation, Xbox, Switch and Epic IDs work exactly as before.
@@ -16,13 +16,13 @@ Sources: dev.epicgames.com "Web API reference: Authentication" and "Epic Account
 2. `GET /dashboard/link/epic/callback?code&state`. The state must match the cookie for this same player.
 3. Server to server `POST https://api.epicgames.dev/epic/oauth/v2/token`, client id and secret in a Basic Authorization header, body `grant_type=authorization_code`, `code`, `redirect_uri` (and `deployment_id` if set). Epic documents `account_id` in the response as "The Epic Games account ID for the user that the token was generated for."
 4. `POST https://api.epicgames.dev/epic/oauth/v2/tokenInfo` with the access token: must be `active`, for this client, and name the same `account_id`.
-5. Save, then count how many public Ballchasing replays carry exactly `epic:<account id>` (Ballchasing `player-id` filter, up to 10). The page shows that count so the player can see the match.
+5. Save, then return to the Rocket League page with a fixed message. (An earlier draft also searched Ballchasing for the account id; it was removed on 2026-11-15 because the Privacy Policy says Ballchasing requests carry only a replay id.)
 
 Scope: `basic_profile` only. Epic says Basic Profile is always required and cannot be turned off.
 
 ## Does Ballchasing's Epic ID equal Epic's sign in account ID?
 - **Format: yes.** Epic's documented `account_id` example is 32 lower case hex characters. In 600 real replays and a fresh sample of 5 public ranked replays (12 Epic slots), every Ballchasing `epic` id is 32 lower case hex.
-- **Equality for a real account: not yet shown.** It needs one real sign in. The connected Ballchasing token belongs to an account (`victressesports`) with no uploaded replays, so there is no known replay to compare against. The callback does the comparison automatically: after a real sign in, the page says how many public Ballchasing replays have exactly that Epic account ID. **If it says 0 for an account that you know appears in a public replay, the IDs do not match: stop and report it.** Victress then holds a verified id that matches nothing, which is harmless (no games are attached).
+- **Equality for a real account: not yet shown.** It needs one real sign in. The connected Ballchasing token belongs to an account (`victressesports`) with no uploaded replays, so there is no known replay to compare against. To check: verify with Epic, then submit an Unlisted or Public replay you played on Epic. **If the import says your ID is not in the replay, the IDs do not match: stop and report it.** Victress then holds a verified id that matches nothing, which is harmless (no games are attached).
 - The discovery document lists `pairwise` as a supported subject type. That concerns the OpenID `sub` claim. This flow does not use `sub` or an ID token. It uses `account_id` from the token and token info endpoints.
 
 ## Environment variables (server only; Vercel Preview first)
@@ -45,7 +45,7 @@ Also needed (already exist): `SCRIM_UPLOADS_ENABLED=true`, `BALLCHASING_API_TOKE
 2. Product Settings, Clients tab: add a client. Pick a Client Policy that requires an authenticated user (GameClient is the predefined one for untrusted client software). Copy the Client ID and Client Secret straight into Vercel.
 3. Same client, Edit: add the redirect URL(s) above.
 4. Epic Online Services, Accounts and Social, **Epic Account Services**: accept the agreement, then create the application.
-5. **Brand Settings**: company name, logo, privacy policy URL, support URL. **Permissions**: Basic Profile only (Online Presence, Friends and Country off). **Linked Clients**: link the client from step 2. Save each tab.
+5. **Brand Settings**: company name (Victress LLC), logo (the Victress wings emblem), privacy policy URL `https://victressesports.com/privacy` (the canonical address; victress.gg/privacy shows the same document once released), support URL `https://victressesports.com/contact`. Submit brand review only after the policy with the Epic wording is live, so the reviewer sees it. **Permissions**: Basic Profile only (Online Presence, Friends and Country off). **Linked Clients**: link the client from step 2. Save each tab.
 6. Brand review: until Epic approves the brand settings, only accounts inside your Epic organization can sign in. That is enough for your own staging test with your own Epic account. Submit for review only when you decide to open it to pilot players.
 
 ## Tests (local)

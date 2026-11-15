@@ -139,6 +139,17 @@ d = db([{ id: "b1", profile_id: "other", game: "ROCKET_LEAGUE", platform: "epic"
 check(await E.saveVerifiedEpic(d.admin, PID, ACC) === "saved", "another account that only typed the same ID does not block the real owner");
 check(await E.saveVerifiedEpic(db().admin, PID, "NotAnId") === "error", "a malformed id is never saved");
 
+// ------------------------------------------------------------ what the routes do (Privacy Policy accuracy)
+const cb = readFileSync("app/a/dashboard/link/epic/callback/route.ts", "utf8");
+const st = readFileSync("app/a/dashboard/link/epic/start/route.ts", "utf8");
+check(!/ballchasing/i.test(cb.replace(/\/\/.*$/gm, "")), "the callback never contacts Ballchasing (the policy says Ballchasing requests carry only a replay id)");
+check(!/console\.|access_token|refresh_token/.test(cb + st), "the routes never log or handle raw tokens themselves");
+const core = readFileSync("lib/epic/core.ts", "utf8").replace(/\/\/.*$/gm, "");
+check(!/console\./.test(core) && !/refresh_token/.test(core) && !/\.dn\b|displayName|display_name/.test(core), "core: no logging, no refresh token use, the display name is never read");
+check(E.EPIC_SCOPE === "basic_profile" && !/friends_list|presence|country/.test(core), "the only scope is basic_profile; friends, presence and country are never requested");
+const policy = readFileSync("content/legal.ts", "utf8");
+check(/PENDING LEGAL REVIEW/.test(policy), "the policy source is still marked pending legal review");
+
 // ------------------------------------------------------------ messages
 const all = Object.values(E.EPIC_MESSAGES).join(" ");
 check(!/[—]/.test(all) && !/source of truth/i.test(all), "messages: no em dashes, no banned phrases");

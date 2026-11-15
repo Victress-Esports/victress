@@ -1,6 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { requireUser } from "@/lib/auth";
-import { ballchasingClient } from "@/lib/ballchasing";
 import { scrimUploadsEnabled } from "@/lib/dashboard";
 import { EPIC_COOKIE_PATH, EPIC_STATE_COOKIE, epicServerConfig, saveVerifiedEpic, verifyEpicCallback } from "@/lib/epic";
 import { recordEvent } from "@/lib/events";
@@ -35,13 +34,7 @@ export async function GET(req: NextRequest) {
   if (!admin) return done({ epic: "error" });
   const outcome = await saveVerifiedEpic(admin, user.id, r.accountId);
   if (outcome === "saved" || outcome === "replaced") await recordEvent(user.id, "game_identity_linked", { source: "web", game: "ROCKET_LEAGUE" }, admin);
-  if (outcome !== "saved" && outcome !== "replaced" && outcome !== "already") return done({ epic: outcome });
-
-  // How many public Ballchasing replays carry exactly this Epic account id (platform and id, never a name). A count only.
-  let bc = "unknown";
-  const client = ballchasingClient();
-  if (client) {
-    try { bc = String((await client.list({ playerId: `epic:${r.accountId}`, count: 10 })).list.length); } catch { bc = "unknown"; }
-  }
-  return done({ epic: outcome, bc });
+  // The Epic Account ID is not sent anywhere else (the Privacy Policy says Ballchasing requests carry only a replay id). The player checks
+  // the match by submitting a replay, which matches by platform and id exactly.
+  return done({ epic: outcome });
 }

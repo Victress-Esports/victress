@@ -2,6 +2,7 @@ import "server-only";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { isMissingTable } from "@/lib/db-errors";
 import type { Database } from "@/types/database";
+import { epicEnabled } from "@/lib/epic";
 
 /**
  * Everything Victress holds about one signed in player, read with that player's own session, so row level security decides
@@ -40,7 +41,8 @@ export async function buildAccountExport(sb: SupabaseClient<Database>, user: Use
     practice_files: await own("scrim_uploads", "game, original_name, size_bytes, created_at"),
     discord_link: await own("discord_links", "discord_user_id, linked_at, consent_version"),
     game_imports: {
-      accounts: await own("game_accounts", "game, provider, platform, external_id, display_name, tag, region, ownership_verified, created_at, last_imported_at"),
+      // The Epic verification columns exist only with migration 20261115000100, which the Epic flag requires.
+      accounts: await own("game_accounts", `game, provider, platform, external_id, display_name, tag, region, ownership_verified, ${epicEnabled() ? "verified_via, verified_at, " : ""}created_at, last_imported_at`),
       matches: await own("game_matches", "game, source, source_detail, external_id, queue_kind, queue_label, played_at, duration_seconds, result, me, participants, objectives, imported_at"),
       submissions: await own("import_jobs", "game, provider, status, external_ref, submitted_via, consent_at, imported, skipped_existing, failed_matches, error_message, created_at, finished_at"),
     },

@@ -23,7 +23,7 @@ const maskedId = (id: string) => (id.length <= 6 ? id : `${id.slice(0, 3)}…${i
 
 type MatchRow = RlRow & { id: string; queue_label: string | null; objectives: { blue_goals?: number; orange_goals?: number; overtime?: boolean; map?: string | null } };
 
-export default async function RocketLeaguePage({ searchParams }: { searchParams: Promise<{ kind?: string; epic?: string; bc?: string }> }) {
+export default async function RocketLeaguePage({ searchParams }: { searchParams: Promise<{ kind?: string; epic?: string }> }) {
   const { sb, user } = await requireUser();
   if (!scrimUploadsEnabled()) notFound();
   const { data: approved } = await sb.rpc("upload_allowed");
@@ -46,7 +46,6 @@ export default async function RocketLeaguePage({ searchParams }: { searchParams:
   const epicOn = epicEnabled();
   const verified = acct?.ownership_verified === true; // for Rocket League, true only with an Epic verification (database rule)
   const epicNote = epicOn && sp.epic && sp.epic in EPIC_MESSAGES ? EPIC_MESSAGES[sp.epic as keyof typeof EPIC_MESSAGES] : null;
-  const bcSeen = epicNote && /^[0-9]{1,2}$/.test(sp.bc ?? "") ? Number(sp.bc) : null;
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
@@ -61,9 +60,6 @@ export default async function RocketLeaguePage({ searchParams }: { searchParams:
         {epicNote ? (
           <div role="status" className="mb-4 rounded-xl border border-line bg-surface-2 px-4 py-3 text-sm">
             <p>{epicNote}</p>
-            {bcSeen !== null ? (
-              <p className="mt-1 text-mute">{bcSeen === 0 ? "Ballchasing has no public replays with this Epic account ID yet. Submit an Unlisted or Public replay you played on Epic to check the match." : `Ballchasing has ${bcSeen >= 10 ? "at least 10" : bcSeen} public replay${bcSeen === 1 ? "" : "s"} with exactly this Epic account ID.`}</p>
-            ) : null}
           </div>
         ) : null}
         {verified ? (

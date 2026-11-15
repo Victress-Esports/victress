@@ -10,7 +10,7 @@
 //      "The Epic Games account ID for the user that the token was generated for."
 //   4. POST https://api.epicgames.dev/epic/oauth/v2/tokenInfo token=<access token> (RFC 7662): it must be active, issued to this client,
 //      and name the same account_id. Only then is the account id used.
-// Tokens are never stored or logged. Only the account id is kept. basic_profile is the only scope requested (Epic requires it; nothing
+// Tokens are never stored or logged. Only the account id (and the time it was verified) is kept, and it is not sent to any other service. basic_profile is the only scope requested (Epic requires it; nothing
 // from the profile is read or stored).
 //
 // Matching to Ballchasing: the verified account id is saved as the Rocket League identity with platform 'epic', and replays are matched by
@@ -157,7 +157,7 @@ export async function saveVerifiedEpic(admin: Admin, profileId: string, accountI
 
 /** What the Rocket League page says after the callback. Fixed texts only; nothing from Epic or the URL is echoed. */
 export const EPIC_MESSAGES: Record<SaveOutcome | EpicFailure | "off", string> = {
-  saved: "Your Epic Games account is verified. Victress will match you in replays by this Epic account ID only.",
+  saved: "Your Epic Games account is verified. Victress will match you in replays by this Epic account ID only. Submit an Unlisted or Public replay you played on Epic to check that it matches.",
   already: "This Epic Games account was already verified on your Victress account.",
   replaced: "Your Rocket League ID is now your verified Epic Games account.",
   has_games: "Delete your saved Rocket League games before switching to a different account, so old games are never attached to a different player.",
